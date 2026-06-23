@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Environment variables — NEVER commit secrets
+.env
+
+# Uploaded resumes — large binary files, stored on server only
+uploads/*
+!uploads/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log

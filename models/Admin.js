@@ -1,0 +1,30 @@
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
+const bcrypt = require('bcryptjs');
+
+const Admin = sequelize.define('Admin', {
+  id:        { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  username:  { type: DataTypes.STRING(100), allowNull: false, unique: true },
+  password:  { type: DataTypes.STRING(255), allowNull: false },
+  name:      { type: DataTypes.STRING(255), defaultValue: 'Admin' },
+  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, {
+  tableName: 'admins',
+  timestamps: false,
+  hooks: {
+    beforeCreate: async (admin) => {
+      admin.password = await bcrypt.hash(admin.password, 12);
+    },
+    beforeUpdate: async (admin) => {
+      if (admin.changed('password')) {
+        admin.password = await bcrypt.hash(admin.password, 12);
+      }
+    }
+  }
+});
+
+Admin.prototype.comparePassword = async function (plainPassword) {
+  return bcrypt.compare(plainPassword, this.password);
+};
+
+module.exports = Admin;

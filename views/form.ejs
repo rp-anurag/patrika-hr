@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body class="form-page">
+
+  <!-- Header -->
+  <header class="patrika-header">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between py-3">
+        <div class="d-flex align-items-center gap-3">
+          <img src="/images/patrika-logo.png" alt="Patrika" class="header-logo">
+          <div>
+            <h5 class="mb-0 text-gold fw-bold">Patrika Group</h5>
+            <small class="text-muted">HR Intelligence System</small>
+          </div>
+        </div>
+        <div class="text-end d-none d-md-block">
+          <span class="badge bg-gold text-dark fs-6 px-3 py-2">
+            <i class="bi bi-briefcase-fill me-1"></i> Careers
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero-banner">
+    <div class="container py-5 text-center">
+      <h1 class="hero-title">Join the Patrika Family</h1>
+      <p class="hero-sub">Apply for a position and take the next step in your career with India's leading media group.</p>
+    </div>
+  </section>
+
+  <!-- Alerts -->
+  <div class="container mt-4">
+    <% if (success) { %>
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+      <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+      <div>
+        <strong>Application Submitted Successfully!</strong><br>
+        Thank you for applying. Our HR team will review your profile and reach out to you shortly.
+        A confirmation email has been sent to your registered email ID.
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+    <% if (error) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <strong>Error:</strong> <%= error %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container my-4">
+    <div class="row g-4">
+
+      <!-- Application Form -->
+      <div class="col-lg-8">
+        <div class="card form-card shadow-sm">
+          <div class="card-header form-card-header">
+            <h4 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Candidate Application Form</h4>
+            <small class="opacity-75">Fields marked with * are mandatory</small>
+          </div>
+          <div class="card-body p-4">
+
+            <form id="applicationForm" action="/apply" method="POST" enctype="multipart/form-data" novalidate>
+
+              <!-- Resume Upload FIRST (to enable live parsing) -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-file-earmark-person me-1 text-gold"></i>
+                  Upload Resume / CV *
+                </label>
+                <div id="dropZone" class="drop-zone">
+                  <div id="dropZoneContent">
+                    <i class="bi bi-cloud-upload fs-1 text-gold"></i>
+                    <p class="mb-1 fw-semibold">Drag & Drop your CV here</p>
+                    <p class="text-muted small mb-2">or click to browse</p>
+                    <span class="badge bg-secondary">PDF, DOC, DOCX — Max 5MB</span>
+                  </div>
+                  <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" class="drop-input" required>
+                </div>
+                <div id="fileInfo" class="mt-2 d-none">
+                  <div class="alert alert-info py-2 d-flex align-items-center">
+                    <i class="bi bi-file-earmark-check me-2 text-primary fs-5"></i>
+                    <div>
+                      <span id="fileName" class="fw-semibold"></span><br>
+                      <small class="text-muted" id="parseStatus">Parsing resume...</small>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" id="removeFile"></button>
+                  </div>
+                </div>
+                <div id="parseSuccess" class="alert alert-success py-2 d-none">
+                  <i class="bi bi-magic me-1"></i>
+                  <strong>Resume parsed!</strong> Some fields have been auto-filled. Please review and correct if needed.
+                </div>
+              </div>
+
+              <hr class="my-4">
+
+              <!-- Personal Details -->
+              <h6 class="section-title"><i class="bi bi-person-circle me-2"></i>Personal Information</h6>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label for="fullName" class="form-label">Full Name *</label>
+                  <input type="text" class="form-control" id="fullName" name="fullName"
+                    placeholder="Enter your full name" required minlength="2">
+                  <div class="invalid-feedback">Please enter your full name.</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="contactNumber" class="form-label">Contact Number *</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-phone"></i> +91</span>
+                    <input type="tel" class="form-control" id="contactNumber" name="contactNumber"
+                      placeholder="10-digit mobile number" required
+                      pattern="[6-9][0-9]{9}" maxlength="10">
+                  </div>
+                  <div class="invalid-feedback">Enter a valid 10-digit Indian mobile number.</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="email" class="form-label">Email ID *</label>
+                  <input type="email" class="form-control" id="email" name="email"
+                    placeholder="your@email.com" required>
+                  <div class="invalid-feedback">Enter a valid email address.</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="currentLocation" class="form-label">Current Location *</label>
+                  <input type="text" class="form-control" id="currentLocation" name="currentLocation"
+                    placeholder="City, State" required>
+                  <div class="invalid-feedback">Please enter your current location.</div>
+                </div>
+              </div>
+
+              <!-- Position -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-briefcase me-1 text-gold"></i>Position Applying For *
+                </label>
+                <div class="row g-2">
+                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','NHM Marketing Analyst','CTO','CFO']; %>
+                  <% positions.forEach(pos => { %>
+                  <div class="col-md-6 col-lg-4">
+                    <input type="radio" class="btn-check" name="positionApplying" id="pos_<%= pos.replace(/\s/g,'_') %>" value="<%= pos %>" required>
+                    <label class="btn btn-outline-gold w-100 text-start px-3" for="pos_<%= pos.replace(/\s/g,'_') %>">
+                      <i class="bi bi-check-circle me-1"></i><%= pos %>
+                    </label>
+                  </div>
+                  <% }) %>
+                </div>
+                <div class="form-text text-danger d-none" id="positionError">Please select a position.</div>
+              </div>
+
+              <!-- Current Package -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-currency-rupee me-1 text-gold"></i>Current Package (Annual, in Lakhs)
+                </label>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label for="packageFixed" class="form-label text-muted small">Fixed</label>
+                    <div class="input-group">
+                      <span class="input-group-text">₹</span>
+                      <input type="number" class="form-control" id="packageFixed" name="packageFixed"
+                        placeholder="e.g. 8.5" min="0" step="0.1">
+                      <span class="input-group-text">L</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="packageVariables" class="form-label text-muted small">Variables</label>
+                    <div class="input-group">
+                      <span class="input-group-text">₹</span>
+                      <input type="number" class="form-control" id="packageVariables" name="packageVariables"
+                        placeholder="e.g. 2.0" min="0" step="0.1">
+                      <span class="input-group-text">L</span>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="packageOthers" class="form-label text-muted small">Others</label>
+                    <div class="input-group">
+                      <span class="input-group-text">₹</span>
+                      <input type="number" class="form-control" id="packageOthers" name="packageOthers"
+                        placeholder="e.g. 0.5" min="0" step="0.1">
+                      <span class="input-group-text">L</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-text">Leave blank if not applicable. Total: <strong id="totalPackageDisplay">₹0 L</strong></div>
+              </div>
+
+              <!-- Notice Period -->
+              <div class="mb-4">
+                <label for="noticePeriod" class="form-label fw-semibold">
+                  <i class="bi bi-calendar-check me-1 text-gold"></i>Notice Period *
+                </label>
+                <select class="form-select" id="noticePeriod" name="noticePeriod" required>
+                  <option value="" disabled selected>-- Select Notice Period --</option>
+                  <option value="Immediate">Immediate</option>
+                  <option value="15 Days">15 Days</option>
+                  <option value="30 Days">30 Days</option>
+                  <option value="60 Days">60 Days</option>
+                  <option value="90 Days">90 Days</option>
+                </select>
+                <div class="invalid-feedback">Please select your notice period.</div>
+              </div>
+
+              <!-- Submit -->
+              <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-gold btn-lg" id="submitBtn">
+                  <i class="bi bi-send-fill me-2"></i>Submit Application
+                </button>
+              </div>
+              <p class="text-center text-muted small mt-2">
+                By submitting, you agree to our <a href="#" class="text-gold">Privacy Policy</a>.
+                Your data is kept confidential.
+              </p>
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="col-lg-4">
+
+        <!-- QR Code Card -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-dark text-white text-center py-3">
+            <h6 class="mb-0"><i class="bi bi-qr-code me-2"></i>Scan to Apply on Mobile</h6>
+          </div>
+          <div class="card-body text-center py-4">
+            <img src="/images/form-qr.png" alt="QR Code" class="img-fluid qr-image" id="qrImage"
+              onerror="this.style.display='none';document.getElementById('qrFallback').style.display='block'">
+            <div id="qrFallback" style="display:none;" class="py-3">
+              <i class="bi bi-qr-code display-4 text-muted"></i>
+              <p class="text-muted small mt-2">QR will appear after server start</p>
+            </div>
+            <p class="text-muted small mt-3">Scan this QR code with your phone camera to open the application form.</p>
+          </div>
+        </div>
+
+        <!-- Open Positions -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-gold-light">
+            <h6 class="mb-0 text-dark"><i class="bi bi-list-check me-2"></i>Open Positions</h6>
+          </div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+              <% const posDetails = [
+                { name: 'FMCG Jaipur', dept: 'Sales & Marketing', icon: 'geo-alt' },
+                { name: 'FMCG Rajasthan', dept: 'Sales & Marketing', icon: 'geo-alt' },
+                { name: 'FMCG MPCG', dept: 'Sales & Marketing', icon: 'geo-alt' },
+                { name: 'Chief Digital Officer', dept: 'Digital & Technology', icon: 'laptop' },
+                { name: 'NHM Marketing Analyst', dept: 'Marketing', icon: 'bar-chart' },
+                { name: 'CTO', dept: 'Technology', icon: 'cpu' },
+                { name: 'CFO', dept: 'Finance', icon: 'cash-stack' }
+              ]; %>
+              <% posDetails.forEach(p => { %>
+              <li class="list-group-item d-flex align-items-center py-2">
+                <i class="bi bi-<%= p.icon %> me-2 text-gold fs-5"></i>
+                <div>
+                  <div class="fw-semibold small"><%= p.name %></div>
+                  <div class="text-muted" style="font-size:11px;"><%= p.dept %></div>
+                </div>
+                <i class="bi bi-arrow-right-circle ms-auto text-muted"></i>
+              </li>
+              <% }) %>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="card shadow-sm border-gold">
+          <div class="card-body">
+            <h6 class="text-gold fw-bold"><i class="bi bi-lightbulb-fill me-1"></i> Application Tips</h6>
+            <ul class="small text-muted ps-3 mb-0">
+              <li class="mb-1">Upload your CV first — we'll auto-fill details for you.</li>
+              <li class="mb-1">Use PDF format for best parsing results.</li>
+              <li class="mb-1">Ensure your phone number is active for WhatsApp updates.</li>
+              <li class="mb-1">Double-check your email for confirmation.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="patrika-footer mt-5">
+    <div class="container py-3 text-center">
+      <small class="text-muted">
+        &copy; <%= new Date().getFullYear() %> Patrika Group. All rights reserved. &nbsp;|&nbsp;
+        <a href="/admin/login" class="text-muted text-decoration-none">HR Admin</a>
+      </small>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  <style>
+    .resume-preview-modal .modal-dialog { max-width: 860px; }
+    .resume-iframe { width: 100%; height: 78vh; border: none; border-radius: 4px; background: #f5f5f5; }
+    .resume-card {
+      border: 2px dashed var(--gold);
+      border-radius: 10px;
+      background: var(--gold-light);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .resume-card .file-icon { font-size: 2.4rem; }
+    .resume-card .file-icon.pdf  { color: #dc3545; }
+    .resume-card .file-icon.docx { color: #0d6efd; }
+  </style>
+</head>
+<body class="admin-page">
+<div class="admin-wrapper">
+
+  <!-- Sidebar -->
+  <nav class="admin-sidebar d-flex flex-column">
+    <div class="sidebar-brand">
+      <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo" onerror="this.style.display='none'">
+      <div>
+        <div class="fw-bold text-gold">Patrika HR</div>
+        <small class="text-white-50">Admin Panel</small>
+      </div>
+    </div>
+    <hr class="border-secondary my-2">
+    <ul class="nav flex-column px-2 flex-grow-1">
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/dashboard">
+          <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/apply" target="_blank">
+          <i class="bi bi-file-earmark-person me-2"></i>Application Form
+        </a>
+      </li>
+    </ul>
+    <div class="px-2 pb-3">
+      <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-topbar d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div class="avatar-circle avatar-lg"><%= candidate.fullName.charAt(0).toUpperCase() %></div>
+        <div>
+          <h5 class="mb-0 fw-bold"><%= candidate.fullName %></h5>
+          <small class="text-muted"><%= candidate.positionApplying %> &nbsp;·&nbsp; Applied <%= new Date(candidate.submittedAt).toLocaleDateString('en-IN') %></small>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <% if (candidate.resumeFile) { %>
+        <button class="btn btn-sm btn-gold" onclick="openPreview()">
+          <i class="bi bi-eye-fill me-1"></i>Preview CV
+        </button>
+        <a href="/admin/candidate/<%= candidate.id %>/download" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-download me-1"></i>Download CV
+        </a>
+        <% } %>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteCandidate('<%= candidate.id %>')">
+          <i class="bi bi-trash me-1"></i>Delete
+        </button>
+      </div>
+    </div>
+
+    <div class="p-4">
+
+      <!-- Flash Message -->
+      <% if (flash) { %>
+      <div class="alert alert-<%= flashType || 'success' %> alert-dismissible fade show py-2" role="alert">
+        <i class="bi bi-check-circle me-1"></i> <%= flash %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <% } %>
+
+      <div class="row g-4">
+
+        <!-- ── Left Column ──────────────────────────────────────── -->
+        <div class="col-lg-7">
+
+          <!-- Profile Card -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-person me-2"></i>Candidate Profile</h6></div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <label class="detail-label">Full Name</label>
+                  <div class="detail-value fw-semibold"><%= candidate.fullName %></div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="detail-label">Email</label>
+                  <div class="detail-value"><a href="mailto:<%= candidate.email %>"><%= candidate.email %></a></div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="detail-label">Contact Number</label>
+                  <div class="detail-value"><a href="tel:+91<%= candidate.contactNumber %>">+91 <%= candidate.contactNumber %></a></div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="detail-label">Current Location</label>
+                  <div class="detail-value"><%= candidate.currentLocation %></div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="detail-label">Position Applied</label>
+                  <div class="detail-value"><span class="badge bg-dark fs-6"><%= candidate.positionApplying %></span></div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="detail-label">Notice Period</label>
+                  <div class="detail-value"><%= candidate.noticePeriod %></div>
+                </div>
+                <div class="col-12">
+                  <label class="detail-label">Current Package (Annual)</label>
+                  <div class="row g-2 mt-1">
+                    <div class="col-4">
+                      <div class="package-box">
+                        <small>Fixed</small>
+                        <strong>₹<%= candidate.currentPackage.fixed || 0 %>L</strong>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="package-box">
+                        <small>Variables</small>
+                        <strong>₹<%= candidate.currentPackage.variables || 0 %>L</strong>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="package-box bg-gold-light">
+                        <small>Total CTC</small>
+                        <strong>₹<%= ((candidate.currentPackage.fixed||0)+(candidate.currentPackage.variables||0)+(candidate.currentPackage.others||0)).toFixed(1) %>L</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resume Card -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-file-earmark-person me-2"></i>Resume / CV</h6></div>
+            <div class="card-body">
+              <% if (candidate.resumeFile) {
+                   const ext = candidate.resumeFile.originalName.split('.').pop().toLowerCase();
+                   const iconClass = ext === 'pdf' ? 'pdf' : 'docx';
+                   const icon = ext === 'pdf' ? 'bi-file-earmark-pdf-fill' : 'bi-file-earmark-word-fill';
+              %>
+              <div class="resume-card">
+                <i class="bi <%= icon %> file-icon <%= iconClass %>"></i>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold"><%= candidate.resumeFile.originalName %></div>
+                  <small class="text-muted">
+                    <%= (candidate.resumeFile.size / 1024).toFixed(1) %> KB &nbsp;·&nbsp;
+                    <%= ext.toUpperCase() %> file
+                  </small>
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-gold btn-sm" onclick="openPreview()">
+                    <i class="bi bi-eye me-1"></i>Preview
+                  </button>
+                  <a href="/admin/candidate/<%= candidate.id %>/download" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-download me-1"></i>Download
+                  </a>
+                </div>
+              </div>
+              <% } else { %>
+              <div class="text-center text-muted py-4">
+                <i class="bi bi-file-earmark-x display-5 d-block mb-2"></i>
+                No resume uploaded by this candidate.
+              </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Parsed Data Card -->
+          <% if (candidate.parsedData && (candidate.parsedData.name || candidate.parsedData.email || candidate.parsedData.skills.length)) { %>
+          <div class="card shadow-sm mb-4 border-gold">
+            <div class="card-header bg-gold-light">
+              <h6 class="mb-0 text-dark"><i class="bi bi-magic me-2"></i>AI-Parsed Resume Data</h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <% if (candidate.parsedData.name) { %>
+                <div class="col-sm-6">
+                  <label class="detail-label">Parsed Name</label>
+                  <div class="detail-value"><%= candidate.parsedData.name %></div>
+                </div>
+                <% } %>
+                <% if (candidate.parsedData.email) { %>
+                <div class="col-sm-6">
+                  <label class="detail-label">Parsed Email</label>
+                  <div class="detail-value"><%= candidate.parsedData.email %></div>
+                </div>
+                <% } %>
+                <% if (candidate.parsedData.phone) { %>
+                <div class="col-sm-6">
+                  <label class="detail-label">Parsed Phone</label>
+                  <div class="detail-value"><%= candidate.parsedData.phone %></div>
+                </div>
+                <% } %>
+                <% if (candidate.parsedData.location) { %>
+                <div class="col-sm-6">
+                  <label class="detail-label">Parsed Location</label>
+                  <div class="detail-value"><%= candidate.parsedData.location %></div>
+                </div>
+                <% } %>
+                <% if (candidate.parsedData.skills && candidate.parsedData.skills.length) { %>
+                <div class="col-12">
+                  <label class="detail-label">Extracted Skills</label>
+                  <div class="mt-1">
+                    <% candidate.parsedData.skills.forEach(skill => { %>
+                    <span class="badge bg-secondary me-1 mb-1"><%= skill %></span>
+                    <% }) %>
+                  </div>
+                </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Communication Log -->
+          <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Communication History</h6>
+              <span class="badge bg-secondary"><%= candidate.communications.length %> messages</span>
+            </div>
+            <div class="card-body p-0">
+              <% if (candidate.communications.length === 0) { %>
+              <div class="text-center text-muted py-4">
+                <i class="bi bi-chat-square display-6 d-block mb-2"></i>No communications sent yet.
+              </div>
+              <% } else { %>
+              <div class="comm-log">
+                <% candidate.communications.slice().reverse().forEach(c => { %>
+                <div class="comm-entry">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-<%= c.channel === 'WhatsApp' ? 'success' : 'primary' %>">
+                      <i class="bi bi-<%= c.channel === 'WhatsApp' ? 'whatsapp' : 'envelope' %> me-1"></i><%= c.channel %>
+                    </span>
+                    <small class="text-muted"><%= new Date(c.sentAt).toLocaleString('en-IN') %></small>
+                    <span class="badge bg-<%= c.status === 'Sent' ? 'success' : 'danger' %> ms-auto" style="font-size:10px;"><%= c.status %></span>
+                  </div>
+                  <% if (c.subject) { %><div class="small fw-semibold text-muted mb-1">Re: <%= c.subject %></div><% } %>
+                  <div class="comm-message"><%= c.message %></div>
+                </div>
+                <% }) %>
+              </div>
+              <% } %>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Right Column ─────────────────────────────────────── -->
+        <div class="col-lg-5">
+
+          <!-- Pipeline Status -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Update Status & Notes</h6></div>
+            <div class="card-body">
+              <form action="/admin/candidate/<%= candidate.id %>/update" method="POST">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Pipeline Status</label>
+                  <% const statusOpts = ['New','Screening','Shortlisted','Interview Scheduled','Offer Extended','Hired','Rejected'];
+                     const sColor = { New:'primary', Screening:'info', Shortlisted:'warning', 'Interview Scheduled':'secondary', 'Offer Extended':'dark', Hired:'success', Rejected:'danger' }; %>
+                  <div class="d-flex flex-wrap gap-1 mb-2">
+                    <% statusOpts.forEach(s => { %>
+                    <input type="radio" class="btn-check" name="status" id="status_<%= s.replace(/\s/g,'_') %>"
+                      value="<%= s %>" <%= candidate.status === s ? 'checked' : '' %>>
+                    <label class="btn btn-sm btn-outline-<%= sColor[s] %>" for="status_<%= s.replace(/\s/g,'_') %>">
+                      <%= s %>
+                    </label>
+                    <% }) %>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Admin Notes</label>
+                  <textarea class="form-control" name="adminNotes" rows="4"
+                    placeholder="Add notes about this candidate..."><%= candidate.adminNotes || '' %></textarea>
+                </div>
+                <button type="submit" class="btn btn-gold w-100">
+                  <i class="bi bi-save me-1"></i>Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Send Communication -->
+          <div class="card shadow-sm">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-send me-2"></i>Send Message</h6></div>
+            <div class="card-body">
+              <div id="commAlert" class="d-none mb-2"></div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Channel</label>
+                <div class="d-flex gap-2">
+                  <input type="radio" class="btn-check" name="commChannel" id="chEmail" value="Email" checked>
+                  <label class="btn btn-outline-primary flex-fill" for="chEmail">
+                    <i class="bi bi-envelope me-1"></i>Email
+                  </label>
+                  <input type="radio" class="btn-check" name="commChannel" id="chWhatsApp" value="WhatsApp">
+                  <label class="btn btn-outline-success flex-fill" for="chWhatsApp">
+                    <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                  </label>
+                </div>
+              </div>
+              <div class="mb-3" id="subjectField">
+                <label class="form-label">Subject</label>
+                <input type="text" class="form-control" id="commSubject" value="Message from Patrika HR">
+              </div>
+              <div class="mb-2">
+                <label class="form-label fw-semibold">Quick Templates</label>
+                <select class="form-select form-select-sm" id="msgTemplate">
+                  <option value="">-- Choose a template --</option>
+                  <option value="Dear <%= candidate.fullName %>,\n\nThank you for applying for the <%= candidate.positionApplying %> position at Patrika Group. We have received your application and our team will review it shortly.\n\nWarm regards,\nPatrika HR Team">Application Confirmation</option>
+                  <option value="Dear <%= candidate.fullName %>,\n\nWe are pleased to inform you that your profile has been shortlisted for the <%= candidate.positionApplying %> position. Our HR team will contact you shortly to schedule an interview.\n\nBest regards,\nPatrika HR Team">Shortlisting Confirmation</option>
+                  <option value="Dear <%= candidate.fullName %>,\n\nWe would like to invite you for an interview for the <%= candidate.positionApplying %> position.\n\nDate & Time: [Please specify]\nVenue: Patrika Bhawan, Jaipur\n\nKindly confirm your availability.\n\nBest regards,\nPatrika HR Team">Interview Invite</option>
+                  <option value="Dear <%= candidate.fullName %>,\n\nThank you for your time and interest in Patrika Group. After careful consideration, we regret to inform you that we will not be moving forward with your application at this time.\n\nWe wish you the best in your career journey.\n\nWarm regards,\nPatrika HR Team">Rejection (Polite)</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Message *</label>
+                <textarea class="form-control" id="commMessage" rows="5" placeholder="Type your message here..."></textarea>
+              </div>
+              <button class="btn btn-gold w-100" id="sendCommBtn" onclick="sendCommunication()">
+                <i class="bi bi-send-fill me-1"></i>Send Message
+              </button>
+              <p class="text-muted small text-center mt-2">
+                <i class="bi bi-info-circle me-1"></i>
+                To: <strong><%= candidate.email %></strong> &nbsp;/&nbsp; <strong><%= candidate.contactNumber %></strong>
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══ RESUME PREVIEW MODAL ════════════════════════════════════════════════════ -->
+<% if (candidate.resumeFile) { %>
+<div class="modal fade resume-preview-modal" id="resumeModal" tabindex="-1" aria-labelledby="resumeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-person text-gold fs-5"></i>
+          <h6 class="modal-title mb-0" id="resumeModalLabel"><%= candidate.resumeFile.originalName %></h6>
+          <span class="badge bg-secondary ms-1"><%= candidate.fullName %></span>
+        </div>
+        <div class="d-flex gap-2 ms-auto me-2">
+          <a href="/admin/candidate/<%= candidate.id %>/download" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-download me-1"></i>Download
+          </a>
+          <a href="/admin/candidate/<%= candidate.id %>/preview" target="_blank" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Open in New Tab
+          </a>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="clearPreview()"></button>
+      </div>
+      <div class="modal-body p-0" style="background:#525659;">
+        <div id="previewLoading" class="text-center text-white py-5">
+          <div class="spinner-border text-light mb-2"></div>
+          <div>Loading resume...</div>
+        </div>
+        <iframe id="resumeFrame" class="resume-iframe" style="display:none;"
+          title="Resume Preview" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ── Resume Preview ────────────────────────────────────────
+  <% if (candidate.resumeFile) { %>
+  const previewUrl = '/admin/candidate/<%= candidate.id %>/preview';
+  let previewLoaded = false;
+
+  function openPreview() {
+    const modal = new bootstrap.Modal(document.getElementById('resumeModal'));
+    modal.show();
+    if (!previewLoaded) {
+      const frame  = document.getElementById('resumeFrame');
+      const loader = document.getElementById('previewLoading');
+      frame.src = previewUrl;
+      frame.onload = () => {
+        loader.style.display = 'none';
+        frame.style.display  = 'block';
+        previewLoaded = true;
+      };
+      frame.onerror = () => {
+        loader.innerHTML = '<div class="text-danger mt-3"><i class="bi bi-exclamation-circle fs-3 d-block mb-2"></i>Could not load preview.<br><a href="' + previewUrl + '" target="_blank" class="btn btn-sm btn-light mt-2">Open in New Tab</a></div>';
+      };
+    }
+  }
+
+  function clearPreview() {
+    // Reset so next open re-loads (in case the file was updated)
+    previewLoaded = false;
+    document.getElementById('resumeFrame').src = '';
+    document.getElementById('resumeFrame').style.display = 'none';
+    document.getElementById('previewLoading').style.display = 'block';
+  }
+
+  // Also open modal if URL has ?preview=1
+  if (window.location.search.includes('preview=1')) openPreview();
+  <% } %>
+
+  // ── Templates ─────────────────────────────────────────────
+  document.getElementById('msgTemplate').addEventListener('change', function () {
+    if (this.value) document.getElementById('commMessage').value = this.value;
+  });
+
+  document.querySelectorAll('input[name="commChannel"]').forEach(el => {
+    el.addEventListener('change', function () {
+      document.getElementById('subjectField').style.display =
+        this.value === 'WhatsApp' ? 'none' : 'block';
+    });
+  });
+
+  // ── Send Communication ────────────────────────────────────
+  function sendCommunication() {
+    const channel = document.querySelector('input[name="commChannel"]:checked').value;
+    const message = document.getElementById('commMessage').value.trim();
+    const subject = document.getElementById('commSubject').value;
+    if (!message) { alert('Please enter a message.'); return; }
+
+    const btn = document.getElementById('sendCommBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+
+    fetch('/admin/candidate/<%= candidate.id %>/communicate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel, message, subject })
+    })
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('commAlert');
+      el.className = `alert alert-${data.success ? 'success' : 'danger'} py-2`;
+      el.textContent = data.message;
+      el.classList.remove('d-none');
+      if (data.success) {
+        document.getElementById('commMessage').value = '';
+        setTimeout(() => location.reload(), 1500);
+      }
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Send Message';
+    });
+  }
+
+  // ── Delete Candidate ──────────────────────────────────────
+  function deleteCandidate(id) {
+    if (!confirm('Delete this candidate permanently? This cannot be undone.')) return;
+    fetch(`/admin/candidate/${id}`, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) window.location = '/admin/dashboard';
+        else alert('Delete failed: ' + d.message);
+      });
+  }
+</script>
+</body>
+</html>
