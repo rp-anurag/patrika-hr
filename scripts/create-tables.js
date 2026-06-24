@@ -48,7 +48,7 @@ const TABLES = [
       contactNumber      VARCHAR(20)  NOT NULL,
       email              VARCHAR(255) NOT NULL,
       currentLocation    VARCHAR(255) NOT NULL,
-      positionApplying   ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','NHM Marketing Analyst','CTO','CFO') NOT NULL,
+      positionApplying   ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','CTO','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print') NOT NULL,
       packageFixed       DECIMAL(10,2) DEFAULT 0.00,
       packageVariables   DECIMAL(10,2) DEFAULT 0.00,
       packageOthers      DECIMAL(10,2) DEFAULT 0.00,

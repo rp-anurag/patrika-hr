@@ -36,6 +36,11 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/resume-parser">
+            <i class="bi bi-file-earmark-text me-2"></i>Resume Parser
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link sidebar-link" href="/apply" target="_blank">
             <i class="bi bi-file-earmark-person me-2"></i>Application Form
           </a>
@@ -138,7 +143,7 @@
               <div class="col-md-3">
                 <select class="form-select form-select-sm" name="position">
                   <option value="">All Positions</option>
-                  <% ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','NHM Marketing Analyst','CTO','CFO'].forEach(p => { %>
+                  <% ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','CTO','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print'].forEach(p => { %>
                   <option value="<%= p %>" <%= query.position === p ? 'selected' : '' %>><%= p %></option>
                   <% }) %>
                 </select>

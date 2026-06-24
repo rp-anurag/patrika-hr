@@ -8,7 +8,7 @@ const Candidate = sequelize.define('Candidate', {
   email:            { type: DataTypes.STRING(255), allowNull: false },
   currentLocation:  { type: DataTypes.STRING(255), allowNull: false },
   positionApplying: {
-    type: DataTypes.ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','NHM Marketing Analyst','CTO','CFO'),
+    type: DataTypes.ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','CTO','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print'),
     allowNull: false
   },
 
@@ -30,12 +30,18 @@ const Candidate = sequelize.define('Candidate', {
   resumeSize:         { type: DataTypes.INTEGER },
 
   // Parsed data — stored flat, exposed as nested via virtual
-  parsedName:     { type: DataTypes.STRING(255) },
-  parsedEmail:    { type: DataTypes.STRING(255) },
-  parsedPhone:    { type: DataTypes.STRING(30) },
-  parsedLocation: { type: DataTypes.STRING(255) },
-  parsedSkills:   { type: DataTypes.TEXT },          // JSON string
-  parsedRawText:  { type: DataTypes.TEXT('long') },  // full CV text
+  parsedName:               { type: DataTypes.STRING(255) },
+  parsedEmail:              { type: DataTypes.STRING(255) },
+  parsedPhone:              { type: DataTypes.STRING(30) },
+  parsedLocation:           { type: DataTypes.STRING(255) },
+  parsedSkills:             { type: DataTypes.TEXT },
+  parsedLinkedIn:           { type: DataTypes.STRING(500) },
+  parsedSummary:            { type: DataTypes.TEXT },
+  parsedTotalExperience:    { type: DataTypes.STRING(100) },
+  parsedCurrentRole:        { type: DataTypes.STRING(255) },
+  parsedExperienceEntries:  { type: DataTypes.TEXT('long') }, // JSON string
+  parsedEducation:          { type: DataTypes.TEXT('long') }, // JSON string
+  parsedRawText:            { type: DataTypes.TEXT('long') },
 
   status: {
     type: DataTypes.ENUM('New','Screening','Shortlisted','Interview Scheduled','Offer Extended','Hired','Rejected'),
@@ -73,13 +79,19 @@ const Candidate = sequelize.define('Candidate', {
   parsedData: {
     type: DataTypes.VIRTUAL,
     get() {
-      const raw = this.getDataValue('parsedSkills');
+      const safeJSON = (v) => { try { return v ? JSON.parse(v) : null; } catch { return null; } };
       return {
-        name:     this.getDataValue('parsedName'),
-        email:    this.getDataValue('parsedEmail'),
-        phone:    this.getDataValue('parsedPhone'),
-        location: this.getDataValue('parsedLocation'),
-        skills:   raw ? JSON.parse(raw) : []
+        name:              this.getDataValue('parsedName'),
+        email:             this.getDataValue('parsedEmail'),
+        phone:             this.getDataValue('parsedPhone'),
+        location:          this.getDataValue('parsedLocation'),
+        skills:            safeJSON(this.getDataValue('parsedSkills')) || [],
+        linkedin:          this.getDataValue('parsedLinkedIn'),
+        summary:           this.getDataValue('parsedSummary'),
+        totalExperience:   this.getDataValue('parsedTotalExperience'),
+        currentRole:       this.getDataValue('parsedCurrentRole'),
+        experienceEntries: safeJSON(this.getDataValue('parsedExperienceEntries')) || [],
+        education:         safeJSON(this.getDataValue('parsedEducation')) || []
       };
     }
   },

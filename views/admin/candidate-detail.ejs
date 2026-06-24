@@ -44,6 +44,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/resume-parser">
+          <i class="bi bi-file-earmark-text me-2"></i>Resume Parser
+        </a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link sidebar-link" href="/apply" target="_blank">
           <i class="bi bi-file-earmark-person me-2"></i>Application Form
         </a>
@@ -189,48 +194,87 @@
           </div>
 
           <!-- Parsed Data Card -->
-          <% if (candidate.parsedData && (candidate.parsedData.name || candidate.parsedData.email || candidate.parsedData.skills.length)) { %>
+          <% const pd = candidate.parsedData;
+             const hasAnyParsed = pd && (pd.name || pd.email || pd.totalExperience || pd.currentRole || pd.summary || pd.linkedin || (pd.skills && pd.skills.length) || (pd.experienceEntries && pd.experienceEntries.length) || (pd.education && pd.education.length));
+          %>
+          <% if (hasAnyParsed) { %>
           <div class="card shadow-sm mb-4 border-gold">
             <div class="card-header bg-gold-light">
-              <h6 class="mb-0 text-dark"><i class="bi bi-magic me-2"></i>AI-Parsed Resume Data</h6>
+              <h6 class="mb-0 text-dark"><i class="bi bi-magic me-2"></i>Resume Intelligence</h6>
             </div>
             <div class="card-body">
-              <div class="row g-3">
-                <% if (candidate.parsedData.name) { %>
+
+              <!-- Basic parsed info -->
+              <div class="row g-3 mb-3">
+                <% if (pd.totalExperience) { %>
                 <div class="col-sm-6">
-                  <label class="detail-label">Parsed Name</label>
-                  <div class="detail-value"><%= candidate.parsedData.name %></div>
+                  <label class="detail-label">Total Experience</label>
+                  <div class="detail-value fw-semibold text-gold"><%= pd.totalExperience %></div>
                 </div>
                 <% } %>
-                <% if (candidate.parsedData.email) { %>
+                <% if (pd.currentRole) { %>
                 <div class="col-sm-6">
-                  <label class="detail-label">Parsed Email</label>
-                  <div class="detail-value"><%= candidate.parsedData.email %></div>
+                  <label class="detail-label">Current / Last Role</label>
+                  <div class="detail-value"><%= pd.currentRole %></div>
                 </div>
                 <% } %>
-                <% if (candidate.parsedData.phone) { %>
-                <div class="col-sm-6">
-                  <label class="detail-label">Parsed Phone</label>
-                  <div class="detail-value"><%= candidate.parsedData.phone %></div>
-                </div>
-                <% } %>
-                <% if (candidate.parsedData.location) { %>
-                <div class="col-sm-6">
-                  <label class="detail-label">Parsed Location</label>
-                  <div class="detail-value"><%= candidate.parsedData.location %></div>
-                </div>
-                <% } %>
-                <% if (candidate.parsedData.skills && candidate.parsedData.skills.length) { %>
+                <% if (pd.linkedin) { %>
                 <div class="col-12">
-                  <label class="detail-label">Extracted Skills</label>
-                  <div class="mt-1">
-                    <% candidate.parsedData.skills.forEach(skill => { %>
-                    <span class="badge bg-secondary me-1 mb-1"><%= skill %></span>
-                    <% }) %>
-                  </div>
+                  <label class="detail-label">LinkedIn</label>
+                  <div class="detail-value"><a href="<%= pd.linkedin %>" target="_blank" class="text-gold"><%= pd.linkedin %></a></div>
+                </div>
+                <% } %>
+                <% if (pd.summary) { %>
+                <div class="col-12">
+                  <label class="detail-label">Profile Summary</label>
+                  <div class="detail-value small" style="line-height:1.6;"><%= pd.summary %></div>
                 </div>
                 <% } %>
               </div>
+
+              <!-- Work Experience -->
+              <% if (pd.experienceEntries && pd.experienceEntries.length) { %>
+              <div class="mb-3">
+                <label class="detail-label mb-2 d-block"><i class="bi bi-briefcase me-1"></i>Work Experience</label>
+                <% pd.experienceEntries.forEach(e => { %>
+                <div style="border-left:3px solid #d4a017;padding-left:12px;margin-bottom:10px;">
+                  <div class="fw-semibold small"><%= e.role || '' %></div>
+                  <div class="text-muted small"><%= e.company || '' %></div>
+                  <div style="font-size:11px;color:#d4a017;font-weight:600;"><%= e.period || '' %></div>
+                  <% if (e.description && e.description.length) { %>
+                  <ul class="mb-0 mt-1 small text-muted ps-3">
+                    <% e.description.slice(0,2).forEach(b => { %><li><%= b %></li><% }) %>
+                  </ul>
+                  <% } %>
+                </div>
+                <% }) %>
+              </div>
+              <% } %>
+
+              <!-- Education -->
+              <% if (pd.education && pd.education.length) { %>
+              <div class="mb-3">
+                <label class="detail-label mb-2 d-block"><i class="bi bi-mortarboard me-1"></i>Education / Qualification</label>
+                <% pd.education.forEach(e => { %>
+                <div style="border-left:3px solid #1a1a2e;padding-left:12px;margin-bottom:8px;">
+                  <div class="fw-semibold small"><%= e.degree %></div>
+                  <% if (e.institution) { %><div class="text-muted small"><%= e.institution %></div><% } %>
+                  <% if (e.year) { %><div style="font-size:11px;color:#d4a017;"><%= e.year %></div><% } %>
+                </div>
+                <% }) %>
+              </div>
+              <% } %>
+
+              <!-- Skills -->
+              <% if (pd.skills && pd.skills.length) { %>
+              <div>
+                <label class="detail-label mb-2 d-block"><i class="bi bi-tags me-1"></i>Extracted Skills</label>
+                <% pd.skills.forEach(skill => { %>
+                <span class="badge bg-secondary me-1 mb-1"><%= skill %></span>
+                <% }) %>
+              </div>
+              <% } %>
+
             </div>
           </div>
           <% } %>
@@ -427,7 +471,7 @@
 
   // ── Templates ─────────────────────────────────────────────
   document.getElementById('msgTemplate').addEventListener('change', function () {
-    if (this.value) document.getElementById('commMessage').value = this.value;
+    if (this.value) document.getElementById('commMessage').value = this.value.replace(/\\n/g, '\n');
   });
 
   document.querySelectorAll('input[name="commChannel"]').forEach(el => {

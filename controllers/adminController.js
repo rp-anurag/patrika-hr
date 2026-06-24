@@ -274,6 +274,72 @@ exports.deleteCandidate = async (req, res) => {
   }
 };
 
+// ─── OFFLINE RESUME PARSER PAGE ──────────────────────────────────────────────
+
+exports.showResumeParser = (req, res) => {
+  res.render('admin/resume-parser', {
+    title:     'Resume Parser – Patrika HR',
+    adminName: req.session.adminName
+  });
+};
+
+exports.parseOfflineResume = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    const { parseResume } = require('../utils/resumeParser');
+    const parsed = await parseResume(req.file.buffer, req.file.mimetype);
+    res.json({ success: true, data: parsed });
+  } catch (err) {
+    console.error('Offline parse error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.saveOfflineCandidate = async (req, res) => {
+  try {
+    const {
+      fullName, contactNumber, email, currentLocation,
+      positionApplying, noticePeriod,
+      packageFixed, packageVariables, packageOthers,
+      parsedLinkedIn, parsedSummary, parsedTotalExperience, parsedCurrentRole,
+      parsedSkills, parsedExperienceEntries, parsedEducation, parsedRawText
+    } = req.body;
+
+    const candidate = await Candidate.create({
+      fullName:        (fullName || '').trim(),
+      contactNumber:   (contactNumber || '').trim(),
+      email:           (email || '').trim().toLowerCase(),
+      currentLocation: (currentLocation || '').trim(),
+      positionApplying,
+      noticePeriod,
+      packageFixed:     parseFloat(packageFixed)     || 0,
+      packageVariables: parseFloat(packageVariables) || 0,
+      packageOthers:    parseFloat(packageOthers)    || 0,
+
+      parsedName:              (fullName || '').trim(),
+      parsedEmail:             (email || '').trim().toLowerCase(),
+      parsedPhone:             (contactNumber || '').trim(),
+      parsedLocation:          (currentLocation || '').trim(),
+      parsedSkills,
+      parsedLinkedIn:          parsedLinkedIn || null,
+      parsedSummary:           parsedSummary || null,
+      parsedTotalExperience:   parsedTotalExperience || null,
+      parsedCurrentRole:       parsedCurrentRole || null,
+      parsedExperienceEntries: parsedExperienceEntries || '[]',
+      parsedEducation:         parsedEducation || '[]',
+      parsedRawText:           parsedRawText || null,
+
+      submittedAt: new Date(),
+      updatedAt:   new Date()
+    });
+
+    res.json({ success: true, candidateId: candidate.id });
+  } catch (err) {
+    console.error('Save offline candidate error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // ─── STATS API ────────────────────────────────────────────────────────────────
 
 exports.getStats = async (req, res) => {

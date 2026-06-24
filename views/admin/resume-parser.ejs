@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  <style>
+    .drop-zone {
+      border: 2px dashed #d4a017;
+      border-radius: 12px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: background .2s;
+      background: #fffdf5;
+    }
+    .drop-zone.dragover { background: #fdf3d0; }
+    .drop-zone .bi-cloud-upload { font-size: 3rem; color: #d4a017; }
+
+    .parsed-card { border-left: 4px solid #d4a017; }
+    .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: #888; }
+    .field-value { font-size: 14px; color: #222; }
+
+    .exp-entry { border-left: 3px solid #d4a017; padding-left: 14px; margin-bottom: 12px; }
+    .exp-role   { font-weight: 600; font-size: 14px; }
+    .exp-company{ font-size: 13px; color: #555; }
+    .exp-period { font-size: 11px; color: #d4a017; font-weight: 600; }
+
+    .edu-entry { border-left: 3px solid #1a1a2e; padding-left: 14px; margin-bottom: 10px; }
+
+    .skill-chip {
+      display: inline-block;
+      background: #f5f0e0;
+      border: 1px solid #e0c97a;
+      color: #7a5c00;
+      border-radius: 20px;
+      padding: 2px 12px;
+      font-size: 12px;
+      margin: 3px;
+    }
+
+    #results { display: none; }
+    .spinner-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.75);
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+    .spinner-overlay.show { display: flex; }
+    .upload-wrapper { position: relative; }
+  </style>
+</head>
+<body class="admin-page">
+
+<div class="admin-wrapper">
+
+  <!-- Sidebar -->
+  <nav class="admin-sidebar d-flex flex-column">
+    <div class="sidebar-brand">
+      <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo" onerror="this.style.display='none'">
+      <div>
+        <div class="fw-bold text-gold">Patrika HR</div>
+        <small class="text-white-50">Admin Panel</small>
+      </div>
+    </div>
+    <hr class="border-secondary my-2">
+    <ul class="nav flex-column px-2 flex-grow-1">
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/dashboard">
+          <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/dashboard">
+          <i class="bi bi-people-fill me-2"></i>Candidates
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link active" href="/admin/resume-parser">
+          <i class="bi bi-file-earmark-text me-2"></i>Resume Parser
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/apply" target="_blank">
+          <i class="bi bi-file-earmark-person me-2"></i>Application Form
+        </a>
+      </li>
+    </ul>
+    <div class="px-2 pb-3">
+      <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+      <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">
+        Logged in as <strong><%= adminName %></strong>
+      </p>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <div class="admin-topbar d-flex align-items-center justify-content-between">
+      <h5 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2 text-gold"></i>Offline Resume Parser</h5>
+    </div>
+
+    <div class="p-4">
+
+      <!-- Upload Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header">
+          <h6 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload Resume</h6>
+        </div>
+        <div class="card-body">
+          <div class="upload-wrapper">
+            <div id="dropZone" class="drop-zone mb-3">
+              <i class="bi bi-cloud-upload d-block mb-3"></i>
+              <p class="mb-1 fw-semibold">Drag &amp; drop resume here</p>
+              <p class="text-muted small mb-3">or click to browse &nbsp;·&nbsp; PDF, DOC, DOCX &nbsp;·&nbsp; Max 10 MB</p>
+              <button type="button" class="btn btn-gold btn-sm px-4" onclick="document.getElementById('fileInput').click()">
+                <i class="bi bi-folder2-open me-1"></i>Browse File
+              </button>
+              <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="d-none">
+            </div>
+            <div id="spinnerOverlay" class="spinner-overlay">
+              <div class="text-center">
+                <div class="spinner-border text-gold mb-2" style="width:3rem;height:3rem;"></div>
+                <div class="fw-semibold text-gold">Parsing resume...</div>
+              </div>
+            </div>
+          </div>
+          <div id="fileInfo" class="d-none alert alert-info py-2 mb-0">
+            <i class="bi bi-file-earmark-fill me-1"></i>
+            <span id="fileName"></span>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-3" onclick="clearFile()">
+              <i class="bi bi-x"></i> Clear
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="results">
+
+        <!-- Summary Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm parsed-card">
+              <div class="card-body">
+                <div class="field-label mb-1">Full Name</div>
+                <div class="field-value fw-bold fs-5" id="r-name">—</div>
+                <div class="field-label mt-2 mb-1">Current Role</div>
+                <div class="field-value" id="r-role">—</div>
+                <div class="field-label mt-2 mb-1">Total Experience</div>
+                <div class="field-value text-gold fw-semibold" id="r-exp">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm parsed-card">
+              <div class="card-body">
+                <div class="field-label mb-1">Email</div>
+                <div class="field-value" id="r-email">—</div>
+                <div class="field-label mt-2 mb-1">Phone</div>
+                <div class="field-value" id="r-phone">—</div>
+                <div class="field-label mt-2 mb-1">Location</div>
+                <div class="field-value" id="r-location">—</div>
+                <div class="field-label mt-2 mb-1">LinkedIn</div>
+                <div class="field-value" id="r-linkedin">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm parsed-card">
+              <div class="card-body">
+                <div class="field-label mb-1">Profile Summary</div>
+                <div class="field-value small" id="r-summary" style="line-height:1.6;">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-briefcase text-gold"></i>
+            <h6 class="mb-0">Work Experience</h6>
+          </div>
+          <div class="card-body" id="r-experience-body">
+            <p class="text-muted mb-0">No experience entries found.</p>
+          </div>
+        </div>
+
+        <!-- Education -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-mortarboard text-gold"></i>
+            <h6 class="mb-0">Education / Qualification</h6>
+          </div>
+          <div class="card-body" id="r-education-body">
+            <p class="text-muted mb-0">No education entries found.</p>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-tags text-gold"></i>
+            <h6 class="mb-0">Skills</h6>
+          </div>
+          <div class="card-body" id="r-skills-body">
+            <p class="text-muted mb-0">No skills found.</p>
+          </div>
+        </div>
+
+        <!-- Raw Text (collapsible) -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <button class="btn btn-link p-0 text-decoration-none fw-semibold" data-bs-toggle="collapse" data-bs-target="#rawTextCollapse">
+              <i class="bi bi-text-left me-1"></i>Raw Extracted Text
+              <i class="bi bi-chevron-down ms-1" style="font-size:11px;"></i>
+            </button>
+          </div>
+          <div class="collapse" id="rawTextCollapse">
+            <div class="card-body">
+              <pre id="r-rawtext" style="font-size:12px;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;background:#f8f9fa;padding:12px;border-radius:6px;"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save as Candidate -->
+        <div class="card shadow-sm mb-4 border-gold">
+          <div class="card-header bg-gold-light">
+            <h6 class="mb-0"><i class="bi bi-person-plus me-2"></i>Save as Candidate</h6>
+          </div>
+          <div class="card-body">
+            <div id="saveAlert" class="d-none mb-3"></div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="s-name" placeholder="Full name">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Email</label>
+                <input type="email" class="form-control" id="s-email" placeholder="Email address">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Contact Number <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="s-phone" placeholder="10-digit mobile number">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Current Location</label>
+                <input type="text" class="form-control" id="s-location" placeholder="City">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Position Applying <span class="text-danger">*</span></label>
+                <select class="form-select" id="s-position">
+                  <option value="">-- Select Position --</option>
+                  <% ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','CTO','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print'].forEach(p => { %>
+                  <option value="<%= p %>"><%= p %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Notice Period <span class="text-danger">*</span></label>
+                <select class="form-select" id="s-notice">
+                  <option value="">-- Select --</option>
+                  <% ['Immediate','15 Days','30 Days','60 Days','90 Days'].forEach(n => { %>
+                  <option value="<%= n %>"><%= n %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Fixed (L/yr)</label>
+                <input type="number" class="form-control" id="s-fixed" placeholder="0" min="0" step="0.1">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Variable (L/yr)</label>
+                <input type="number" class="form-control" id="s-variable" placeholder="0" min="0" step="0.1">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Others (L/yr)</label>
+                <input type="number" class="form-control" id="s-others" placeholder="0" min="0" step="0.1">
+              </div>
+            </div>
+            <button class="btn btn-gold mt-3 px-4" id="saveBtn" onclick="saveCandidate()">
+              <i class="bi bi-person-check me-1"></i>Save to Candidates
+            </button>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex gap-2 mb-4">
+          <button class="btn btn-outline-gold" onclick="copyToClipboard()">
+            <i class="bi bi-clipboard me-1"></i>Copy Summary
+          </button>
+          <button class="btn btn-outline-secondary" onclick="clearFile()">
+            <i class="bi bi-arrow-repeat me-1"></i>Parse Another
+          </button>
+        </div>
+
+      </div><!-- /#results -->
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const dropZone   = document.getElementById('dropZone');
+const fileInput  = document.getElementById('fileInput');
+const fileInfo   = document.getElementById('fileInfo');
+const fileNameEl = document.getElementById('fileName');
+const results    = document.getElementById('results');
+const spinner    = document.getElementById('spinnerOverlay');
+
+// Drag & Drop
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+  fileNameEl.textContent = `${file.name}  (${(file.size/1024).toFixed(1)} KB)`;
+  fileInfo.classList.remove('d-none');
+  results.style.display = 'none';
+  parseFile(file);
+}
+
+async function parseFile(file) {
+  spinner.classList.add('show');
+  const fd = new FormData();
+  fd.append('resume', file);
+  try {
+    const resp = await fetch('/admin/resume-parser/parse', { method: 'POST', body: fd });
+    const json = await resp.json();
+    spinner.classList.remove('show');
+    if (!json.success) { alert('Parse failed: ' + json.message); return; }
+    renderResults(json.data);
+  } catch (err) {
+    spinner.classList.remove('show');
+    alert('Error: ' + err.message);
+  }
+}
+
+let _parsedData = null;
+
+function val(v) { return v || '—'; }
+
+function renderResults(d) {
+  _parsedData = d;
+
+  // Auto-fill save form
+  document.getElementById('s-name').value     = d.name || '';
+  document.getElementById('s-email').value    = d.email || '';
+  document.getElementById('s-phone').value    = d.phone || '';
+  document.getElementById('s-location').value = d.location || '';
+
+  // Reset save alert
+  const sa = document.getElementById('saveAlert');
+  sa.className = 'd-none'; sa.textContent = '';
+
+  // Basic fields
+  document.getElementById('r-name').textContent     = val(d.name);
+  document.getElementById('r-role').textContent     = val(d.currentRole);
+  document.getElementById('r-exp').textContent      = val(d.totalExperience);
+  document.getElementById('r-email').textContent    = val(d.email);
+  document.getElementById('r-phone').textContent    = val(d.phone);
+  document.getElementById('r-location').textContent = val(d.location);
+  document.getElementById('r-summary').textContent  = val(d.summary);
+  document.getElementById('r-rawtext').textContent  = d.rawText || '';
+
+  // LinkedIn
+  const li = document.getElementById('r-linkedin');
+  if (d.linkedin) {
+    li.innerHTML = `<a href="${d.linkedin}" target="_blank" class="text-gold">${d.linkedin}</a>`;
+  } else {
+    li.textContent = '—';
+  }
+
+  // Experience
+  const expBody = document.getElementById('r-experience-body');
+  if (d.experienceEntries && d.experienceEntries.length) {
+    expBody.innerHTML = d.experienceEntries.map(e => `
+      <div class="exp-entry">
+        <div class="exp-role">${e.role || 'Role not identified'}</div>
+        <div class="exp-company">${e.company || ''}</div>
+        <div class="exp-period">${e.period || ''}</div>
+        ${e.description && e.description.length ? '<ul class="mt-1 mb-0 small text-muted">' + e.description.slice(0,3).map(b => `<li>${b}</li>`).join('') + '</ul>' : ''}
+      </div>`).join('');
+  } else {
+    expBody.innerHTML = '<p class="text-muted mb-0">No experience entries found.</p>';
+  }
+
+  // Education
+  const eduBody = document.getElementById('r-education-body');
+  if (d.education && d.education.length) {
+    eduBody.innerHTML = d.education.map(e => `
+      <div class="edu-entry">
+        <div class="fw-semibold small">${e.degree}</div>
+        ${e.institution ? `<div class="text-muted small">${e.institution}</div>` : ''}
+        ${e.year ? `<div class="text-gold" style="font-size:11px;">${e.year}</div>` : ''}
+      </div>`).join('');
+  } else {
+    eduBody.innerHTML = '<p class="text-muted mb-0">No education entries found.</p>';
+  }
+
+  // Skills
+  const skillsBody = document.getElementById('r-skills-body');
+  if (d.skills && d.skills.length) {
+    skillsBody.innerHTML = d.skills.map(s => `<span class="skill-chip">${s}</span>`).join('');
+  } else {
+    skillsBody.innerHTML = '<p class="text-muted mb-0">No skills found.</p>';
+  }
+
+  results.style.display = 'block';
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearFile() {
+  fileInput.value = '';
+  fileInfo.classList.add('d-none');
+  results.style.display = 'none';
+  fileNameEl.textContent = '';
+  dropZone.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyToClipboard() {
+  const name  = document.getElementById('r-name').textContent;
+  const role  = document.getElementById('r-role').textContent;
+  const exp   = document.getElementById('r-exp').textContent;
+  const email = document.getElementById('r-email').textContent;
+  const phone = document.getElementById('r-phone').textContent;
+  const loc   = document.getElementById('r-location').textContent;
+
+  const text = `Name: ${name}\nRole: ${role}\nExperience: ${exp}\nEmail: ${email}\nPhone: ${phone}\nLocation: ${loc}`;
+  navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+}
+
+async function saveCandidate() {
+  const fullName       = document.getElementById('s-name').value.trim();
+  const contactNumber  = document.getElementById('s-phone').value.trim();
+  const positionApplying = document.getElementById('s-position').value;
+  const noticePeriod   = document.getElementById('s-notice').value;
+
+  if (!fullName)           { alert('Full name is required.'); return; }
+  if (!contactNumber)      { alert('Contact number is required.'); return; }
+  if (!positionApplying)   { alert('Please select a position.'); return; }
+  if (!noticePeriod)       { alert('Please select a notice period.'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+  const payload = {
+    fullName,
+    contactNumber,
+    email:           document.getElementById('s-email').value.trim(),
+    currentLocation: document.getElementById('s-location').value.trim(),
+    positionApplying,
+    noticePeriod,
+    packageFixed:    document.getElementById('s-fixed').value    || '0',
+    packageVariables:document.getElementById('s-variable').value || '0',
+    packageOthers:   document.getElementById('s-others').value   || '0',
+    parsedLinkedIn:          _parsedData?.linkedin           || '',
+    parsedSummary:           _parsedData?.summary            || '',
+    parsedTotalExperience:   _parsedData?.totalExperience    || '',
+    parsedCurrentRole:       _parsedData?.currentRole        || '',
+    parsedSkills:            JSON.stringify(_parsedData?.skills || []),
+    parsedExperienceEntries: JSON.stringify(_parsedData?.experienceEntries || []),
+    parsedEducation:         JSON.stringify(_parsedData?.education || []),
+    parsedRawText:           _parsedData?.rawText            || ''
+  };
+
+  try {
+    const resp = await fetch('/admin/resume-parser/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const json = await resp.json();
+    const sa = document.getElementById('saveAlert');
+    if (json.success) {
+      sa.className = 'alert alert-success';
+      sa.innerHTML = `Candidate saved! <a href="/admin/candidate/${json.candidateId}" class="alert-link fw-semibold">View profile &rarr;</a>`;
+    } else {
+      sa.className = 'alert alert-danger';
+      sa.textContent = 'Save failed: ' + json.message;
+    }
+    sa.classList.remove('d-none');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-person-check me-1"></i>Save to Candidates';
+  }
+}
+</script>
+</body>
+</html>

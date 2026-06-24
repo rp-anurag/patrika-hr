@@ -148,7 +148,7 @@
                   <i class="bi bi-briefcase me-1 text-gold"></i>Position Applying For *
                 </label>
                 <div class="row g-2">
-                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','NHM Marketing Analyst','CTO','CFO']; %>
+                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','CTO','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print']; %>
                   <% positions.forEach(pos => { %>
                   <div class="col-md-6 col-lg-4">
                     <input type="radio" class="btn-check" name="positionApplying" id="pos_<%= pos.replace(/\s/g,'_') %>" value="<%= pos %>" required>
@@ -159,6 +159,17 @@
                   <% }) %>
                 </div>
                 <div class="form-text text-danger d-none" id="positionError">Please select a position.</div>
+              </div>
+
+              <!-- Job Description Panel -->
+              <div id="jdPanel" class="d-none mb-4">
+                <div class="card border-gold shadow-sm">
+                  <div class="card-header bg-gold-light d-flex align-items-center justify-content-between py-2">
+                    <h6 class="mb-0 text-dark"><i class="bi bi-file-text me-2"></i>Job Description – <span id="jdTitle"></span></h6>
+                    <span class="badge bg-dark" id="jdBadge"></span>
+                  </div>
+                  <div class="card-body" id="jdContent" style="font-size:14px;line-height:1.7;max-height:420px;overflow-y:auto;"></div>
+                </div>
               </div>
 
               <!-- Current Package -->
@@ -261,9 +272,14 @@
                 { name: 'FMCG Rajasthan', dept: 'Sales & Marketing', icon: 'geo-alt' },
                 { name: 'FMCG MPCG', dept: 'Sales & Marketing', icon: 'geo-alt' },
                 { name: 'Chief Digital Officer', dept: 'Digital & Technology', icon: 'laptop' },
-                { name: 'NHM Marketing Analyst', dept: 'Marketing', icon: 'bar-chart' },
+                { name: 'Business Analyst', dept: 'Marketing', icon: 'bar-chart' },
                 { name: 'CTO', dept: 'Technology', icon: 'cpu' },
-                { name: 'CFO', dept: 'Finance', icon: 'cash-stack' }
+                { name: 'Raj Head- Radio', dept: 'Radio', icon: 'broadcast' },
+                { name: 'Jaipur Head- Radio', dept: 'Radio', icon: 'broadcast' },
+                { name: 'Delhi Head- Print', dept: 'Print', icon: 'newspaper' },
+                { name: 'OOH Delhi', dept: 'Out of Home', icon: 'sign-stop' },
+                { name: 'OOH Mumbai', dept: 'Out of Home', icon: 'sign-stop' },
+                { name: 'Dy. Raj Head-Print', dept: 'Print', icon: 'newspaper' }
               ]; %>
               <% posDetails.forEach(p => { %>
               <li class="list-group-item d-flex align-items-center py-2">
@@ -308,5 +324,83 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/main.js"></script>
+  <script>
+  // ── Job Descriptions ────────────────────────────────────────────────────────
+  const JOB_DESCRIPTIONS = {
+    'Business Analyst': {
+      badge: 'Jaipur · 6 Openings · 10–12 Yrs',
+      html: `
+        <div class="mb-3">
+          <p class="text-muted mb-2"><strong>About Rajasthan Patrika:</strong> One of India's leading media organizations with a strong presence across Print, Digital, Radio, and Outdoor media.</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="fw-bold text-gold mb-1">Role Summary</h6>
+          <p class="mb-0">The Business Analyst will analyze market trends, customer behavior, sales performance, and campaign effectiveness to optimize marketing initiatives, improve audience engagement, and contribute to revenue growth across media platforms.</p>
+        </div>
+        <div class="mb-3">
+          <h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li>Analyze sales, circulation, readership, and campaign performance data to identify trends and business opportunities.</li>
+            <li>Conduct market research, competitor analysis, and consumer behavior studies.</li>
+            <li>Develop dashboards, reports, and performance metrics for senior management.</li>
+            <li>Evaluate marketing campaign effectiveness and recommend optimization strategies.</li>
+            <li>Collaborate with Sales, Editorial, Digital, Radio, Events, and Brand teams.</li>
+            <li>Perform audience segmentation and identify target customer groups.</li>
+            <li>Forecast market demand, revenue trends, and campaign outcomes using analytical models.</li>
+            <li>Present findings and recommendations to leadership through clear reports.</li>
+          </ul>
+        </div>
+        <div class="mb-3">
+          <h6 class="fw-bold text-gold mb-1">Required Qualifications</h6>
+          <ul class="mb-0 ps-3">
+            <li>Bachelor's degree in Marketing, Business Administration, Economics, Statistics, or Data Analytics.</li>
+            <li>MBA in Marketing or Business Analytics is an added advantage.</li>
+            <li>10–12 years of experience in Marketing Analytics, Business Analytics, or Strategic Marketing.</li>
+            <li>Experience in Media, Publishing, FMCG, Telecom, Retail, or Advertising preferred.</li>
+          </ul>
+        </div>
+        <div class="mb-3">
+          <h6 class="fw-bold text-gold mb-1">Required Skills</h6>
+          <ul class="mb-0 ps-3">
+            <li>Strong analytical and problem-solving abilities.</li>
+            <li>Advanced proficiency in Microsoft Excel.</li>
+            <li>Hands-on experience with Power BI, Tableau, or similar BI tools.</li>
+            <li>Knowledge of SQL and data analysis techniques.</li>
+            <li>Strong understanding of marketing KPIs and campaign analytics.</li>
+            <li>Excellent presentation and communication skills.</li>
+          </ul>
+        </div>
+        <div class="mb-0">
+          <h6 class="fw-bold text-gold mb-1">What We Offer</h6>
+          <ul class="mb-0 ps-3">
+            <li>Exposure to integrated media platforms — Print, Digital, Radio, and Events.</li>
+            <li>A collaborative and innovation-driven work environment.</li>
+            <li>Career growth with high-impact business projects.</li>
+            <li>Competitive compensation and benefits.</li>
+          </ul>
+        </div>`
+    }
+  };
+
+  // Show / hide JD panel when a position radio is selected
+  document.querySelectorAll('input[name="positionApplying"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+      const jd = JOB_DESCRIPTIONS[this.value];
+      const panel   = document.getElementById('jdPanel');
+      const title   = document.getElementById('jdTitle');
+      const badge   = document.getElementById('jdBadge');
+      const content = document.getElementById('jdContent');
+      if (jd) {
+        title.textContent   = this.value;
+        badge.textContent   = jd.badge;
+        content.innerHTML   = jd.html;
+        panel.classList.remove('d-none');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        panel.classList.add('d-none');
+      }
+    });
+  });
+  </script>
 </body>
 </html>

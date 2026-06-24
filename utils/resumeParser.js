@@ -3,35 +3,7 @@ const path = require('path');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
-/**
- * RESUME PARSER — How it works:
- *
- * Accepts either a file path (string) OR a Buffer (from memory upload).
- * 1. Extracts raw text:  PDF → pdf-parse,  DOCX/DOC → mammoth
- * 2. Runs regex patterns to identify: email, phone, name, location, skills
- * 3. Returns { name, email, phone, location, skills, rawText }
- *    Fields that fail to parse are returned as null — form stays blank for manual fill.
- *
- * To customize patterns, edit the REGEX PATTERNS section below.
- */
-
-// ─── REGEX PATTERNS ────────────────────────────────────────────────────────────
-const EMAIL_REGEX = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
-
-const PHONE_REGEX = /(?:\+91[\s\-]?)?(?:\(0\d{2,4}\)[\s\-]?)?[6-9]\d{9}|(?:\+91[\s\-]?)?\d{10}|(?:0\d{2,4}[\s\-]?\d{6,8})/g;
-
-const LOCATION_KEYWORDS = [
-  'Jaipur', 'Delhi', 'Mumbai', 'Bangalore', 'Bengaluru', 'Hyderabad', 'Chennai',
-  'Kolkata', 'Pune', 'Ahmedabad', 'Surat', 'Bhopal', 'Indore', 'Nagpur',
-  'Lucknow', 'Kanpur', 'Agra', 'Varanasi', 'Patna', 'Guwahati', 'Chandigarh',
-  'Jodhpur', 'Udaipur', 'Kota', 'Ajmer', 'Bikaner', 'Rajasthan', 'Gujarat',
-  'Maharashtra', 'Karnataka', 'Madhya Pradesh', 'Uttar Pradesh', 'Noida',
-  'Gurugram', 'Gurgaon', 'Faridabad', 'Ghaziabad', 'Dehradun', 'Raipur'
-];
-
-const SKILLS_SECTION_REGEX = /(?:skills?|technical skills?|key skills?|core competencies?|expertise)[:\s]*\n([\s\S]{0,800}?)(?:\n\n|\n[A-Z]|experience|education|work|project)/i;
-
-// ─── TEXT EXTRACTORS (accept path OR Buffer) ────────────────────────────────────
+// ─── TEXT EXTRACTORS ──────────────────────────────────────────────────────────
 async function extractPDF(input) {
   const buf = Buffer.isBuffer(input) ? input : fs.readFileSync(input);
   const data = await pdfParse(buf);
@@ -44,7 +16,19 @@ async function extractDOCX(input) {
   return result.value || '';
 }
 
-// ─── FIELD PARSERS ─────────────────────────────────────────────────────────────
+// ─── BASIC FIELD PARSERS ──────────────────────────────────────────────────────
+const EMAIL_REGEX = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+const PHONE_REGEX = /(?:\+91[\s\-]?)?(?:\(0\d{2,4}\)[\s\-]?)?[6-9]\d{9}|(?:\+91[\s\-]?)?\d{10}|(?:0\d{2,4}[\s\-]?\d{6,8})/g;
+
+const LOCATION_KEYWORDS = [
+  'Jaipur', 'Delhi', 'Mumbai', 'Bangalore', 'Bengaluru', 'Hyderabad', 'Chennai',
+  'Kolkata', 'Pune', 'Ahmedabad', 'Surat', 'Bhopal', 'Indore', 'Nagpur',
+  'Lucknow', 'Kanpur', 'Agra', 'Varanasi', 'Patna', 'Guwahati', 'Chandigarh',
+  'Jodhpur', 'Udaipur', 'Kota', 'Ajmer', 'Bikaner', 'Rajasthan', 'Gujarat',
+  'Maharashtra', 'Karnataka', 'Madhya Pradesh', 'Uttar Pradesh', 'Noida',
+  'Gurugram', 'Gurgaon', 'Faridabad', 'Ghaziabad', 'Dehradun', 'Raipur'
+];
+
 function parseEmail(text) {
   const matches = text.match(EMAIL_REGEX);
   if (!matches) return null;
@@ -83,21 +67,143 @@ function parseLocation(text) {
   return null;
 }
 
+function parseLinkedIn(text) {
+  const match = text.match(/(?:linkedin\.com\/in\/|linkedin:\s*)([A-Za-z0-9\-_%]+)/i);
+  return match ? `https://linkedin.com/in/${match[1]}` : null;
+}
+
+// ─── SKILLS ───────────────────────────────────────────────────────────────────
 function parseSkills(text) {
-  const match = text.match(SKILLS_SECTION_REGEX);
-  if (!match) return [];
-  return match[1]
-    .split(/[,\n•\|·\t]+/)
+  const sectionMatch = text.match(
+    /(?:skills?|technical skills?|key skills?|core competencies?|expertise)[:\s]*\n([\s\S]{0,1000}?)(?:\n\n|\n[A-Z]|experience|education|work|project)/i
+  );
+  const source = sectionMatch ? sectionMatch[1] : text.slice(0, 2000);
+  return source
+    .split(/[,\n•\|·\t;\/]+/)
     .map(s => s.trim())
     .filter(s => s.length > 1 && s.length < 50 && !/^\d+$/.test(s))
     .filter((v, i, a) => a.indexOf(v) === i)
-    .slice(0, 25);
+    .slice(0, 30);
 }
 
-// ─── MAIN PARSE FUNCTION ───────────────────────────────────────────────────────
-// input: file path (string) — for saved uploads
-//        Buffer             — for in-memory AJAX parse (no disk write)
-// mimetype: MIME type string
+// ─── EXPERIENCE ───────────────────────────────────────────────────────────────
+function parseTotalExperience(text) {
+  // Matches: "8 years", "8+ years", "8.5 years of experience", "over 10 years"
+  const patterns = [
+    /(\d+(?:\.\d+)?)\s*\+?\s*years?\s+(?:of\s+)?(?:total\s+)?(?:work\s+)?experience/i,
+    /(?:experience\s+of\s+|over\s+)(\d+(?:\.\d+)?)\s*\+?\s*years?/i,
+    /total\s+(?:work\s+)?experience[:\s]+(\d+(?:\.\d+)?)\s*\+?\s*years?/i,
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) return `${m[1]}+ years`;
+  }
+  return null;
+}
+
+function parseExperienceEntries(text) {
+  // Find experience section
+  const sectionMatch = text.match(
+    /(?:work\s+experience|professional\s+experience|employment\s+history|experience)[:\s]*\n([\s\S]{0,3000}?)(?:\n(?:education|qualification|skills?|projects?|certif|awards?|references?)\b)/i
+  );
+  const section = sectionMatch ? sectionMatch[1] : '';
+  if (!section) return [];
+
+  const entries = [];
+  const lines = section.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Date range pattern: Jan 2020 – Present, 2018-2021, Mar'19 – Jun'22, etc.
+  const dateRangeRe = /(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z']*[\s,]*\d{2,4}|(?:19|20)\d{2})\s*(?:–|-|to)\s*(?:present|current|(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z']*[\s,]*\d{2,4})|(?:19|20)\d{2})/i;
+
+  let current = null;
+  for (const line of lines) {
+    if (dateRangeRe.test(line)) {
+      if (current) entries.push(current);
+      current = { role: '', company: '', period: line.match(dateRangeRe)[0], description: [] };
+    } else if (current) {
+      if (!current.role && line.length < 80) current.role = line;
+      else if (!current.company && line.length < 80) current.company = line;
+      else if (line.length > 10) current.description.push(line);
+    } else {
+      // Try to pick up company + role lines before a date range
+      if (line.length < 80 && !entries.length) {
+        if (!current) current = { role: '', company: '', period: '', description: [] };
+        if (!current.role) current.role = line;
+        else if (!current.company) current.company = line;
+      }
+    }
+  }
+  if (current && (current.role || current.company)) entries.push(current);
+
+  return entries.slice(0, 8);
+}
+
+// ─── EDUCATION ────────────────────────────────────────────────────────────────
+const DEGREE_KEYWORDS = [
+  'b\\.tech', 'b\\.e\\.?', 'm\\.tech', 'm\\.e\\.?', 'mba', 'bba', 'bca', 'mca',
+  'b\\.sc', 'm\\.sc', 'b\\.com', 'm\\.com', 'b\\.a\\.?', 'm\\.a\\.?',
+  'bachelor', 'master', 'phd', 'ph\\.d', 'diploma', 'b\\.arch', 'llb', 'mbbs',
+  'intermediate', '12th', '10th', 'ssc', 'hsc', 'pgdm', 'post.?graduate'
+];
+const DEGREE_RE = new RegExp(`(${DEGREE_KEYWORDS.join('|')})`, 'i');
+
+function parseEducation(text) {
+  const sectionMatch = text.match(
+    /(?:education|qualification|academic|educational\s+background)[:\s]*\n([\s\S]{0,2000}?)(?:\n(?:experience|skills?|projects?|certif|awards?|references?|work\s+history)\b)/i
+  );
+  const section = sectionMatch ? sectionMatch[1] : '';
+  const source = section || text;
+
+  const entries = [];
+  const lines = source.split('\n').map(l => l.trim()).filter(Boolean);
+
+  let current = null;
+  for (const line of lines) {
+    if (DEGREE_RE.test(line)) {
+      if (current) entries.push(current);
+      current = { degree: line, institution: '', year: '' };
+    } else if (current) {
+      const yearMatch = line.match(/\b(19|20)\d{2}\b/);
+      if (yearMatch && !current.year) current.year = yearMatch[0];
+      if (!current.institution && line.length > 3 && line.length < 120) current.institution = line;
+    }
+  }
+  if (current) entries.push(current);
+
+  // Fallback: scan full text for degree mentions if section not found
+  if (!entries.length) {
+    const fallbackMatches = source.match(new RegExp(
+      `(${DEGREE_KEYWORDS.join('|')})[^\\n]{0,100}`,
+      'gi'
+    )) || [];
+    fallbackMatches.slice(0, 4).forEach(m => entries.push({ degree: m.trim(), institution: '', year: '' }));
+  }
+
+  return entries.slice(0, 6);
+}
+
+// ─── SUMMARY / OBJECTIVE ──────────────────────────────────────────────────────
+function parseSummary(text) {
+  const sectionMatch = text.match(
+    /(?:summary|objective|profile|about\s+me|career\s+objective|professional\s+summary)[:\s]*\n([\s\S]{0,600}?)(?:\n\n|\n[A-Z][A-Z\s]{3,}\n)/i
+  );
+  if (sectionMatch) return sectionMatch[1].replace(/\n/g, ' ').trim().slice(0, 500);
+
+  // Fallback: first long paragraph-like line
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  for (const line of lines.slice(0, 20)) {
+    if (line.length > 80) return line.slice(0, 500);
+  }
+  return null;
+}
+
+// ─── CURRENT COMPANY / DESIGNATION ───────────────────────────────────────────
+function parseCurrentRole(text) {
+  const m = text.match(/(?:currently\s+working\s+(?:at|with|as)|present\s+employer|current\s+(?:company|employer|organization))[:\s]+([^\n]{3,80})/i);
+  return m ? m[1].trim() : null;
+}
+
+// ─── MAIN PARSE FUNCTION ──────────────────────────────────────────────────────
 async function parseResume(input, mimetype) {
   let rawText = '';
   try {
@@ -119,12 +225,18 @@ async function parseResume(input, mimetype) {
   }
 
   return {
-    name:     parseName(rawText),
-    email:    parseEmail(rawText),
-    phone:    parsePhone(rawText),
-    location: parseLocation(rawText),
-    skills:   parseSkills(rawText),
-    rawText:  rawText.slice(0, 10000)
+    name:               parseName(rawText),
+    email:              parseEmail(rawText),
+    phone:              parsePhone(rawText),
+    location:           parseLocation(rawText),
+    linkedin:           parseLinkedIn(rawText),
+    summary:            parseSummary(rawText),
+    totalExperience:    parseTotalExperience(rawText),
+    currentRole:        parseCurrentRole(rawText),
+    experienceEntries:  parseExperienceEntries(rawText),
+    education:          parseEducation(rawText),
+    skills:             parseSkills(rawText),
+    rawText:            rawText.slice(0, 10000)
   };
 }
 

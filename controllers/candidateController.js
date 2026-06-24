@@ -53,12 +53,18 @@ exports.submitForm = async (req, res) => {
     if (req.file) {
       parseResume(req.file.path, req.file.mimetype)
         .then(parsed => Candidate.update({
-          parsedName:     parsed.name,
-          parsedEmail:    parsed.email,
-          parsedPhone:    parsed.phone,
-          parsedLocation: parsed.location,
-          parsedSkills:   JSON.stringify(parsed.skills || []),
-          parsedRawText:  parsed.rawText
+          parsedName:              parsed.name,
+          parsedEmail:             parsed.email,
+          parsedPhone:             parsed.phone,
+          parsedLocation:          parsed.location,
+          parsedSkills:            JSON.stringify(parsed.skills || []),
+          parsedLinkedIn:          parsed.linkedin || null,
+          parsedSummary:           parsed.summary || null,
+          parsedTotalExperience:   parsed.totalExperience || null,
+          parsedCurrentRole:       parsed.currentRole || null,
+          parsedExperienceEntries: JSON.stringify(parsed.experienceEntries || []),
+          parsedEducation:         JSON.stringify(parsed.education || []),
+          parsedRawText:           parsed.rawText
         }, { where: { id: candidate.id } }))
         .catch(err => console.error('Parse save error:', err.message));
     }
