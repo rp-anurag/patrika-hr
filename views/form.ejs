@@ -86,7 +86,7 @@
                     <i class="bi bi-cloud-upload fs-1 text-gold"></i>
                     <p class="mb-1 fw-semibold">Drag & Drop your CV here</p>
                     <p class="text-muted small mb-2">or click to browse</p>
-                    <span class="badge bg-secondary">PDF, DOC, DOCX â€” Max 5MB</span>
+                    <span class="badge bg-secondary">PDF, DOC, DOCX — Max 5MB</span>
                   </div>
                   <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" class="drop-input" required>
                 </div>
@@ -174,7 +174,7 @@
               <div id="jdPanel" class="d-none mb-4">
                 <div class="card border-gold shadow-sm">
                   <div class="card-header bg-gold-light d-flex align-items-center justify-content-between py-2">
-                    <h6 class="mb-0 text-dark"><i class="bi bi-file-text me-2"></i>Job Description â€“ <span id="jdTitle"></span></h6>
+                    <h6 class="mb-0 text-dark"><i class="bi bi-file-text me-2"></i>Job Description – <span id="jdTitle"></span></h6>
                     <span class="badge bg-dark" id="jdBadge"></span>
                   </div>
                   <div class="card-body" id="jdContent" style="font-size:14px;line-height:1.7;max-height:420px;overflow-y:auto;"></div>
@@ -190,7 +190,7 @@
                   <div class="col-md-4">
                     <label for="packageFixed" class="form-label text-muted small">Fixed</label>
                     <div class="input-group">
-                      <span class="input-group-text">â‚¹</span>
+                      <span class="input-group-text">₹</span>
                       <input type="number" class="form-control" id="packageFixed" name="packageFixed"
                         placeholder="e.g. 8.5" min="0" step="0.1">
                       <span class="input-group-text">L</span>
@@ -199,7 +199,7 @@
                   <div class="col-md-4">
                     <label for="packageVariables" class="form-label text-muted small">Variables</label>
                     <div class="input-group">
-                      <span class="input-group-text">â‚¹</span>
+                      <span class="input-group-text">₹</span>
                       <input type="number" class="form-control" id="packageVariables" name="packageVariables"
                         placeholder="e.g. 2.0" min="0" step="0.1">
                       <span class="input-group-text">L</span>
@@ -208,14 +208,14 @@
                   <div class="col-md-4">
                     <label for="packageOthers" class="form-label text-muted small">Others</label>
                     <div class="input-group">
-                      <span class="input-group-text">â‚¹</span>
+                      <span class="input-group-text">₹</span>
                       <input type="number" class="form-control" id="packageOthers" name="packageOthers"
                         placeholder="e.g. 0.5" min="0" step="0.1">
                       <span class="input-group-text">L</span>
                     </div>
                   </div>
                 </div>
-                <div class="form-text">Leave blank if not applicable. Total: <strong id="totalPackageDisplay">â‚¹0 L</strong></div>
+                <div class="form-text">Leave blank if not applicable. Total: <strong id="totalPackageDisplay">₹0 L</strong></div>
               </div>
 
               <!-- Notice Period -->
@@ -241,7 +241,6 @@
                 </button>
               </div>
               <p class="text-center text-muted small mt-2">
-                By submitting, you agree to our <a href="#" class="text-gold">Privacy Policy</a>.
                 Your data is kept confidential.
               </p>
             </form>
@@ -309,7 +308,7 @@
           <div class="card-body">
             <h6 class="text-gold fw-bold"><i class="bi bi-lightbulb-fill me-1"></i> Application Tips</h6>
             <ul class="small text-muted ps-3 mb-0">
-              <li class="mb-1">Upload your CV first â€” we'll auto-fill details for you.</li>
+              <li class="mb-1">Upload your CV first — we'll auto-fill details for you.</li>
               <li class="mb-1">Use PDF format for best parsing results.</li>
               <li class="mb-1">Ensure your phone number is active for WhatsApp updates.</li>
               <li class="mb-1">Double-check your email for confirmation.</li>
@@ -338,7 +337,7 @@
   const JOB_DESCRIPTIONS = {
 
     'FMCG Jaipur': {
-      badge: 'Jaipur, Rajasthan Â· Full-Time Â· 6 Days/Week',
+      badge: 'Jaipur, Rajasthan · Full-Time · 6 Days/Week',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
           <p class="mb-0">Responsible for overseeing, developing and executing the circulation strategy across Jaipur. Includes managing distribution networks, driving readership growth, optimizing logistics and ensuring operational efficiency.</p></div>
@@ -354,7 +353,7 @@
     },
 
     'FMCG Rajasthan': {
-      badge: 'Rajasthan â€“ All Areas Â· Full-Time Â· 6 Days/Week',
+      badge: 'Rajasthan – All Areas · Full-Time · 6 Days/Week',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
           <p class="mb-0">Responsible for overseeing, developing and executing the circulation strategy across Rajasthan. Includes managing distribution networks, driving readership growth, optimizing logistics and ensuring operational efficiency.</p></div>
@@ -370,7 +369,7 @@
     },
 
     'FMCG MPCG': {
-      badge: 'Madhya Pradesh / Chhattisgarh Â· Full-Time Â· 6 Days/Week',
+      badge: 'Madhya Pradesh / Chhattisgarh · Full-Time · 6 Days/Week',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
           <p class="mb-0">Responsible for overseeing, developing and executing the circulation strategy across MP/CG. Includes managing distribution networks, driving readership growth, optimizing logistics and ensuring operational efficiency.</p></div>
@@ -386,15 +385,15 @@
     },
 
     'Chief Digital Officer': {
-      badge: 'Jaipur Â· Digital Segment',
+      badge: 'Jaipur · Digital Segment',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
-          <p class="mb-0">Responsible for strategic leadership, operational excellence, and commercial success of Patrika Group's digital ecosystem â€” with primary focus on Subscription-Based Mobile Applications, Patrika website, and in-house technology development.</p></div>
+          <p class="mb-0">Responsible for strategic leadership, operational excellence, and commercial success of Patrika Group's digital ecosystem — with primary focus on Subscription-Based Mobile Applications, Patrika website, and in-house technology development.</p></div>
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
           <ul class="mb-0 ps-3">
             <li><strong>Strategic Leadership & Business Growth:</strong> Define and execute digital business strategy; drive audience acquisition, engagement and monetisation; sustain APP downloads and subscriber base expansion.</li>
             <li><strong>P&L Ownership & Revenue:</strong> Full P&L responsibility; drive revenue through app subscriptions, digital advertising, paid content, affiliate partnerships and emerging monetisation models.</li>
-            <li><strong>Product & Platform Management:</strong> Oversee Mobile Applications (Android/iOS) and Patrika Website â€” product roadmap, UX optimisation, feature prioritisation, performance and reliability.</li>
+            <li><strong>Product & Platform Management:</strong> Oversee Mobile Applications (Android/iOS) and Patrika Website — product roadmap, UX optimisation, feature prioritisation, performance and reliability.</li>
             <li><strong>In-House Technology Oversight:</strong> Lead internal product and engineering teams; ensure timely releases, agile development, platform stability, scalability and security.</li>
             <li><strong>Audience Growth & Engagement:</strong> Optimise organic traffic, paid campaigns, SEO/ASO; drive DAU/MAU growth, session time, user loyalty and churn reduction.</li>
             <li><strong>Monetisation & Innovation:</strong> Develop innovative monetisation models; strengthen ad-tech and mar-tech capabilities; explore subscription strategies, paywalls and bundled offerings.</li>
@@ -403,16 +402,16 @@
     },
 
     'CTO': {
-      badge: 'Media Â· Technology',
+      badge: 'Media · Technology',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
-          <p class="mb-0">Lead the end-to-end technology vision, strategy, and execution for the company's digital media platforms â€” ensuring the subscription-based application performs flawlessly with high-quality video content, seamless UX, and reliable monetisation systems.</p></div>
+          <p class="mb-0">Lead the end-to-end technology vision, strategy, and execution for the company's digital media platforms — ensuring the subscription-based application performs flawlessly with high-quality video content, seamless UX, and reliable monetisation systems.</p></div>
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
           <ul class="mb-0 ps-3">
             <li><strong>Technology Strategy & Vision:</strong> Define and execute the technology roadmap aligned with digital media growth strategy; partner with product, content and business teams to enable innovation.</li>
             <li><strong>Platform Performance & Reliability:</strong> Ensure high availability, minimal downtime, and consistent app performance; establish comprehensive monitoring, logging and incident management systems.</li>
             <li><strong>Scalable Infrastructure:</strong> Architect highly scalable, resilient, cost-efficient infrastructure; lead cloud strategy including auto-scaling, load balancing and disaster recovery.</li>
-            <li><strong>Video Delivery:</strong> Optimize end-to-end video streaming â€” encoding, transcoding, playback; manage CDN strategies for low latency, minimal buffering and adaptive bitrate streaming.</li>
+            <li><strong>Video Delivery:</strong> Optimize end-to-end video streaming — encoding, transcoding, playback; manage CDN strategies for low latency, minimal buffering and adaptive bitrate streaming.</li>
             <li><strong>Paywall & Subscription Reliability:</strong> Oversee paywall systems, subscription lifecycle management and entitlement services; ensure accurate billing, renewals and access control.</li>
             <li><strong>Engineering Excellence:</strong> Lead engineering teams to deliver high-quality features at speed; establish agile processes, CI/CD pipelines and DevOps best practices.</li>
             <li><strong>Security & Compliance:</strong> Ensure platform security, data privacy, and compliance with relevant regulations; implement best practices for secure transactions and user data protection.</li>
@@ -421,12 +420,12 @@
           <ul class="mb-0 ps-3">
             <li>App Crash Rate: Below 0.5%</li>
             <li>Optimal Page/App Load Time across all platforms</li>
-            <li>Engineering Release Velocity â€” high-quality features per quarter</li>
+            <li>Engineering Release Velocity — high-quality features per quarter</li>
           </ul></div>`
     },
 
     'Jaipur Head- Radio': {
-      badge: 'Jaipur Â· FM Tadka Â· 8â€“10 Yrs',
+      badge: 'Jaipur · FM Tadka · 8–10 Yrs',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
           <p class="mb-0">FM Tadka is looking for an experienced and dynamic Jaipur Head to lead overall business operations, revenue growth, and market expansion. The role demands strong leadership, deep understanding of radio/media sales and the ability to drive teams toward aggressive targets.</p></div>
@@ -449,11 +448,11 @@
             <li>Strategic thinking with a result-oriented mindset.</li>
           </ul></div>
         <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Qualification</h6>
-          <p class="mb-0">Graduate/Postgraduate in any discipline (MBA preferred). 8â€“10 years of experience in Radio/Media/Advertising Sales.</p></div>`
+          <p class="mb-0">Graduate/Postgraduate in any discipline (MBA preferred). 8–10 years of experience in Radio/Media/Advertising Sales.</p></div>`
     },
 
     'OOH Mumbai': {
-      badge: 'Mumbai Â· West Region Â· OOH Media',
+      badge: 'Mumbai · West Region · OOH Media',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
           <p class="mb-0">Lead and grow Out-of-Home (OOH) business operations in the West region, based out of Mumbai. Responsible for revenue generation, client servicing, and market expansion across key Western markets.</p></div>
@@ -479,10 +478,10 @@
     },
 
     'Dy. Raj Head-Print': {
-      badge: 'Jodhpur, Rajasthan Â· Print Â· 10+ Yrs',
+      badge: 'Jodhpur, Rajasthan · Print · 10+ Yrs',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
-          <p class="mb-0">Lead and grow the print business across Rajasthan â€” driving circulation, advertising revenue, editorial alignment, and overall market expansion while ensuring operational excellence and brand positioning.</p></div>
+          <p class="mb-0">Lead and grow the print business across Rajasthan — driving circulation, advertising revenue, editorial alignment, and overall market expansion while ensuring operational excellence and brand positioning.</p></div>
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
           <ul class="mb-0 ps-3">
             <li><strong>Business & Revenue Growth:</strong> Drive revenue targets across advertising and circulation; develop strategic plans to expand market share; identify new business opportunities and key accounts.</li>
@@ -502,10 +501,10 @@
     },
 
     'Delhi Head- Print': {
-      badge: 'Delhi NCR Â· Print Advertising Â· 15â€“20+ Yrs',
+      badge: 'Delhi NCR · Print Advertising · 15–20+ Yrs',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
-          <p class="mb-0">Lead Rajasthan Patrika's Print Advertising Business in Delhi NCR â€” driving advertising revenue, strengthening agency and corporate relationships, and expanding market presence in one of India's most competitive advertising markets.</p></div>
+          <p class="mb-0">Lead Rajasthan Patrika's Print Advertising Business in Delhi NCR — driving advertising revenue, strengthening agency and corporate relationships, and expanding market presence in one of India's most competitive advertising markets.</p></div>
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
           <ul class="mb-0 ps-3">
             <li><strong>Business & Revenue Leadership:</strong> Lead and drive print advertising revenue for Delhi NCR; develop annual business plans; identify new business opportunities; maximize revenue through innovative advertising solutions, supplements and integrated media offerings.</li>
@@ -517,7 +516,7 @@
           </ul></div>
         <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Key Requirements</h6>
           <ul class="mb-0 ps-3">
-            <li>15â€“20+ years of experience in Print Media Sales, Advertising Sales, or Media Business Development.</li>
+            <li>15–20+ years of experience in Print Media Sales, Advertising Sales, or Media Business Development.</li>
             <li>Proven track record of delivering revenue growth in the Delhi NCR market.</li>
             <li>Strong network with advertising agencies, corporate clients, media planners and key decision-makers.</li>
             <li>MBA in Marketing, Sales, or Business Management preferred.</li>
@@ -526,7 +525,7 @@
     },
 
     'Raj Head- Radio': {
-      badge: 'Jaipur Â· FM Tadka Â· 14â€“15 Yrs',
+      badge: 'Jaipur · FM Tadka · 14–15 Yrs',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
           <p class="mb-0">FM Tadka is looking for an experienced and dynamic Rajasthan Head to lead overall business operations, revenue growth, and market expansion across Rajasthan. The role demands strong leadership, deep understanding of radio/media sales and proven ability to drive teams toward aggressive targets.</p></div>
@@ -549,11 +548,11 @@
             <li>Strategic thinking with a result-oriented mindset; excellent communication and presentation skills.</li>
           </ul></div>
         <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Qualification</h6>
-          <p class="mb-0">Graduate/Postgraduate in any discipline (MBA preferred). 14â€“15 years of experience in Radio/Media/Advertising Sales.</p></div>`
+          <p class="mb-0">Graduate/Postgraduate in any discipline (MBA preferred). 14–15 years of experience in Radio/Media/Advertising Sales.</p></div>`
     },
 
     'OOH Delhi': {
-      badge: 'Delhi NCR Â· Outdoor Advertising Â· 8â€“12 Yrs',
+      badge: 'Delhi NCR · Outdoor Advertising · 8–12 Yrs',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
           <p class="mb-0">Drive revenue growth, develop strategic client relationships, and expand Rajasthan Patrika's Outdoor Advertising (OOH) business in Delhi NCR. Requires strong understanding of the OOH media landscape and a well-established network with media agencies and direct advertisers.</p></div>
@@ -571,7 +570,7 @@
           </ul></div>
         <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Key Requirements</h6>
           <ul class="mb-0 ps-3">
-            <li>8â€“12 years of experience in OOH Media Sales, Advertising Sales, or Business Development.</li>
+            <li>8–12 years of experience in OOH Media Sales, Advertising Sales, or Business Development.</li>
             <li>Strong exposure to the Delhi NCR advertising market; network with media agencies and media planners.</li>
             <li>In-depth understanding of Outdoor Advertising formats and media planning.</li>
             <li>Excellent sales, negotiation, and business development skills.</li>
@@ -580,7 +579,7 @@
     },
 
     'Business Analyst': {
-      badge: 'Jaipur Â· 6 Openings Â· 10â€“12 Yrs',
+      badge: 'Jaipur · 6 Openings · 10–12 Yrs',
       html: `
         <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
           <p class="mb-0">Analyze market trends, customer behavior, sales performance, and campaign effectiveness to optimize marketing initiatives, improve audience engagement, and contribute to revenue growth across Patrika's media platforms.</p></div>
@@ -599,7 +598,7 @@
           <ul class="mb-0 ps-3">
             <li>Bachelor's degree in Marketing, Business Administration, Economics, Statistics, or Data Analytics.</li>
             <li>MBA in Marketing or Business Analytics is an added advantage.</li>
-            <li>10â€“12 years of experience in Marketing Analytics, Business Analytics, or Strategic Marketing.</li>
+            <li>10–12 years of experience in Marketing Analytics, Business Analytics, or Strategic Marketing.</li>
             <li>Experience in Media, Publishing, FMCG, Telecom, Retail, or Advertising preferred.</li>
           </ul></div>
         <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Required Skills</h6>

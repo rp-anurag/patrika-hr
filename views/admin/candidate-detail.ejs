@@ -68,7 +68,7 @@
         <div class="avatar-circle avatar-lg"><%= candidate.fullName.charAt(0).toUpperCase() %></div>
         <div>
           <h5 class="mb-0 fw-bold"><%= candidate.fullName %></h5>
-          <small class="text-muted"><%= candidate.positionApplying %> &nbsp;Â·&nbsp; Applied <%= new Date(candidate.submittedAt).toLocaleDateString('en-IN') %></small>
+          <small class="text-muted"><%= candidate.positionApplying %> &nbsp;·&nbsp; Applied <%= new Date(candidate.submittedAt).toLocaleDateString('en-IN') %></small>
         </div>
       </div>
       <div class="d-flex gap-2">
@@ -146,19 +146,19 @@
                     <div class="col-4">
                       <div class="package-box">
                         <small>Fixed</small>
-                        <strong>â‚¹<%= candidate.currentPackage.fixed || 0 %>L</strong>
+                        <strong>₹<%= candidate.currentPackage.fixed || 0 %>L</strong>
                       </div>
                     </div>
                     <div class="col-4">
                       <div class="package-box">
                         <small>Variables</small>
-                        <strong>â‚¹<%= candidate.currentPackage.variables || 0 %>L</strong>
+                        <strong>₹<%= candidate.currentPackage.variables || 0 %>L</strong>
                       </div>
                     </div>
                     <div class="col-4">
                       <div class="package-box bg-gold-light">
                         <small>Total CTC</small>
-                        <strong>â‚¹<%= ((candidate.currentPackage.fixed||0)+(candidate.currentPackage.variables||0)+(candidate.currentPackage.others||0)).toFixed(1) %>L</strong>
+                        <strong>₹<%= ((candidate.currentPackage.fixed||0)+(candidate.currentPackage.variables||0)+(candidate.currentPackage.others||0)).toFixed(1) %>L</strong>
                       </div>
                     </div>
                   </div>
@@ -181,7 +181,7 @@
                 <div class="flex-grow-1">
                   <div class="fw-semibold"><%= candidate.resumeFile.originalName %></div>
                   <small class="text-muted">
-                    <%= (candidate.resumeFile.size / 1024).toFixed(1) %> KB &nbsp;Â·&nbsp;
+                    <%= (candidate.resumeFile.size / 1024).toFixed(1) %> KB &nbsp;·&nbsp;
                     <%= ext.toUpperCase() %> file
                   </small>
                 </div>
@@ -435,7 +435,7 @@
           <div>Loading resume...</div>
         </div>
         <iframe id="resumeFrame" class="resume-iframe" style="display:none;"
-          title="Resume Preview" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+          title="Resume Preview"></iframe>
       </div>
     </div>
   </div>

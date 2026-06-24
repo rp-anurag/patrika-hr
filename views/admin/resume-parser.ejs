@@ -121,7 +121,7 @@
             <div id="dropZone" class="drop-zone mb-3">
               <i class="bi bi-cloud-upload d-block mb-3"></i>
               <p class="mb-1 fw-semibold">Drag &amp; drop resume here</p>
-              <p class="text-muted small mb-3">or click to browse &nbsp;Â·&nbsp; PDF, DOC, DOCX &nbsp;Â·&nbsp; Max 10 MB</p>
+              <p class="text-muted small mb-3">or click to browse &nbsp;·&nbsp; PDF, DOC, DOCX &nbsp;·&nbsp; Max 10 MB</p>
               <button type="button" class="btn btn-gold btn-sm px-4" onclick="document.getElementById('fileInput').click()">
                 <i class="bi bi-folder2-open me-1"></i>Browse File
               </button>
@@ -153,11 +153,11 @@
             <div class="card h-100 shadow-sm parsed-card">
               <div class="card-body">
                 <div class="field-label mb-1">Full Name</div>
-                <div class="field-value fw-bold fs-5" id="r-name">â€”</div>
+                <div class="field-value fw-bold fs-5" id="r-name">—</div>
                 <div class="field-label mt-2 mb-1">Current Role</div>
-                <div class="field-value" id="r-role">â€”</div>
+                <div class="field-value" id="r-role">—</div>
                 <div class="field-label mt-2 mb-1">Total Experience</div>
-                <div class="field-value text-gold fw-semibold" id="r-exp">â€”</div>
+                <div class="field-value text-gold fw-semibold" id="r-exp">—</div>
               </div>
             </div>
           </div>
@@ -165,13 +165,13 @@
             <div class="card h-100 shadow-sm parsed-card">
               <div class="card-body">
                 <div class="field-label mb-1">Email</div>
-                <div class="field-value" id="r-email">â€”</div>
+                <div class="field-value" id="r-email">—</div>
                 <div class="field-label mt-2 mb-1">Phone</div>
-                <div class="field-value" id="r-phone">â€”</div>
+                <div class="field-value" id="r-phone">—</div>
                 <div class="field-label mt-2 mb-1">Location</div>
-                <div class="field-value" id="r-location">â€”</div>
+                <div class="field-value" id="r-location">—</div>
                 <div class="field-label mt-2 mb-1">LinkedIn</div>
-                <div class="field-value" id="r-linkedin">â€”</div>
+                <div class="field-value" id="r-linkedin">—</div>
               </div>
             </div>
           </div>
@@ -179,7 +179,7 @@
             <div class="card h-100 shadow-sm parsed-card">
               <div class="card-body">
                 <div class="field-label mb-1">Profile Summary</div>
-                <div class="field-value small" id="r-summary" style="line-height:1.6;">â€”</div>
+                <div class="field-value small" id="r-summary" style="line-height:1.6;">—</div>
               </div>
             </div>
           </div>
@@ -299,7 +299,7 @@
                 <div id="s-resume-info" class="alert alert-info py-2 d-none mb-1">
                   <i class="bi bi-file-earmark-check me-1"></i>
                   <span id="s-resume-name"></span>
-                  <small class="text-muted ms-2">(from parser â€” will be saved)</small>
+                  <small class="text-muted ms-2">(from parser — will be saved)</small>
                 </div>
                 <div id="s-resume-alt" class="d-none">
                   <input type="file" class="form-control" id="s-resume-file" accept=".pdf,.doc,.docx">
@@ -376,7 +376,7 @@ async function parseFile(file) {
 let _parsedData = null;
 let _parsedFile = null;
 
-function val(v) { return v || 'â€”'; }
+function val(v) { return v || '—'; }
 
 function renderResults(d) {
   _parsedData = d;
@@ -417,7 +417,7 @@ function renderResults(d) {
   if (d.linkedin) {
     li.innerHTML = `<a href="${d.linkedin}" target="_blank" class="text-gold">${d.linkedin}</a>`;
   } else {
-    li.textContent = 'â€”';
+    li.textContent = '—';
   }
 
   // Experience
