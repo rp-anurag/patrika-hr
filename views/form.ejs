@@ -327,18 +327,177 @@
   <script>
   // ── Job Descriptions ────────────────────────────────────────────────────────
   const JOB_DESCRIPTIONS = {
+
+    'FMCG Jaipur': {
+      badge: 'Jaipur, Rajasthan · Full-Time · 6 Days/Week',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">Responsible for overseeing, developing and executing the circulation strategy across Jaipur. Includes managing distribution networks, driving readership growth, optimizing logistics and ensuring operational efficiency.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li><strong>Strategic Leadership:</strong> Develop and implement circulation strategies; drive growth in copies, readership and reach through data-driven insights.</li>
+            <li><strong>Operations & Distribution:</strong> Lead and scale distribution network including area managers, field staff, agents, hawkers and vendors; ensure timely delivery across urban and rural geographies.</li>
+            <li><strong>Market Development:</strong> Analyze readership behavior and competitor strategies; collaborate with editorial and marketing teams on campaigns; conduct market surveys.</li>
+            <li><strong>Team Management:</strong> Lead and mentor multi-level circulation teams; set performance KPIs; build high-performance culture.</li>
+            <li><strong>Financial Management:</strong> Manage circulation department budget; maintain healthy cost-to-revenue ratio; monitor dues collection and credit policies.</li>
+            <li><strong>Stakeholder Engagement:</strong> Maintain strong relationships with distributors, vendors and institutional partners; coordinate with corporate, editorial, production and advertising departments.</li>
+          </ul></div>`
+    },
+
+    'FMCG Rajasthan': {
+      badge: 'Rajasthan – All Areas · Full-Time · 6 Days/Week',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">Responsible for overseeing, developing and executing the circulation strategy across Rajasthan. Includes managing distribution networks, driving readership growth, optimizing logistics and ensuring operational efficiency.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li><strong>Strategic Leadership:</strong> Develop and implement state-wide circulation strategies; drive growth in copies, readership and reach through innovative market-specific initiatives.</li>
+            <li><strong>Operations & Distribution:</strong> Lead and scale the state-wide distribution network; ensure timely delivery of all print editions across urban and rural geographies; optimize logistics and costs.</li>
+            <li><strong>Market Development:</strong> Analyze regional readership behavior and competitor strategies; execute circulation-boosting campaigns; conduct periodic market surveys.</li>
+            <li><strong>Team Management:</strong> Lead and mentor a multi-level team of circulation professionals; set performance KPIs; drive high-performance culture.</li>
+            <li><strong>Financial Management:</strong> Manage circulation department budget; ensure profitability; monitor collection of dues and credit policies with partners.</li>
+            <li><strong>Stakeholder Engagement:</strong> Build strong relationships with distributors, vendors and institutional partners; coordinate with corporate, editorial, production and advertising teams.</li>
+          </ul></div>`
+    },
+
+    'FMCG MPCG': {
+      badge: 'Madhya Pradesh / Chhattisgarh · Full-Time · 6 Days/Week',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">Responsible for overseeing, developing and executing the circulation strategy across MP/CG. Includes managing distribution networks, driving readership growth, optimizing logistics and ensuring operational efficiency.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li><strong>Strategic Leadership:</strong> Develop and implement circulation strategies aligned with company goals; drive growth through innovative and market-specific initiatives.</li>
+            <li><strong>Operations & Distribution:</strong> Lead and scale the regional distribution network; ensure timely delivery across urban and rural geographies; oversee logistics planning and cost optimization.</li>
+            <li><strong>Market Development:</strong> Analyze readership behavior and competitor strategies; collaborate with editorial and marketing teams; conduct market surveys and reader feedback exercises.</li>
+            <li><strong>Team Management:</strong> Lead and mentor multi-level circulation professionals; set KPIs; build a high-performance culture focused on accountability and results.</li>
+            <li><strong>Financial Management:</strong> Manage overall circulation department budget; maintain healthy cost-to-revenue ratio; monitor dues collection and credit policies.</li>
+            <li><strong>Stakeholder Engagement:</strong> Maintain strong relationships with distributors, vendors and institutional partners; represent the region in senior management reviews.</li>
+          </ul></div>`
+    },
+
+    'Chief Digital Officer': {
+      badge: 'Jaipur · Digital Segment',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
+          <p class="mb-0">Responsible for strategic leadership, operational excellence, and commercial success of Patrika Group's digital ecosystem — with primary focus on Subscription-Based Mobile Applications, Patrika website, and in-house technology development.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li><strong>Strategic Leadership & Business Growth:</strong> Define and execute digital business strategy; drive audience acquisition, engagement and monetisation; sustain APP downloads and subscriber base expansion.</li>
+            <li><strong>P&L Ownership & Revenue:</strong> Full P&L responsibility; drive revenue through app subscriptions, digital advertising, paid content, affiliate partnerships and emerging monetisation models.</li>
+            <li><strong>Product & Platform Management:</strong> Oversee Mobile Applications (Android/iOS) and Patrika Website — product roadmap, UX optimisation, feature prioritisation, performance and reliability.</li>
+            <li><strong>In-House Technology Oversight:</strong> Lead internal product and engineering teams; ensure timely releases, agile development, platform stability, scalability and security.</li>
+            <li><strong>Audience Growth & Engagement:</strong> Optimise organic traffic, paid campaigns, SEO/ASO; drive DAU/MAU growth, session time, user loyalty and churn reduction.</li>
+            <li><strong>Monetisation & Innovation:</strong> Develop innovative monetisation models; strengthen ad-tech and mar-tech capabilities; explore subscription strategies, paywalls and bundled offerings.</li>
+            <li><strong>Cross-Functional Leadership:</strong> Collaborate with Editorial, Sales, Marketing, Technology, Finance and HR to align goals and drive execution.</li>
+          </ul></div>`
+    },
+
+    'CTO': {
+      badge: 'Media · Technology',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">Lead the end-to-end technology vision, strategy, and execution for the company's digital media platforms — ensuring the subscription-based application performs flawlessly with high-quality video content, seamless UX, and reliable monetisation systems.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li><strong>Technology Strategy & Vision:</strong> Define and execute the technology roadmap aligned with digital media growth strategy; partner with product, content and business teams to enable innovation.</li>
+            <li><strong>Platform Performance & Reliability:</strong> Ensure high availability, minimal downtime, and consistent app performance; establish comprehensive monitoring, logging and incident management systems.</li>
+            <li><strong>Scalable Infrastructure:</strong> Architect highly scalable, resilient, cost-efficient infrastructure; lead cloud strategy including auto-scaling, load balancing and disaster recovery.</li>
+            <li><strong>Video Delivery:</strong> Optimize end-to-end video streaming — encoding, transcoding, playback; manage CDN strategies for low latency, minimal buffering and adaptive bitrate streaming.</li>
+            <li><strong>Paywall & Subscription Reliability:</strong> Oversee paywall systems, subscription lifecycle management and entitlement services; ensure accurate billing, renewals and access control.</li>
+            <li><strong>Engineering Excellence:</strong> Lead engineering teams to deliver high-quality features at speed; establish agile processes, CI/CD pipelines and DevOps best practices.</li>
+            <li><strong>Security & Compliance:</strong> Ensure platform security, data privacy, and compliance with relevant regulations; implement best practices for secure transactions and user data protection.</li>
+          </ul></div>
+        <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Key KPIs</h6>
+          <ul class="mb-0 ps-3">
+            <li>App Crash Rate: Below 0.5%</li>
+            <li>Optimal Page/App Load Time across all platforms</li>
+            <li>Engineering Release Velocity — high-quality features per quarter</li>
+          </ul></div>`
+    },
+
+    'Jaipur Head- Radio': {
+      badge: 'Jaipur · FM Tadka · 8–10 Yrs',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">FM Tadka is looking for an experienced and dynamic Jaipur Head to lead overall business operations, revenue growth, and market expansion. The role demands strong leadership, deep understanding of radio/media sales and the ability to drive teams toward aggressive targets.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li>Drive Non-FCT revenues and key revenue strategies; manage top clients across key markets.</li>
+            <li>Head overall operations including sales, marketing, and revenue planning.</li>
+            <li>Drive advertising sales across local, regional, and state-level clients.</li>
+            <li>Build and manage relationships with key advertisers, agencies, and government clients.</li>
+            <li>Lead, mentor, and monitor the state sales team to achieve monthly and annual targets.</li>
+            <li>Develop strategic plans for market penetration and brand growth in Rajasthan.</li>
+            <li>Coordinate with programming, marketing, and central teams for integrated campaigns.</li>
+            <li>Track market trends, competitor activity, and provide actionable insights.</li>
+          </ul></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Skills</h6>
+          <ul class="mb-0 ps-3">
+            <li>Strong background in Radio / Media / Advertising Sales with top client connects.</li>
+            <li>Excellent client acquisition and negotiation skills.</li>
+            <li>Strong understanding of local market dynamics.</li>
+            <li>Strategic thinking with a result-oriented mindset.</li>
+          </ul></div>
+        <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Qualification</h6>
+          <p class="mb-0">Graduate/Postgraduate in any discipline (MBA preferred). 8–10 years of experience in Radio/Media/Advertising Sales.</p></div>`
+    },
+
+    'OOH Mumbai': {
+      badge: 'Mumbai · West Region · OOH Media',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">Lead and grow Out-of-Home (OOH) business operations in the West region, based out of Mumbai. Responsible for revenue generation, client servicing, and market expansion across key Western markets.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li>Drive OOH media sales and achieve annual revenue targets.</li>
+            <li>Develop and execute sales strategies for the West region.</li>
+            <li>Identify and acquire new clients, agencies, and direct advertisers.</li>
+            <li>Maintain strong relationships with existing clients to ensure repeat business.</li>
+            <li>Coordinate with internal teams (operations, finance, creative) for seamless campaign execution.</li>
+            <li>Monitor market trends, competitor activities, and new business opportunities.</li>
+            <li>Negotiate pricing, contracts, and media deals effectively.</li>
+            <li>Prepare sales forecasts, MIS reports, and revenue projections.</li>
+          </ul></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Requirements</h6>
+          <ul class="mb-0 ps-3">
+            <li>Experience in OOH / Media Sales / Advertising (Western market exposure preferred).</li>
+            <li>Strong network with agencies and direct clients in Mumbai and Western India.</li>
+            <li>Proven track record of achieving revenue targets.</li>
+            <li>Excellent communication, negotiation, and presentation skills.</li>
+            <li>Prior experience handling regional OOH inventory and media planning.</li>
+          </ul></div>`
+    },
+
+    'Dy. Raj Head-Print': {
+      badge: 'Jodhpur, Rajasthan · Print · 10+ Yrs',
+      html: `
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Overview</h6>
+          <p class="mb-0">Lead and grow the print business across Rajasthan — driving circulation, advertising revenue, editorial alignment, and overall market expansion while ensuring operational excellence and brand positioning.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+          <ul class="mb-0 ps-3">
+            <li><strong>Business & Revenue Growth:</strong> Drive revenue targets across advertising and circulation; develop strategic plans to expand market share; identify new business opportunities and key accounts.</li>
+            <li><strong>Sales & Client Management:</strong> Lead advertising sales team; build and maintain strong relationships with agencies, corporates and government clients; monitor competitor activity.</li>
+            <li><strong>Circulation & Distribution:</strong> Oversee circulation growth, distribution network efficiency and vendor management; implement initiatives to increase readership and subscription base.</li>
+            <li><strong>Editorial Coordination:</strong> Collaborate with editorial teams for local relevance and content quality; align editorial strategy with business objectives.</li>
+            <li><strong>Team Leadership:</strong> Recruit, train and manage cross-functional teams (sales, circulation, operations); set KPIs and drive high-performance culture.</li>
+            <li><strong>Brand Building:</strong> Lead local marketing initiatives, events and promotions; drive reader engagement and community connect programs.</li>
+          </ul></div>
+        <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Key Requirements</h6>
+          <ul class="mb-0 ps-3">
+            <li>Bachelor's/Master's in Business, Marketing, Journalism, or related field.</li>
+            <li>10+ years of experience in print media, publishing, or advertising sales.</li>
+            <li>Proven track record in revenue generation and team leadership.</li>
+            <li>Strong understanding of the Rajasthan media landscape and regional markets.</li>
+          </ul></div>`
+    },
+
     'Business Analyst': {
       badge: 'Jaipur · 6 Openings · 10–12 Yrs',
       html: `
-        <div class="mb-3">
-          <p class="text-muted mb-2"><strong>About Rajasthan Patrika:</strong> One of India's leading media organizations with a strong presence across Print, Digital, Radio, and Outdoor media.</p>
-        </div>
-        <div class="mb-3">
-          <h6 class="fw-bold text-gold mb-1">Role Summary</h6>
-          <p class="mb-0">The Business Analyst will analyze market trends, customer behavior, sales performance, and campaign effectiveness to optimize marketing initiatives, improve audience engagement, and contribute to revenue growth across media platforms.</p>
-        </div>
-        <div class="mb-3">
-          <h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
+          <p class="mb-0">Analyze market trends, customer behavior, sales performance, and campaign effectiveness to optimize marketing initiatives, improve audience engagement, and contribute to revenue growth across Patrika's media platforms.</p></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
           <ul class="mb-0 ps-3">
             <li>Analyze sales, circulation, readership, and campaign performance data to identify trends and business opportunities.</li>
             <li>Conduct market research, competitor analysis, and consumer behavior studies.</li>
@@ -348,38 +507,23 @@
             <li>Perform audience segmentation and identify target customer groups.</li>
             <li>Forecast market demand, revenue trends, and campaign outcomes using analytical models.</li>
             <li>Present findings and recommendations to leadership through clear reports.</li>
-          </ul>
-        </div>
-        <div class="mb-3">
-          <h6 class="fw-bold text-gold mb-1">Required Qualifications</h6>
+          </ul></div>
+        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Required Qualifications</h6>
           <ul class="mb-0 ps-3">
             <li>Bachelor's degree in Marketing, Business Administration, Economics, Statistics, or Data Analytics.</li>
             <li>MBA in Marketing or Business Analytics is an added advantage.</li>
             <li>10–12 years of experience in Marketing Analytics, Business Analytics, or Strategic Marketing.</li>
             <li>Experience in Media, Publishing, FMCG, Telecom, Retail, or Advertising preferred.</li>
-          </ul>
-        </div>
-        <div class="mb-3">
-          <h6 class="fw-bold text-gold mb-1">Required Skills</h6>
+          </ul></div>
+        <div class="mb-0"><h6 class="fw-bold text-gold mb-1">Required Skills</h6>
           <ul class="mb-0 ps-3">
-            <li>Strong analytical and problem-solving abilities.</li>
-            <li>Advanced proficiency in Microsoft Excel.</li>
-            <li>Hands-on experience with Power BI, Tableau, or similar BI tools.</li>
+            <li>Advanced proficiency in Microsoft Excel; hands-on experience with Power BI or Tableau.</li>
             <li>Knowledge of SQL and data analysis techniques.</li>
             <li>Strong understanding of marketing KPIs and campaign analytics.</li>
             <li>Excellent presentation and communication skills.</li>
-          </ul>
-        </div>
-        <div class="mb-0">
-          <h6 class="fw-bold text-gold mb-1">What We Offer</h6>
-          <ul class="mb-0 ps-3">
-            <li>Exposure to integrated media platforms — Print, Digital, Radio, and Events.</li>
-            <li>A collaborative and innovation-driven work environment.</li>
-            <li>Career growth with high-impact business projects.</li>
-            <li>Competitive compensation and benefits.</li>
-          </ul>
-        </div>`
+          </ul></div>`
     }
+
   };
 
   // Show / hide JD panel when a position radio is selected
