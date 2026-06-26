@@ -157,7 +157,7 @@
                   <i class="bi bi-briefcase me-1 text-gold"></i>Position Applying For *
                 </label>
                 <div class="row g-2">
-                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print']; %>
+                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print']; %>
                   <% positions.forEach(pos => { %>
                   <div class="col-md-6 col-lg-4">
                     <input type="radio" class="btn-check" name="positionApplying" id="pos_<%= pos.replace(/\s/g,'_') %>" value="<%= pos %>" required>
@@ -305,7 +305,6 @@
                 { name: 'FMCG Jaipur', dept: 'Sales & Marketing', icon: 'geo-alt' },
                 { name: 'FMCG Rajasthan', dept: 'Sales & Marketing', icon: 'geo-alt' },
                 { name: 'FMCG MPCG', dept: 'Sales & Marketing', icon: 'geo-alt' },
-                { name: 'Chief Digital Officer', dept: 'Digital & Technology', icon: 'laptop' },
                 { name: 'Business Analyst', dept: 'Marketing', icon: 'bar-chart' },
                 { name: 'Raj Head- Radio', dept: 'Radio', icon: 'broadcast' },
                 { name: 'Jaipur Head- Radio', dept: 'Radio', icon: 'broadcast' },
@@ -406,23 +405,6 @@
             <li><strong>Team Management:</strong> Lead and mentor multi-level circulation professionals; set KPIs; build a high-performance culture focused on accountability and results.</li>
             <li><strong>Financial Management:</strong> Manage overall circulation department budget; maintain healthy cost-to-revenue ratio; monitor dues collection and credit policies.</li>
             <li><strong>Stakeholder Engagement:</strong> Maintain strong relationships with distributors, vendors and institutional partners; represent the region in senior management reviews.</li>
-          </ul></div>`
-    },
-
-    'Chief Digital Officer': {
-      badge: 'Jaipur · Digital Segment',
-      html: `
-        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Role Summary</h6>
-          <p class="mb-0">Responsible for strategic leadership, operational excellence, and commercial success of Patrika Group's digital ecosystem — with primary focus on Subscription-Based Mobile Applications, Patrika website, and in-house technology development.</p></div>
-        <div class="mb-3"><h6 class="fw-bold text-gold mb-1">Key Responsibilities</h6>
-          <ul class="mb-0 ps-3">
-            <li><strong>Strategic Leadership & Business Growth:</strong> Define and execute digital business strategy; drive audience acquisition, engagement and monetisation; sustain APP downloads and subscriber base expansion.</li>
-            <li><strong>P&L Ownership & Revenue:</strong> Full P&L responsibility; drive revenue through app subscriptions, digital advertising, paid content, affiliate partnerships and emerging monetisation models.</li>
-            <li><strong>Product & Platform Management:</strong> Oversee Mobile Applications (Android/iOS) and Patrika Website — product roadmap, UX optimisation, feature prioritisation, performance and reliability.</li>
-            <li><strong>In-House Technology Oversight:</strong> Lead internal product and engineering teams; ensure timely releases, agile development, platform stability, scalability and security.</li>
-            <li><strong>Audience Growth & Engagement:</strong> Optimise organic traffic, paid campaigns, SEO/ASO; drive DAU/MAU growth, session time, user loyalty and churn reduction.</li>
-            <li><strong>Monetisation & Innovation:</strong> Develop innovative monetisation models; strengthen ad-tech and mar-tech capabilities; explore subscription strategies, paywalls and bundled offerings.</li>
-            <li><strong>Cross-Functional Leadership:</strong> Collaborate with Editorial, Sales, Marketing, Technology, Finance and HR to align goals and drive execution.</li>
           </ul></div>`
     },
 

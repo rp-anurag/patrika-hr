@@ -9,7 +9,7 @@ const Candidate = sequelize.define('Candidate', {
   linkedInProfile:  { type: DataTypes.STRING(500) },
   currentLocation:  { type: DataTypes.STRING(255), allowNull: false },
   positionApplying: {
-    type: DataTypes.ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print'),
+    type: DataTypes.ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print'),
     allowNull: false
   },
 
