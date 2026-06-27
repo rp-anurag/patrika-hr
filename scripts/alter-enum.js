@@ -13,7 +13,7 @@ async function run() {
 
   const alterations = [
     // Remove CTO from ENUM
-    "ALTER TABLE candidates MODIFY COLUMN positionApplying ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print') NOT NULL",
+    "ALTER TABLE candidates MODIFY COLUMN positionApplying ENUM('FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print','VP Finance','VP IT & Transformation','Chartered Accountant','B2B Marketing Research') NOT NULL",
     // Add motivational question columns
     "ALTER TABLE candidates ADD COLUMN whyJoinUs TEXT AFTER adminNotes",
     "ALTER TABLE candidates ADD COLUMN first90DaysPlan TEXT AFTER whyJoinUs"

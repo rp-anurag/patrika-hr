@@ -157,7 +157,7 @@
                   <i class="bi bi-briefcase me-1 text-gold"></i>Position Applying For *
                 </label>
                 <div class="row g-2">
-                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print']; %>
+                  <% const positions = ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Business Analyst','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print','VP Finance','VP IT & Transformation','Chartered Accountant','B2B Marketing Research']; %>
                   <% positions.forEach(pos => { %>
                   <div class="col-md-6 col-lg-4">
                     <input type="radio" class="btn-check" name="positionApplying" id="pos_<%= pos.replace(/\s/g,'_') %>" value="<%= pos %>" required>
@@ -311,7 +311,11 @@
                 { name: 'Delhi Head- Print', dept: 'Print', icon: 'newspaper' },
                 { name: 'OOH Delhi', dept: 'Out of Home', icon: 'sign-stop' },
                 { name: 'OOH Mumbai', dept: 'Out of Home', icon: 'sign-stop' },
-                { name: 'Dy. Raj Head-Print', dept: 'Print', icon: 'newspaper' }
+                { name: 'Dy. Raj Head-Print', dept: 'Print', icon: 'newspaper' },
+                { name: 'VP Finance', dept: 'Finance', icon: 'cash-coin' },
+                { name: 'VP IT & Transformation', dept: 'IT', icon: 'pc-display' },
+                { name: 'Chartered Accountant', dept: 'Finance', icon: 'calculator' },
+                { name: 'B2B Marketing Research', dept: 'Marketing', icon: 'graph-up-arrow' }
               ]; %>
               <% posDetails.forEach(p => { %>
               <li class="list-group-item d-flex align-items-center py-2">
