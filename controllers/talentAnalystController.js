@@ -117,7 +117,7 @@ exports.showPage = async (req, res) => {
   try {
     const [candidates, positions] = await Promise.all([
       Candidate.findAll({ attributes: ['id','fullName','positionApplying','status','grade'], order: [['submittedAt','DESC']] }),
-      Position.findAll({ where: { isActive: true }, order: [['name','ASC']] })
+      Position.findAll({ where: { isActive: true }, attributes: ['id','name','department','jdHtml'], order: [['sortOrder','ASC'],['name','ASC']] })
     ]);
     res.render('admin/talent-analyst', {
       title: 'AI Talent Analyst',
