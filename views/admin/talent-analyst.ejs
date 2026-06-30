@@ -1,0 +1,438 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css?v=<%= v %>" rel="stylesheet">
+  <style>
+    :root { --gold:#c9941a; --dark:#1a1a2e; }
+    .report-card { background:#fff; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,.08); margin-bottom:18px; overflow:hidden; }
+    .report-card-header { background:linear-gradient(90deg,var(--dark),#3a2a00); color:#f0c030; padding:10px 18px; font-size:.88rem; font-weight:700; }
+    .report-card-body { padding:16px 20px; }
+    .tier-badge { font-size:1.4rem; font-weight:900; width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+    .tier-A { background:#198754; color:#fff; }
+    .tier-B { background:#f0c030; color:#1a1a2e; }
+    .tier-C { background:#dc3545; color:#fff; }
+    .conf-high   { color:#198754; font-size:.7rem; font-weight:700; }
+    .conf-medium { color:#f0a500; font-size:.7rem; font-weight:700; }
+    .conf-low    { color:#dc3545; font-size:.7rem; font-weight:700; }
+    .dim-score { width:28px; height:28px; border-radius:50%; background:#f0c030; color:#1a1a2e; font-weight:900; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .score-bar-wrap { height:8px; background:#f0f0f0; border-radius:4px; flex:1; }
+    .score-bar { height:8px; border-radius:4px; background:linear-gradient(90deg,#c9941a,#f0c030); }
+    .candidate-pill { display:inline-flex; align-items:center; gap:6px; background:#f9f6ec; border:1px solid #e8dfc5; border-radius:20px; padding:4px 12px 4px 8px; font-size:.82rem; margin:3px; cursor:pointer; }
+    .candidate-pill .remove { cursor:pointer; color:#888; }
+    .candidate-pill .remove:hover { color:#dc3545; }
+    .selected-candidates { min-height:38px; border:1px dashed #c9941a; border-radius:8px; padding:6px 10px; background:#fffef9; }
+    .compare-row { border-bottom:1px solid #f0f0f0; }
+    .compare-row:last-child { border-bottom:none; }
+    .strength-item { border-left:3px solid #198754; padding:6px 10px; margin-bottom:6px; background:#f6fef9; border-radius:0 6px 6px 0; font-size:.85rem; }
+    .concern-item  { border-left:3px solid #dc3545; padding:6px 10px; margin-bottom:6px; background:#fff8f8; border-radius:0 6px 6px 0; font-size:.85rem; }
+    .verify-item   { border-left:3px solid #f0c030; padding:6px 10px; margin-bottom:6px; background:#fffef0; border-radius:0 6px 6px 0; font-size:.85rem; }
+    .missing-item  { border-left:3px solid #aaa; padding:6px 10px; margin-bottom:4px; background:#f8f8f8; border-radius:0 6px 6px 0; font-size:.82rem; color:#666; }
+    .input-section { background:#fff; border:1px solid #e8dfc5; border-radius:10px; padding:20px; margin-bottom:20px; }
+    #loadingOverlay { position:fixed; inset:0; background:rgba(26,26,46,.7); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; gap:16px; color:#fff; }
+    .spinner-gold { width:52px; height:52px; border:5px solid rgba(240,192,48,.3); border-top-color:#f0c030; border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media print { .no-print{ display:none!important; } }
+    .evidence-text { color:#666; font-size:.8rem; font-style:italic; margin-top:2px; }
+  </style>
+</head>
+<body class="admin-page">
+<div class="admin-wrapper">
+
+  <!-- Sidebar -->
+  <nav class="admin-sidebar d-flex flex-column">
+    <div class="sidebar-brand">
+      <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo" onerror="this.style.display='none'">
+      <div><div class="fw-bold text-gold">Patrika HR</div><small class="text-white-50">Admin Panel</small></div>
+    </div>
+    <hr class="border-secondary my-2">
+    <ul class="nav flex-column px-2 flex-grow-1">
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/dashboard"><i class="bi bi-people-fill me-2"></i>Candidates</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/positions"><i class="bi bi-briefcase-fill me-2"></i>Positions</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/requisitions"><i class="bi bi-clipboard-check-fill me-2"></i>Requisitions</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link active" href="/admin/talent-analyst"><i class="bi bi-robot me-2"></i>Talent Analyst</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/resume-parser"><i class="bi bi-file-earmark-text me-2"></i>Resume Parser</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/apply" target="_blank"><i class="bi bi-file-earmark-person me-2"></i>Application Form</a></li>
+    </ul>
+    <div class="px-2 pb-3">
+      <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+      <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">Logged in as <strong><%= adminName %></strong></p>
+    </div>
+  </nav>
+
+  <main class="admin-main">
+    <div class="admin-topbar d-flex align-items-center justify-content-between no-print">
+      <div>
+        <h5 class="mb-0 fw-bold"><i class="bi bi-robot me-2 text-gold"></i>AI Talent Analyst</h5>
+        <small class="text-muted">Evidence-based candidate assessment powered by Groq AI</small>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print Report</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="clearReport()"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear</button>
+      </div>
+    </div>
+
+    <div class="p-4">
+      <div class="row g-4">
+
+        <!-- Left: configuration -->
+        <div class="col-lg-4 no-print">
+
+          <div class="input-section">
+            <h6 class="fw-bold mb-3" style="color:var(--dark);"><i class="bi bi-gear-fill me-2 text-gold"></i>Configure Analysis</h6>
+
+            <!-- Role -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Target Role / Position</label>
+              <input type="text" id="roleName" class="form-control form-control-sm" placeholder="e.g. Sales Head – Jaipur">
+            </div>
+
+            <!-- JD -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Job Description <span class="text-muted fw-normal">(paste or type)</span></label>
+              <textarea id="jdText" class="form-control form-control-sm" rows="5" placeholder="Paste the JD here for more accurate scoring..."></textarea>
+            </div>
+
+            <!-- Custom rubric (collapsed) -->
+            <div class="mb-3">
+              <a class="text-muted" style="font-size:.78rem;cursor:pointer;" data-bs-toggle="collapse" href="#rubricCollapse">
+                <i class="bi bi-sliders me-1"></i>Custom scoring rubric (optional)
+              </a>
+              <div class="collapse mt-2" id="rubricCollapse">
+                <textarea id="customRubric" class="form-control form-control-sm" rows="4"
+                  placeholder="Override default dimensions, weights, or add special instructions..."></textarea>
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Candidate picker -->
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Select Candidates <span class="text-muted fw-normal">(up to 4)</span></label>
+
+            <div class="input-group input-group-sm mb-2">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="candidateSearch" class="form-control" placeholder="Search name or position...">
+            </div>
+
+            <div id="candidateDropdown" class="border border-light rounded mb-2" style="max-height:180px;overflow-y:auto;display:none;">
+              <% candidates.forEach(function(c){ %>
+              <div class="candidate-option px-3 py-2 border-bottom" style="cursor:pointer;font-size:.83rem;"
+                   data-id="<%= c.id %>" data-name="<%= c.fullName %>" data-pos="<%= c.positionApplying %>" data-grade="<%= c.grade||'' %>"
+                   onclick="addCandidate(this)">
+                <div class="fw-semibold"><%= c.fullName %></div>
+                <div class="text-muted" style="font-size:.75rem;"><%= c.positionApplying %> <% if(c.grade){ %><span class="badge bg-secondary ms-1"><%= c.grade %></span><% } %></div>
+              </div>
+              <% }); %>
+            </div>
+
+            <div class="selected-candidates mb-3" id="selectedCandidates">
+              <span class="text-muted" style="font-size:.78rem;" id="noSelMsg">No candidates selected</span>
+            </div>
+
+            <button class="btn btn-gold w-100 fw-semibold" id="analyseBtn" onclick="runAnalysis()" disabled>
+              <i class="bi bi-robot me-2"></i>Generate Assessment
+            </button>
+
+            <p class="text-muted text-center mt-2 mb-0" style="font-size:.72rem;">
+              Single candidate → full deep report<br>Multiple → comparison table + individual reports
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Right: report -->
+        <div class="col-lg-8" id="reportArea">
+          <div class="text-center py-5 text-muted" id="emptyState">
+            <i class="bi bi-robot display-3 d-block mb-3" style="color:#e8dfc5;"></i>
+            <h5 style="color:#bbb;">Select candidates and click Generate Assessment</h5>
+            <p class="small">The analyst will produce evidence-based, confidence-tagged reports<br>against the role requirements.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay">
+  <div class="spinner-gold"></div>
+  <div class="fw-semibold" style="font-size:1rem;" id="loadingMsg">Analysing candidates...</div>
+  <div class="text-white-50" style="font-size:.8rem;">This may take 10–30 seconds per candidate</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const selectedCandidates = {};
+
+// Search filter
+document.getElementById('candidateSearch').addEventListener('focus', function() {
+  document.getElementById('candidateDropdown').style.display = 'block';
+});
+document.getElementById('candidateSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.candidate-option').forEach(function(el) {
+    const match = el.dataset.name.toLowerCase().includes(q) || el.dataset.pos.toLowerCase().includes(q);
+    el.style.display = match ? '' : 'none';
+  });
+  document.getElementById('candidateDropdown').style.display = 'block';
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#candidateSearch') && !e.target.closest('#candidateDropdown')) {
+    document.getElementById('candidateDropdown').style.display = 'none';
+  }
+});
+
+function addCandidate(el) {
+  const id = el.dataset.id;
+  if (selectedCandidates[id]) return;
+  if (Object.keys(selectedCandidates).length >= 4) {
+    alert('Maximum 4 candidates can be compared at once.');
+    return;
+  }
+  selectedCandidates[id] = { name: el.dataset.name, pos: el.dataset.pos, grade: el.dataset.grade };
+  renderPills();
+  document.getElementById('candidateSearch').value = '';
+  document.getElementById('candidateDropdown').style.display = 'none';
+}
+
+function removeCandidate(id) {
+  delete selectedCandidates[id];
+  renderPills();
+}
+
+function renderPills() {
+  const container = document.getElementById('selectedCandidates');
+  const noMsg     = document.getElementById('noSelMsg');
+  const keys = Object.keys(selectedCandidates);
+  if (!keys.length) {
+    container.innerHTML = '<span class="text-muted" style="font-size:.78rem;" id="noSelMsg">No candidates selected</span>';
+    document.getElementById('analyseBtn').disabled = true;
+    return;
+  }
+  container.innerHTML = keys.map(function(id) {
+    const c = selectedCandidates[id];
+    return '<span class="candidate-pill">' +
+      '<i class="bi bi-person-circle text-gold"></i>' +
+      '<span>' + c.name + '</span>' +
+      '<i class="bi bi-x-lg remove" onclick="removeCandidate(\'' + id + '\')" title="Remove"></i>' +
+      '</span>';
+  }).join('');
+  document.getElementById('analyseBtn').disabled = false;
+}
+
+async function runAnalysis() {
+  const ids = Object.keys(selectedCandidates);
+  if (!ids.length) return;
+
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('loadingMsg').textContent = 'Analysing ' + ids.length + ' candidate' + (ids.length > 1 ? 's' : '') + '...';
+
+  try {
+    const resp = await fetch('/admin/talent-analyst/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        candidateIds: ids,
+        roleName:     document.getElementById('roleName').value.trim(),
+        jd:           document.getElementById('jdText').value.trim(),
+        customRubric: document.getElementById('customRubric') ? document.getElementById('customRubric').value.trim() : ''
+      })
+    });
+    const data = await resp.json();
+    overlay.style.display = 'none';
+
+    if (!data.success) {
+      document.getElementById('reportArea').innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>' + (data.error || 'Analysis failed') + '</div>';
+      return;
+    }
+    renderReport(data);
+  } catch(e) {
+    overlay.style.display = 'none';
+    document.getElementById('reportArea').innerHTML = '<div class="alert alert-danger">Network error: ' + e.message + '</div>';
+  }
+}
+
+function clearReport() {
+  document.getElementById('reportArea').innerHTML =
+    '<div class="text-center py-5 text-muted" id="emptyState">' +
+    '<i class="bi bi-robot display-3 d-block mb-3" style="color:#e8dfc5;"></i>' +
+    '<h5 style="color:#bbb;">Select candidates and click Generate Assessment</h5>' +
+    '<p class="small">The analyst will produce evidence-based, confidence-tagged reports against the role requirements.</p>' +
+    '</div>';
+}
+
+function confBadge(c) {
+  const cls = { High:'conf-high', Medium:'conf-medium', Low:'conf-low' }[c] || 'conf-low';
+  return '<span class="' + cls + '">[' + (c||'?') + ']</span>';
+}
+
+function scoreColor(s) {
+  if (s >= 4) return '#198754';
+  if (s >= 3) return '#f0a500';
+  return '#dc3545';
+}
+
+function renderReport(data) {
+  const { results, roleName } = data;
+  let html = '';
+
+  // If multiple candidates, show comparison table first
+  if (results.length > 1) {
+    html += '<div class="report-card mb-4">';
+    html += '<div class="report-card-header"><i class="bi bi-table me-2"></i>Comparison Summary' + (roleName ? ' — ' + roleName : '') + '</div>';
+    html += '<div class="report-card-body"><div class="table-responsive"><table class="table table-hover align-middle mb-0">';
+    html += '<thead class="table-dark"><tr><th>Candidate</th><th class="text-center">Tier</th><th class="text-center">Score</th>';
+
+    // Dynamic dimension headers from first successful result
+    const firstOk = results.find(function(r){ return r.report && r.report.dimensions; });
+    const dims = firstOk ? firstOk.report.dimensions : [];
+    dims.forEach(function(d) { html += '<th class="text-center" style="font-size:.78rem;">' + d.name.replace('& ','&amp; ') + '<br><span class="text-muted">(' + d.weight + '%)</span></th>'; });
+    html += '<th>Key Strength</th><th>Top Concern</th></tr></thead><tbody>';
+
+    results.forEach(function(r) {
+      if (r.error) {
+        html += '<tr><td>' + r.candidateName + '</td><td colspan="99" class="text-danger small">' + r.error + '</td></tr>';
+        return;
+      }
+      const rpt = r.report || {};
+      const tierCls = { A:'success', B:'warning', C:'danger' }[rpt.tier] || 'secondary';
+      const tierTxt = { A:'text-white', B:'text-dark', C:'text-white' }[rpt.tier] || 'text-white';
+      html += '<tr>';
+      html += '<td><div class="fw-semibold">' + r.candidateName + '</div><div class="text-muted" style="font-size:.75rem;">' + r.position + '</div></td>';
+      html += '<td class="text-center"><span class="badge bg-' + tierCls + ' ' + tierTxt + ' fs-6 px-3 py-2">' + (rpt.tier||'?') + '</span></td>';
+      html += '<td class="text-center"><strong>' + (rpt.weightedTotal||0) + '</strong><span class="text-muted">/100</span></td>';
+      (rpt.dimensions||[]).forEach(function(d) {
+        html += '<td class="text-center"><span style="color:' + scoreColor(d.score) + ';font-weight:700;">' + d.score + '/5</span></td>';
+      });
+      const topStr = (rpt.strengths||[])[0];
+      const topCon = (rpt.concerns||[])[0];
+      html += '<td style="font-size:.8rem;">' + (topStr ? topStr.point : '—') + '</td>';
+      html += '<td style="font-size:.8rem;">' + (topCon ? topCon.point : '—') + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div></div></div>';
+  }
+
+  // Individual reports
+  results.forEach(function(r) {
+    if (r.error) {
+      html += '<div class="alert alert-warning"><strong>' + r.candidateName + '</strong>: ' + r.error + '</div>';
+      return;
+    }
+    const rpt = r.report || {};
+    const tierCls = { A:'tier-A', B:'tier-B', C:'tier-C' }[rpt.tier] || 'tier-C';
+    const tierLabel = { A:'Strong Fit', B:'Possible Fit', C:'Not a Fit' }[rpt.tier] || 'Unknown';
+
+    html += '<div class="report-card">';
+
+    // Header
+    html += '<div class="report-card-header d-flex justify-content-between align-items-center">';
+    html += '<span><i class="bi bi-person-badge-fill me-2"></i>' + r.candidateName + ' &mdash; ' + r.position + '</span>';
+    html += '<span class="badge bg-light text-dark" style="font-size:.8rem;">' + (roleName||r.position) + '</span>';
+    html += '</div>';
+
+    html += '<div class="report-card-body">';
+
+    // Tier + score + summary
+    html += '<div class="d-flex align-items-start gap-3 mb-3">';
+    html += '<div class="' + tierCls + ' tier-badge flex-shrink-0">' + (rpt.tier||'?') + '</div>';
+    html += '<div class="flex-grow-1">';
+    html += '<div class="d-flex align-items-center gap-2 mb-1">';
+    html += '<strong style="font-size:1.15rem;">' + (rpt.weightedTotal||0) + '<span class="text-muted">/100</span></strong>';
+    html += '<span class="badge" style="background:' + (rpt.tier==='A'?'#198754':rpt.tier==='B'?'#f0c030':'#dc3545') + ';color:' + (rpt.tier==='B'?'#1a1a2e':'#fff') + ';">' + tierLabel + '</span>';
+    html += '</div>';
+    html += '<p class="mb-0" style="font-size:.88rem;color:#444;">' + (rpt.summary||'No summary generated.') + '</p>';
+    html += '</div></div>';
+
+    // Dimension scores
+    if (rpt.dimensions && rpt.dimensions.length) {
+      html += '<div class="mb-3">';
+      html += '<div class="fw-semibold mb-2" style="font-size:.82rem;color:#888;text-transform:uppercase;letter-spacing:.05em;">Dimension Scores</div>';
+      rpt.dimensions.forEach(function(d) {
+        const pct = Math.round((d.score / 5) * 100);
+        html += '<div class="d-flex align-items-center gap-2 mb-2">';
+        html += '<div class="dim-score" style="background:' + scoreColor(d.score) + ';color:#fff;">' + d.score + '</div>';
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<div class="d-flex justify-content-between" style="font-size:.8rem;">';
+        html += '<span class="fw-semibold">' + d.name + '</span>';
+        html += '<span class="text-muted">' + d.weight + '% &rarr; ' + (d.weightedScore||Math.round(d.score/5*d.weight)) + 'pts &nbsp;' + confBadge(d.confidence) + '</span>';
+        html += '</div>';
+        html += '<div class="score-bar-wrap mt-1"><div class="score-bar" style="width:' + pct + '%;background:' + scoreColor(d.score) + ';"></div></div>';
+        html += '<div class="evidence-text">' + (d.evidence||'') + '</div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    // Strengths & Concerns side by side
+    html += '<div class="row g-3 mb-3">';
+
+    if (rpt.strengths && rpt.strengths.length) {
+      html += '<div class="col-md-6">';
+      html += '<div class="fw-semibold mb-2" style="font-size:.82rem;color:#198754;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-check-circle-fill me-1"></i>Strengths</div>';
+      rpt.strengths.forEach(function(s) {
+        html += '<div class="strength-item">';
+        html += '<div class="fw-semibold" style="font-size:.83rem;">' + s.point + ' ' + confBadge(s.confidence) + '</div>';
+        html += '<div class="evidence-text">' + (s.evidence||'') + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    if (rpt.concerns && rpt.concerns.length) {
+      html += '<div class="col-md-6">';
+      html += '<div class="fw-semibold mb-2" style="font-size:.82rem;color:#dc3545;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Concerns</div>';
+      rpt.concerns.forEach(function(c) {
+        html += '<div class="concern-item">';
+        html += '<div class="fw-semibold" style="font-size:.83rem;">' + c.point + ' ' + confBadge(c.confidence) + '</div>';
+        html += '<div class="evidence-text">' + (c.evidence||'') + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div>';
+
+    // Interview verify
+    if (rpt.interviewVerify && rpt.interviewVerify.length) {
+      html += '<div class="mb-3">';
+      html += '<div class="fw-semibold mb-2" style="font-size:.82rem;color:#c9941a;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-question-circle-fill me-1"></i>Verify in Interview</div>';
+      rpt.interviewVerify.forEach(function(v) {
+        html += '<div class="verify-item" style="font-size:.83rem;">' + v + '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Missing data
+    if (rpt.missingData && rpt.missingData.length) {
+      html += '<div>';
+      html += '<div class="fw-semibold mb-2" style="font-size:.78rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em;"><i class="bi bi-dash-circle me-1"></i>Missing Data</div>';
+      rpt.missingData.forEach(function(m) {
+        html += '<div class="missing-item">' + m + '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '</div></div>';
+  });
+
+  // Fairness footer
+  html += '<div class="text-muted text-center mt-2" style="font-size:.72rem;">';
+  html += '<i class="bi bi-shield-check me-1"></i>Assessment based solely on professional qualifications and role requirements. ';
+  html += 'Age, gender, race, nationality and other protected characteristics were not considered. ';
+  html += 'Human review required before any hiring decision.';
+  html += '</div>';
+
+  document.getElementById('reportArea').innerHTML = html;
+}
+</script>
+</body>
+</html>
