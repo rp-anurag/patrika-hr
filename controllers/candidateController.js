@@ -2,7 +2,7 @@ const { Candidate, Position } = require('../models');
 const { parseResume } = require('../utils/resumeParser');
 const { sendEmail, applicationReceivedTemplate } = require('../utils/emailService');
 const { qrExists, generateQR } = require('../utils/qrGenerator');
-const { computeGrade } = require('../utils/grader');
+const { computeGradeAsync } = require('../utils/grader');
 
 // GET /apply
 exports.showForm = async (req, res) => {
@@ -77,10 +77,17 @@ exports.submitForm = async (req, res) => {
             parsedEducation:         JSON.stringify(parsed.education || []),
             parsedRawText:           parsed.rawText
           };
-          // Compute grade against JD
+          // Compute grade against JD (AI-first, keyword fallback)
           const pos = await Position.findOne({ where: { name: positionApplying } }).catch(() => null);
-          const { grade, score } = computeGrade({ ...parsedFields, parsedRawText: parsed.rawText }, pos ? pos.jdHtml : '');
-          await Candidate.update({ ...parsedFields, grade, gradeScore: score }, { where: { id: candidate.id } });
+          const gradedCandidate = { ...parsedFields, parsedRawText: parsed.rawText };
+          const gradeResult = await computeGradeAsync(gradedCandidate, pos ? pos.jdHtml : '', positionApplying);
+          await Candidate.update({
+            ...parsedFields,
+            grade:       gradeResult.grade,
+            gradeScore:  gradeResult.score,
+            gradeReason: gradeResult.gradeReason,
+            gradeSource: gradeResult.gradeSource
+          }, { where: { id: candidate.id } });
         })
         .catch(err => console.error('Parse save error:', err.message));
     }

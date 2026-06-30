@@ -1,5 +1,4 @@
-// Simple keyword-match grader: compares candidate resume against position JD
-// Returns { grade: 'A'|'B'|'C'|'D', score: 0-100, matchedKeywords: [] }
+const { gradeWithAI } = require('./groqGrader');
 
 const STOPWORDS = new Set([
   'a','an','the','and','or','but','in','on','at','to','for','of','with','by',
@@ -17,44 +16,63 @@ function tokenize(text) {
   if (!text) return new Set();
   return new Set(
     text.toLowerCase()
-      .replace(/<[^>]+>/g, ' ')       // strip HTML
-      .replace(/[^a-z0-9\s]/g, ' ')   // strip punctuation
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/[^a-z0-9\s]/g, ' ')
       .split(/\s+/)
       .filter(w => w.length > 2 && !STOPWORDS.has(w))
   );
 }
 
-function scoreText(resumeText, jdText) {
-  const jdWords  = tokenize(jdText);
-  const resWords = tokenize(resumeText);
-  if (jdWords.size === 0) return { score: 0, matched: [] };
-  const matched = [...jdWords].filter(w => resWords.has(w));
-  const score = Math.min(100, Math.round((matched.length / jdWords.size) * 200));
-  return { score, matched };
-}
-
-function gradeFromScore(score) {
-  if (score >= 70) return 'A';
-  if (score >= 45) return 'B';
-  if (score >= 20) return 'C';
-  return 'D';
-}
-
-exports.computeGrade = function(candidate, jdHtml) {
-  // Build resume text from all parsed fields
-  const resumeParts = [
+function keywordGrade(candidate, jdHtml) {
+  const resumeText = [
     candidate.parsedRawText   || '',
     candidate.parsedSummary   || '',
     candidate.parsedSkills    || '',
     candidate.parsedCurrentRole || '',
     candidate.parsedTotalExperience || ''
-  ];
-  const resumeText = resumeParts.join(' ');
+  ].join(' ');
 
   if (!jdHtml || !resumeText.trim()) {
-    return { grade: 'D', score: 0, matchedKeywords: [] };
+    return { grade: 'D', score: 0, matchedKeywords: [], reason: 'Insufficient data for evaluation.', source: 'keyword' };
   }
 
-  const { score, matched } = scoreText(resumeText, jdHtml);
-  return { grade: gradeFromScore(score), score, matchedKeywords: matched.slice(0, 20) };
+  const jdWords  = tokenize(jdHtml);
+  const resWords = tokenize(resumeText);
+  if (jdWords.size === 0) return { grade: 'D', score: 0, matchedKeywords: [], reason: 'No JD content to match against.', source: 'keyword' };
+
+  const matched = [...jdWords].filter(w => resWords.has(w));
+  const score = Math.min(100, Math.round((matched.length / jdWords.size) * 200));
+  const grade = score >= 70 ? 'A' : score >= 45 ? 'B' : score >= 20 ? 'C' : 'D';
+  const reason = `Keyword match: ${matched.length}/${jdWords.size} JD keywords found in resume (score: ${score}). Top matches: ${matched.slice(0,10).join(', ')}.`;
+
+  return { grade, score, matchedKeywords: matched.slice(0, 20), reason, source: 'keyword' };
+}
+
+// Synchronous keyword-only (for backward compat)
+exports.computeGrade = function(candidate, jdHtml) {
+  const r = keywordGrade(candidate, jdHtml);
+  return { grade: r.grade, score: r.score, matchedKeywords: r.matchedKeywords };
+};
+
+// Async: tries Groq AI first, falls back to keyword
+exports.computeGradeAsync = async function(candidate, jdHtml, positionName) {
+  const aiResult = await gradeWithAI(candidate, jdHtml, positionName || candidate.positionApplying || '');
+  if (aiResult) {
+    return {
+      grade:           aiResult.grade,
+      score:           aiResult.score,
+      gradeReason:     aiResult.reason,
+      gradeSource:     'ai',
+      matchedKeywords: []
+    };
+  }
+  // Fallback
+  const kw = keywordGrade(candidate, jdHtml);
+  return {
+    grade:           kw.grade,
+    score:           kw.score,
+    gradeReason:     kw.reason,
+    gradeSource:     'keyword',
+    matchedKeywords: kw.matchedKeywords
+  };
 };

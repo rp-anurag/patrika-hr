@@ -145,6 +145,30 @@
                   <label class="detail-label">Notice Period</label>
                   <div class="detail-value"><%= candidate.noticePeriod %></div>
                 </div>
+                <% if (candidate.grade) {
+                  const gc = {A:'success',B:'primary',C:'warning',D:'danger'};
+                %>
+                <div class="col-12">
+                  <label class="detail-label">JD Match Grade
+                    <% if (candidate.gradeSource === 'ai') { %>
+                    <span class="badge bg-info text-dark ms-1" style="font-size:10px;">🤖 AI-graded</span>
+                    <% } else { %>
+                    <span class="badge bg-secondary ms-1" style="font-size:10px;">🔑 Keyword</span>
+                    <% } %>
+                  </label>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="badge bg-<%= gc[candidate.grade]||'secondary' %>" style="font-size:1.4rem;padding:8px 16px;">
+                      <%= candidate.grade %>
+                    </span>
+                    <% if (candidate.gradeScore != null) { %>
+                    <span class="text-muted">Score: <strong><%= candidate.gradeScore %>/100</strong></span>
+                    <% } %>
+                  </div>
+                  <% if (candidate.gradeReason) { %>
+                  <div class="mt-2 p-2 bg-light rounded small text-muted" style="white-space:pre-wrap;"><%= candidate.gradeReason %></div>
+                  <% } %>
+                </div>
+                <% } %>
                 <div class="col-12">
                   <label class="detail-label">Current Package (Annual)</label>
                   <div class="row g-2 mt-1">

@@ -4,7 +4,7 @@ const { sendEmail } = require('../utils/emailService');
 const { sendWhatsApp } = require('../utils/whatsappService');
 const { Op } = require('sequelize');
 const XLSX = require('xlsx');
-const { computeGrade } = require('../utils/grader');
+const { computeGrade, computeGradeAsync } = require('../utils/grader');
 const path = require('path');
 const fs   = require('fs');
 const bcrypt = require('bcryptjs');
@@ -399,6 +399,8 @@ exports.exportCandidates = async (req, res) => {
         'Position':        c.positionApplying,
         'Grade':           c.grade || '—',
         'Grade Score':     c.gradeScore != null ? c.gradeScore : '—',
+        'Grade Source':    c.gradeSource || '—',
+        'Grade Reason':    c.gradeReason || '',
         'Email':           c.email,
         'Mobile':          c.contactNumber,
         'LinkedIn':        c.linkedInProfile || '',
@@ -448,13 +450,19 @@ exports.gradeAll = async (req, res) => {
       Position.findAll()
     ]);
     const posMap = {};
-    positions.forEach(p => { posMap[p.name] = p.jdHtml || ''; });
+    positions.forEach(p => { posMap[p.name] = { jdHtml: p.jdHtml || '', name: p.name }; });
 
     let updated = 0;
     for (const c of candidates) {
-      const jd = posMap[c.positionApplying] || '';
-      const { grade, score } = computeGrade(c, jd);
-      await c.update({ grade, gradeScore: score, updatedAt: new Date() });
+      const pos = posMap[c.positionApplying] || {};
+      const result = await computeGradeAsync(c, pos.jdHtml || '', pos.name || c.positionApplying);
+      await c.update({
+        grade:       result.grade,
+        gradeScore:  result.score,
+        gradeReason: result.gradeReason,
+        gradeSource: result.gradeSource,
+        updatedAt:   new Date()
+      });
       updated++;
     }
     res.json({ success: true, updated });
@@ -469,10 +477,15 @@ exports.gradeOne = async (req, res) => {
     const c = await Candidate.findByPk(req.params.id);
     if (!c) return res.status(404).json({ error: 'Not found' });
     const pos = await Position.findOne({ where: { name: c.positionApplying } });
-    const jd = pos ? (pos.jdHtml || '') : '';
-    const { grade, score, matchedKeywords } = computeGrade(c, jd);
-    await c.update({ grade, gradeScore: score, updatedAt: new Date() });
-    res.json({ success: true, grade, score, matchedKeywords });
+    const result = await computeGradeAsync(c, pos ? (pos.jdHtml || '') : '', c.positionApplying);
+    await c.update({
+      grade:       result.grade,
+      gradeScore:  result.score,
+      gradeReason: result.gradeReason,
+      gradeSource: result.gradeSource,
+      updatedAt:   new Date()
+    });
+    res.json({ success: true, grade: result.grade, score: result.score, source: result.gradeSource, reason: result.gradeReason });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
