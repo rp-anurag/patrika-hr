@@ -61,7 +61,7 @@ exports.dashboard = async (req, res) => {
         { type: sequelize.QueryTypes.SELECT }
       ),
       sequelize.query(
-        `SELECT p.name as position, COUNT(c.id) as count FROM positions p LEFT JOIN candidates c ON c.positionApplying = p.name WHERE p.isActive = 1 GROUP BY p.name ORDER BY count DESC`,
+        `SELECT p.name as position, COUNT(c.id) as count FROM positions p LEFT JOIN candidates c ON c.positionApplying COLLATE utf8mb4_general_ci = p.name COLLATE utf8mb4_general_ci WHERE p.isActive = 1 GROUP BY p.name ORDER BY count DESC`,
         { type: sequelize.QueryTypes.SELECT }
       ),
       sequelize.query(
