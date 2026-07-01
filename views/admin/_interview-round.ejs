@@ -1,0 +1,85 @@
+<%
+  /* Partial: _interview-round.ejs
+     Variables expected:
+       prefix              — 'r1' | 'r2' | 'hr'
+       sheet               — InterviewSheet object or null
+       fieldInterviewedBy, fieldDate, fieldRecommendation,
+       fieldConsiderFor, fieldRecommendedSalary, fieldDesignation,
+       fieldMarks, fieldFeedback
+  */
+  const val = function(f) {
+    return sheet && sheet[f] != null ? sheet[f] : '';
+  };
+%>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label" for="<%= fieldInterviewedBy %>">Interviewed By</label>
+    <input type="text" class="form-control" id="<%= fieldInterviewedBy %>"
+      name="<%= fieldInterviewedBy %>" placeholder="Panel member name"
+      value="<%= val(fieldInterviewedBy) %>">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="<%= fieldDate %>">Date</label>
+    <input type="text" class="form-control" id="<%= fieldDate %>"
+      name="<%= fieldDate %>" placeholder="e.g. 25 Jul 2025"
+      value="<%= val(fieldDate) %>">
+  </div>
+
+  <!-- Marks -->
+  <div class="col-12">
+    <label class="form-label" for="<%= fieldMarks %>">Marks <span class="text-muted fw-normal">(out of 100)</span></label>
+    <div class="marks-wrap">
+      <input type="number" class="form-control" id="<%= fieldMarks %>"
+        name="<%= fieldMarks %>" min="0" max="100" placeholder="0–100"
+        value="<%= val(fieldMarks) %>">
+      <div class="marks-bar-wrap">
+        <div class="marks-bar" id="<%= prefix %>-bar" style="width:<%= val(fieldMarks) ? val(fieldMarks) : 0 %>%;background:#0d6efd;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+  <div class="col-12">
+    <label class="form-label">Recommendation</label>
+    <div class="d-flex flex-wrap gap-2">
+      <% ['Can be hired','Can be considered for','Recommended Future Opening','Not Recommended'].forEach(function(rec) { %>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="<%= fieldRecommendation %>"
+          id="<%= prefix %>_rec_<%= rec.replace(/\s/g,'_') %>"
+          value="<%= rec %>"
+          <%= val(fieldRecommendation) === rec ? 'checked' : '' %>>
+        <label class="form-check-label" for="<%= prefix %>_rec_<%= rec.replace(/\s/g,'_') %>">
+          <%= rec %>
+        </label>
+      </div>
+      <% }) %>
+    </div>
+    <!-- "Consider for" text — shown only when that option is selected -->
+    <div id="<%= prefix %>-consider-for-wrap" style="display:none;" class="mt-2">
+      <input type="text" class="form-control" name="<%= fieldConsiderFor %>"
+        placeholder="Specify role / position"
+        value="<%= val(fieldConsiderFor) %>">
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label" for="<%= fieldRecommendedSalary %>">Recommended Salary</label>
+    <input type="text" class="form-control" id="<%= fieldRecommendedSalary %>"
+      name="<%= fieldRecommendedSalary %>" placeholder="e.g. ₹10 LPA"
+      value="<%= val(fieldRecommendedSalary) %>">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label" for="<%= fieldDesignation %>">Designation</label>
+    <input type="text" class="form-control" id="<%= fieldDesignation %>"
+      name="<%= fieldDesignation %>" placeholder="Proposed designation"
+      value="<%= val(fieldDesignation) %>">
+  </div>
+
+  <!-- Feedback -->
+  <div class="col-12">
+    <label class="form-label" for="<%= fieldFeedback %>">Panel Feedback / Notes</label>
+    <textarea class="form-control" id="<%= fieldFeedback %>" name="<%= fieldFeedback %>"
+      rows="3" placeholder="Interviewer observations, strengths, concerns..."><%= val(fieldFeedback) %></textarea>
+  </div>
+</div>

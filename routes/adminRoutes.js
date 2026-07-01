@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const adminController    = require('../controllers/adminController');
+const adminController         = require('../controllers/adminController');
 const detailFormController    = require('../controllers/detailFormController');
 const requisitionController   = require('../controllers/requisitionController');
 const talentAnalystController = require('../controllers/talentAnalystController');
+const interviewController     = require('../controllers/interviewController');
 const { requireAdmin, redirectIfLoggedIn } = require('../middleware/auth');
 
 const path = require('path');
@@ -68,6 +69,11 @@ router.post('/candidate/:id/grade',  requireAdmin, adminController.gradeOne);
 // Personal Detail Form
 router.post('/candidate/:id/send-detail-form', requireAdmin, detailFormController.sendDetailForm);
 router.get('/candidate/:id/detail-form',       requireAdmin, detailFormController.viewDetailForm);
+
+// Interview Sheet
+router.get('/candidate/:id/interview',  requireAdmin, interviewController.showSheet);
+router.post('/candidate/:id/interview', requireAdmin, interviewController.saveSheet);
+router.get('/candidate/:id/interview/print', requireAdmin, interviewController.printSheet);
 
 // Positions Management
 router.get('/positions',              requireAdmin, adminController.listPositions);

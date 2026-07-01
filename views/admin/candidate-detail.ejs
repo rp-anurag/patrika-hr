@@ -93,6 +93,9 @@
           <i class="bi bi-download me-1"></i>Download CV
         </a>
         <% } %>
+        <a href="/admin/candidate/<%= candidate.id %>/interview" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-clipboard-check me-1"></i>Interview Sheet
+        </a>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteCandidate('<%= candidate.id %>')">
           <i class="bi bi-trash me-1"></i>Delete
         </button>

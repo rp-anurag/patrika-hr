@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css?v=<%= v %>" rel="stylesheet">
+  <style>
+    /* ── Section headers ─────────────────────────────────────── */
+    .sec-header {
+      padding: 10px 18px;
+      font-size: .88rem;
+      font-weight: 700;
+      border-radius: 10px 10px 0 0;
+      color: #fff;
+    }
+    .sec-prelim  { background: #6c757d; }
+    .sec-r1      { background: #0d6efd; }
+    .sec-r2      { background: #6f42c1; }
+    .sec-hr      { background: #198754; }
+    .sec-final   { background: linear-gradient(90deg,#b8860b,#d4a017); color:#1a1a2e !important; }
+
+    .is-section  { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); margin-bottom:20px; overflow:hidden; }
+    .is-body     { padding:18px 20px; }
+
+    /* ── Score circles ─────────────────────────────────────── */
+    .score-circle {
+      width:58px; height:58px; border-radius:50%;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      font-weight:700; font-size:.78rem; border:3px solid;
+    }
+    .score-circle .num { font-size:1.25rem; line-height:1; }
+    .score-circle.r1c  { border-color:#0d6efd; color:#0d6efd; }
+    .score-circle.r2c  { border-color:#6f42c1; color:#6f42c1; }
+    .score-circle.hrc  { border-color:#198754; color:#198754; }
+    .score-circle.overall { border-color:#d4a017; color:#d4a017; width:72px; height:72px; }
+    .score-circle.overall .num { font-size:1.6rem; }
+
+    /* ── Marks input with bar ─────────────────────────────────── */
+    .marks-wrap { display:flex; align-items:center; gap:12px; }
+    .marks-wrap input[type=number] { width:80px; }
+    .marks-bar-wrap { flex:1; height:10px; background:#e9ecef; border-radius:5px; overflow:hidden; }
+    .marks-bar      { height:100%; border-radius:5px; transition:width .3s, background .3s; }
+
+    /* ── Print styles ─────────────────────────────────────── */
+    @media print {
+      .no-print { display:none !important; }
+      .admin-sidebar { display:none !important; }
+      .admin-main { margin-left:0 !important; padding:0 !important; }
+      .admin-topbar { display:none !important; }
+      .is-section { box-shadow:none; border:1px solid #ddd; }
+      .sticky-sidebar { position:static !important; }
+      body { background:#fff !important; }
+    }
+    .sticky-sidebar { position: sticky; top: 20px; }
+
+    /* ── Nav tab colours ─────────────────────────────────────── */
+    .nav-tabs .nav-link.tab-prelim.active  { color:#6c757d; border-bottom-color:#6c757d; }
+    .nav-tabs .nav-link.tab-r1.active      { color:#0d6efd; border-bottom-color:#0d6efd; }
+    .nav-tabs .nav-link.tab-r2.active      { color:#6f42c1; border-bottom-color:#6f42c1; }
+    .nav-tabs .nav-link.tab-hr.active      { color:#198754; border-bottom-color:#198754; }
+    .nav-tabs .nav-link.tab-final.active   { color:#b8860b; border-bottom-color:#b8860b; }
+
+    .form-label { font-weight: 600; font-size: .82rem; color: #555; }
+    .detail-label { font-size:.73rem; color:#888; font-weight:600; text-transform:uppercase; margin-bottom:2px; }
+    .detail-value { font-size:.9rem; color:#333; }
+
+    .decision-btn-group label { font-size:.85rem; padding:8px 14px; }
+    .decision-badge { font-size:1rem; padding:8px 18px; }
+  </style>
+</head>
+<body class="admin-page">
+<div class="admin-wrapper">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <nav class="admin-sidebar d-flex flex-column no-print">
+    <div class="sidebar-brand">
+      <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo" onerror="this.style.display='none'">
+      <div>
+        <div class="fw-bold text-gold">Patrika HR</div>
+        <small class="text-white-50">Admin Panel</small>
+      </div>
+    </div>
+    <hr class="border-secondary my-2">
+    <ul class="nav flex-column px-2 flex-grow-1">
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/dashboard"><i class="bi bi-people-fill me-2"></i>Candidates</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/positions"><i class="bi bi-briefcase-fill me-2"></i>Positions</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/requisitions"><i class="bi bi-clipboard-check-fill me-2"></i>Requisitions</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/talent-analyst"><i class="bi bi-robot me-2"></i>Talent Analyst</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/resume-parser"><i class="bi bi-file-earmark-text me-2"></i>Resume Parser</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/apply" target="_blank"><i class="bi bi-file-earmark-person me-2"></i>Application Form</a></li>
+    </ul>
+    <div class="px-2 pb-3">
+      <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+      <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">Logged in as <strong><%= adminName %></strong></p>
+    </div>
+  </nav>
+
+  <!-- ── Main Content ──────────────────────────────────────────────────── -->
+  <main class="admin-main">
+
+    <!-- Topbar -->
+    <div class="admin-topbar d-flex align-items-center justify-content-between no-print">
+      <div class="d-flex align-items-center gap-2">
+        <a href="/admin/candidate/<%= candidate.id %>" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <h5 class="mb-0 fw-bold">
+          <i class="bi bi-clipboard-check me-2 text-gold"></i>Interview Sheet &ndash; <%= candidate.fullName %>
+        </h5>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/admin/candidate/<%= candidate.id %>/interview/print"
+           class="btn btn-sm btn-outline-secondary" target="_blank">
+          <i class="bi bi-printer me-1"></i>Print
+        </a>
+      </div>
+    </div>
+
+    <!-- Success toast -->
+    <% if (saved) { %>
+    <div class="mx-4 mt-3 no-print">
+      <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
+        <i class="bi bi-check-circle-fill me-1"></i> Interview sheet saved successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="p-4">
+      <form method="POST" action="/admin/candidate/<%= candidate.id %>/interview" id="interviewForm">
+
+        <div class="row g-4">
+
+          <!-- ── Left: Tabs ────────────────────────────────────────── -->
+          <div class="col-lg-8">
+
+            <!-- Tab navigation -->
+            <ul class="nav nav-tabs mb-3 no-print" id="interviewTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link tab-prelim active" id="tab-prelim" data-bs-toggle="tab"
+                  data-bs-target="#pane-prelim" type="button" role="tab">
+                  <i class="bi bi-person-lines-fill me-1"></i>Preliminary
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link tab-r1" id="tab-r1" data-bs-toggle="tab"
+                  data-bs-target="#pane-r1" type="button" role="tab">
+                  <i class="bi bi-1-circle me-1"></i>Round 1
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link tab-r2" id="tab-r2" data-bs-toggle="tab"
+                  data-bs-target="#pane-r2" type="button" role="tab">
+                  <i class="bi bi-2-circle me-1"></i>Round 2
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link tab-hr" id="tab-hr" data-bs-toggle="tab"
+                  data-bs-target="#pane-hr" type="button" role="tab">
+                  <i class="bi bi-h-circle me-1"></i>HR Round
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link tab-final" id="tab-final" data-bs-toggle="tab"
+                  data-bs-target="#pane-final" type="button" role="tab">
+                  <i class="bi bi-award me-1"></i>Final Offer
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="interviewTabContent">
+
+              <!-- ======= PRELIMINARY ======= -->
+              <div class="tab-pane fade show active" id="pane-prelim" role="tabpanel">
+                <div class="is-section">
+                  <div class="sec-header sec-prelim"><i class="bi bi-person-lines-fill me-2"></i>Preliminary Round</div>
+                  <div class="is-body">
+
+                    <!-- Interview Mode & Date (header info) -->
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Interview Mode</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                          <% ['Zoom','Physical','Telephonic'].forEach(function(m) { %>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="interviewMode"
+                              id="mode_<%= m %>" value="<%= m %>"
+                              <%= (sheet && sheet.interviewMode === m) || (!sheet && m === 'Physical') ? 'checked' : '' %>>
+                            <label class="form-check-label" for="mode_<%= m %>"><%= m %></label>
+                          </div>
+                          <% }) %>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label" for="scheduledDate">Scheduled Date</label>
+                        <input type="text" class="form-control" id="scheduledDate" name="scheduledDate"
+                          placeholder="e.g. 25 Jul 2025"
+                          value="<%= sheet && sheet.scheduledDate ? sheet.scheduledDate : '' %>">
+                      </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Family Background -->
+                    <div class="mb-3">
+                      <label class="form-label">Family Background Notes</label>
+                      <small class="text-muted d-block mb-1">Father, Mother, Spouse, Brother, Sister, Kids — free text</small>
+                      <textarea class="form-control" name="prelimFamilyNotes" rows="4"
+                        placeholder="E.g. Father: Retired Govt. Officer, Mother: Homemaker, Spouse: Teacher, 2 kids..."><%= sheet && sheet.prelimFamilyNotes ? sheet.prelimFamilyNotes : '' %></textarea>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label" for="prelimInterviewedBy">Interviewed By</label>
+                        <input type="text" class="form-control" id="prelimInterviewedBy"
+                          name="prelimInterviewedBy" placeholder="Interviewer name"
+                          value="<%= sheet && sheet.prelimInterviewedBy ? sheet.prelimInterviewedBy : '' %>">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label" for="prelimDate">Date</label>
+                        <input type="text" class="form-control" id="prelimDate" name="prelimDate"
+                          placeholder="e.g. 25 Jul 2025"
+                          value="<%= sheet && sheet.prelimDate ? sheet.prelimDate : '' %>">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ======= ROUND 1 ======= -->
+              <div class="tab-pane fade" id="pane-r1" role="tabpanel">
+                <div class="is-section">
+                  <div class="sec-header sec-r1"><i class="bi bi-1-circle me-2"></i>Round 1 Interview</div>
+                  <div class="is-body">
+                    <% if (!sheet || !sheet.r1InterviewedBy) { %>
+                    <div class="alert alert-light border text-muted mb-3" id="r1-placeholder">
+                      <i class="bi bi-hourglass me-1"></i> Not yet filled — fill in the fields below to record Round 1.
+                    </div>
+                    <% } %>
+                    <%- include('_interview-round', {
+                      prefix: 'r1',
+                      sheet: sheet,
+                      fieldInterviewedBy: 'r1InterviewedBy',
+                      fieldDate: 'r1Date',
+                      fieldRecommendation: 'r1Recommendation',
+                      fieldConsiderFor: 'r1ConsiderFor',
+                      fieldRecommendedSalary: 'r1RecommendedSalary',
+                      fieldDesignation: 'r1Designation',
+                      fieldMarks: 'r1Marks',
+                      fieldFeedback: 'r1Feedback'
+                    }) %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ======= ROUND 2 ======= -->
+              <div class="tab-pane fade" id="pane-r2" role="tabpanel">
+                <div class="is-section">
+                  <div class="sec-header sec-r2"><i class="bi bi-2-circle me-2"></i>Round 2 Interview</div>
+                  <div class="is-body">
+                    <% if (!sheet || !sheet.r2InterviewedBy) { %>
+                    <div class="alert alert-light border text-muted mb-3">
+                      <i class="bi bi-hourglass me-1"></i> Not yet filled — fill in the fields below to record Round 2.
+                    </div>
+                    <% } %>
+                    <%- include('_interview-round', {
+                      prefix: 'r2',
+                      sheet: sheet,
+                      fieldInterviewedBy: 'r2InterviewedBy',
+                      fieldDate: 'r2Date',
+                      fieldRecommendation: 'r2Recommendation',
+                      fieldConsiderFor: 'r2ConsiderFor',
+                      fieldRecommendedSalary: 'r2RecommendedSalary',
+                      fieldDesignation: 'r2Designation',
+                      fieldMarks: 'r2Marks',
+                      fieldFeedback: 'r2Feedback'
+                    }) %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ======= HR ROUND ======= -->
+              <div class="tab-pane fade" id="pane-hr" role="tabpanel">
+                <div class="is-section">
+                  <div class="sec-header sec-hr"><i class="bi bi-h-circle me-2"></i>HR Round</div>
+                  <div class="is-body">
+                    <% if (!sheet || !sheet.hrInterviewedBy) { %>
+                    <div class="alert alert-light border text-muted mb-3">
+                      <i class="bi bi-hourglass me-1"></i> Not yet filled — fill in the fields below to record HR Round.
+                    </div>
+                    <% } %>
+                    <%- include('_interview-round', {
+                      prefix: 'hr',
+                      sheet: sheet,
+                      fieldInterviewedBy: 'hrInterviewedBy',
+                      fieldDate: 'hrDate',
+                      fieldRecommendation: 'hrRecommendation',
+                      fieldConsiderFor: 'hrConsiderFor',
+                      fieldRecommendedSalary: 'hrRecommendedSalary',
+                      fieldDesignation: 'hrDesignation',
+                      fieldMarks: 'hrMarks',
+                      fieldFeedback: 'hrFeedback'
+                    }) %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ======= FINAL OFFER ======= -->
+              <div class="tab-pane fade" id="pane-final" role="tabpanel">
+                <div class="is-section">
+                  <div class="sec-header sec-final"><i class="bi bi-award me-2"></i>Final Offer</div>
+                  <div class="is-body">
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label" for="salaryOffered">Salary Offered</label>
+                        <input type="text" class="form-control" id="salaryOffered" name="salaryOffered"
+                          placeholder="e.g. ₹12 LPA"
+                          value="<%= sheet && sheet.salaryOffered ? sheet.salaryOffered : '' %>">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label" for="reportingTo">Reporting To</label>
+                        <input type="text" class="form-control" id="reportingTo" name="reportingTo"
+                          placeholder="Manager / HOD name"
+                          value="<%= sheet && sheet.reportingTo ? sheet.reportingTo : '' %>">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label" for="buddyName">Buddy Name</label>
+                        <input type="text" class="form-control" id="buddyName" name="buddyName"
+                          placeholder="Onboarding buddy"
+                          value="<%= sheet && sheet.buddyName ? sheet.buddyName : '' %>">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label" for="joiningPeriod">Joining Period</label>
+                        <input type="text" class="form-control" id="joiningPeriod" name="joiningPeriod"
+                          placeholder="e.g. 30 days / Immediate"
+                          value="<%= sheet && sheet.joiningPeriod ? sheet.joiningPeriod : '' %>">
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Nature of Appointment</label>
+                        <div>
+                          <% ['Permanent','Contract','Probationary'].forEach(function(n) { %>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="natureOfAppointment"
+                              id="nat_<%= n %>" value="<%= n %>"
+                              <%= (sheet && sheet.natureOfAppointment === n) || (!sheet && n === 'Probationary') ? 'checked' : '' %>>
+                            <label class="form-check-label" for="nat_<%= n %>"><%= n %></label>
+                          </div>
+                          <% }) %>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label" for="probationPeriod">Probation / Review Period</label>
+                        <input type="text" class="form-control" id="probationPeriod" name="probationPeriod"
+                          placeholder="e.g. 3 months"
+                          value="<%= sheet && sheet.probationPeriod ? sheet.probationPeriod : '' %>">
+                      </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label">Exit Clause</label>
+                        <div>
+                          <% ['Applicable','Not Applicable'].forEach(function(e) { %>
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="exitClause"
+                              id="exit_<%= e.replace(' ','_') %>" value="<%= e %>"
+                              <%= (sheet && sheet.exitClause === e) || (!sheet && e === 'Applicable') ? 'checked' : '' %>>
+                            <label class="form-check-label" for="exit_<%= e.replace(' ','_') %>"><%= e %></label>
+                          </div>
+                          <% }) %>
+                        </div>
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label" for="otherConditions">Other Conditions</label>
+                        <textarea class="form-control" id="otherConditions" name="otherConditions" rows="2"
+                          placeholder="Any special conditions..."><%= sheet && sheet.otherConditions ? sheet.otherConditions : '' %></textarea>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label" for="finalRemarks">Final Remarks</label>
+                        <textarea class="form-control" id="finalRemarks" name="finalRemarks" rows="2"
+                          placeholder="Additional remarks by HR..."><%= sheet && sheet.finalRemarks ? sheet.finalRemarks : '' %></textarea>
+                      </div>
+                    </div>
+
+                    <!-- Final Decision -->
+                    <hr class="my-4">
+                    <div class="mb-2">
+                      <label class="form-label fs-6 fw-bold">Final Decision</label>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap decision-btn-group">
+                      <input type="radio" class="btn-check" name="finalDecision" id="fd_selected" value="Selected"
+                        <%= sheet && sheet.finalDecision === 'Selected' ? 'checked' : '' %>>
+                      <label class="btn btn-outline-success" for="fd_selected">
+                        <i class="bi bi-check-circle me-1"></i>Selected
+                      </label>
+
+                      <input type="radio" class="btn-check" name="finalDecision" id="fd_onhold" value="On Hold"
+                        <%= sheet && sheet.finalDecision === 'On Hold' ? 'checked' : '' %>>
+                      <label class="btn btn-outline-warning" for="fd_onhold">
+                        <i class="bi bi-pause-circle me-1"></i>On Hold
+                      </label>
+
+                      <input type="radio" class="btn-check" name="finalDecision" id="fd_rejected" value="Rejected"
+                        <%= sheet && sheet.finalDecision === 'Rejected' ? 'checked' : '' %>>
+                      <label class="btn btn-outline-danger" for="fd_rejected">
+                        <i class="bi bi-x-circle me-1"></i>Rejected
+                      </label>
+
+                      <input type="radio" class="btn-check" name="finalDecision" id="fd_pending" value="Pending"
+                        <%= (!sheet || sheet.finalDecision === 'Pending') ? 'checked' : '' %>>
+                      <label class="btn btn-outline-secondary" for="fd_pending">
+                        <i class="bi bi-hourglass me-1"></i>Pending
+                      </label>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /tab-content -->
+
+            <!-- Save button (bottom, inside left col) -->
+            <div class="d-flex justify-content-end gap-2 no-print mt-2">
+              <a href="/admin/candidate/<%= candidate.id %>" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Back
+              </a>
+              <button type="submit" class="btn btn-gold px-4">
+                <i class="bi bi-save me-1"></i>Save Interview Sheet
+              </button>
+            </div>
+
+          </div><!-- /col-lg-8 -->
+
+          <!-- ── Right: Sticky Sidebar Summary ────────────────────── -->
+          <div class="col-lg-4 no-print">
+            <div class="sticky-sidebar">
+
+              <!-- Candidate info card -->
+              <div class="is-section mb-3">
+                <div class="sec-header" style="background:linear-gradient(90deg,#2d2d44,#3d3d5c);">
+                  <i class="bi bi-person-badge me-2"></i>Candidate
+                </div>
+                <div class="is-body">
+                  <p class="detail-label mb-0">Name</p>
+                  <p class="detail-value fw-bold mb-2"><%= candidate.fullName %></p>
+                  <p class="detail-label mb-0">Position</p>
+                  <p class="detail-value mb-2"><span class="badge bg-dark"><%= candidate.positionApplying %></span></p>
+                  <% if (candidate.grade) { %>
+                  <p class="detail-label mb-0">JD Match Grade</p>
+                  <p class="detail-value mb-0">
+                    <% const gc = {A:'success',B:'primary',C:'warning',D:'danger'}; %>
+                    <span class="badge bg-<%= gc[candidate.grade]||'secondary' %>" style="font-size:1rem;padding:5px 12px;">
+                      <%= candidate.grade %>
+                    </span>
+                    <% if (candidate.gradeScore != null) { %>
+                    <span class="text-muted small ms-1"><%= candidate.gradeScore %>/100</span>
+                    <% } %>
+                  </p>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- Score summary card -->
+              <div class="is-section mb-3">
+                <div class="sec-header" style="background:linear-gradient(90deg,#2d2d44,#3d3d5c);">
+                  <i class="bi bi-bar-chart me-2"></i>Score Summary
+                </div>
+                <div class="is-body">
+                  <div class="d-flex justify-content-around align-items-center mb-3">
+                    <div class="text-center">
+                      <div class="score-circle r1c mx-auto" id="sidebar-r1-circle">
+                        <span class="num" id="sidebar-r1-num"><%= sheet && sheet.r1Marks != null ? sheet.r1Marks : '–' %></span>
+                        <span style="font-size:.65rem;">Rd 1</span>
+                      </div>
+                    </div>
+                    <div class="text-center">
+                      <div class="score-circle r2c mx-auto" id="sidebar-r2-circle">
+                        <span class="num" id="sidebar-r2-num"><%= sheet && sheet.r2Marks != null ? sheet.r2Marks : '–' %></span>
+                        <span style="font-size:.65rem;">Rd 2</span>
+                      </div>
+                    </div>
+                    <div class="text-center">
+                      <div class="score-circle hrc mx-auto" id="sidebar-hr-circle">
+                        <span class="num" id="sidebar-hr-num"><%= sheet && sheet.hrMarks != null ? sheet.hrMarks : '–' %></span>
+                        <span style="font-size:.65rem;">HR</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="text-center mb-3">
+                    <div class="score-circle overall mx-auto" id="sidebar-overall-circle">
+                      <span class="num" id="sidebar-overall-num">
+                        <%= sheet && sheet.overallScore != null ? sheet.overallScore : '–' %>
+                      </span>
+                      <span style="font-size:.65rem;">Overall</span>
+                    </div>
+                    <div class="text-muted small mt-1">out of 100</div>
+                  </div>
+
+                  <!-- Final Decision badge -->
+                  <div class="text-center">
+                    <p class="detail-label">Final Decision</p>
+                    <%
+                      const dc = {
+                        Selected: 'success',
+                        'On Hold': 'warning',
+                        Rejected: 'danger',
+                        Pending: 'secondary'
+                      };
+                      const currentDecision = sheet && sheet.finalDecision ? sheet.finalDecision : 'Pending';
+                    %>
+                    <span class="badge bg-<%= dc[currentDecision]||'secondary' %> decision-badge"
+                          id="sidebar-decision-badge">
+                      <%= currentDecision %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save button in sidebar -->
+              <button type="submit" form="interviewForm" class="btn btn-gold w-100 py-2">
+                <i class="bi bi-save me-1"></i>Save Interview Sheet
+              </button>
+
+            </div><!-- /sticky-sidebar -->
+          </div><!-- /col-lg-4 -->
+
+        </div><!-- /row -->
+      </form><!-- /interviewForm -->
+    </div><!-- /p-4 -->
+
+  </main>
+</div><!-- /admin-wrapper -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Live marks bars ──────────────────────────────────────────────────────────
+function getBarColor(val) {
+  if (val >= 80) return '#198754';
+  if (val >= 60) return '#0d6efd';
+  if (val >= 40) return '#ffc107';
+  return '#dc3545';
+}
+
+function setupMarksInput(inputId, barId, sidebarNumId) {
+  const inp = document.getElementById(inputId);
+  const bar = document.getElementById(barId);
+  if (!inp || !bar) return;
+  function update() {
+    const v = Math.min(100, Math.max(0, parseInt(inp.value) || 0));
+    bar.style.width = v + '%';
+    bar.style.background = getBarColor(v);
+    if (sidebarNumId) {
+      const el = document.getElementById(sidebarNumId);
+      if (el) el.textContent = inp.value ? v : '–';
+    }
+    updateOverall();
+  }
+  inp.addEventListener('input', update);
+  update();
+}
+
+function updateOverall() {
+  const ids = ['r1Marks','r2Marks','hrMarks'];
+  const sidebarIds = ['sidebar-r1-num','sidebar-r2-num','sidebar-hr-num'];
+  const marks = [];
+  ids.forEach(function(id, i) {
+    const el = document.getElementById(id);
+    if (el && el.value !== '') {
+      const v = parseInt(el.value);
+      if (!isNaN(v)) marks.push(v);
+    }
+  });
+  const overallEl = document.getElementById('sidebar-overall-num');
+  if (overallEl) {
+    if (marks.length) {
+      const avg = Math.round(marks.reduce(function(a,b){return a+b;},0) / marks.length);
+      overallEl.textContent = avg;
+    } else {
+      overallEl.textContent = '–';
+    }
+  }
+}
+
+setupMarksInput('r1Marks','r1-bar','sidebar-r1-num');
+setupMarksInput('r2Marks','r2-bar','sidebar-r2-num');
+setupMarksInput('hrMarks','hr-bar','sidebar-hr-num');
+
+// ── Live decision badge ──────────────────────────────────────────────────────
+document.querySelectorAll('input[name="finalDecision"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    const badge = document.getElementById('sidebar-decision-badge');
+    if (!badge) return;
+    const colors = {Selected:'success','On Hold':'warning',Rejected:'danger',Pending:'secondary'};
+    badge.className = 'badge decision-badge bg-' + (colors[this.value] || 'secondary');
+    badge.textContent = this.value;
+  });
+});
+
+// ── Show/hide "Consider for" text field ─────────────────────────────────────
+function setupConsiderFor(prefix) {
+  const radios = document.querySelectorAll('input[name="' + prefix + 'Recommendation"]');
+  const field  = document.getElementById(prefix + '-consider-for-wrap');
+  function check() {
+    if (!field) return;
+    const checked = document.querySelector('input[name="' + prefix + 'Recommendation"]:checked');
+    field.style.display = (checked && checked.value === 'Can be considered for') ? '' : 'none';
+  }
+  radios.forEach(function(r){ r.addEventListener('change', check); });
+  check();
+}
+setupConsiderFor('r1');
+setupConsiderFor('r2');
+setupConsiderFor('hr');
+</script>
+</body>
+</html>
