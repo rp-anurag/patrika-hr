@@ -96,6 +96,9 @@
         <a href="/admin/candidate/<%= candidate.id %>/interview" class="btn btn-sm btn-outline-primary">
           <i class="bi bi-clipboard-check me-1"></i>Interview Sheet
         </a>
+        <a href="/admin/candidate/<%= candidate.id %>/timeline" class="btn btn-sm btn-outline-info">
+          <i class="bi bi-clock-history me-1"></i>Activity History
+        </a>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteCandidate('<%= candidate.id %>')">
           <i class="bi bi-trash me-1"></i>Delete
         </button>

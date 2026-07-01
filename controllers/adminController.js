@@ -1,4 +1,4 @@
-const { Candidate, Communication, Admin, Position, CandidateDetailForm } = require('../models');
+const { Candidate, Communication, Admin, Position, CandidateDetailForm, ActivityLog } = require('../models');
 const { sequelize } = require('../config/db');
 const { sendEmail } = require('../utils/emailService');
 const { sendWhatsApp } = require('../utils/whatsappService');
@@ -146,11 +146,44 @@ exports.candidateDetail = async (req, res) => {
 exports.updateCandidate = async (req, res) => {
   try {
     const { status, adminNotes } = req.body;
+    const candidateId = req.params.id;
+
+    // Fetch current values before overwriting
+    const current = await Candidate.findByPk(candidateId);
+    const oldStatus = current ? current.status : null;
+    const oldNotes  = current ? (current.adminNotes || '') : '';
+
     await Candidate.update(
       { status, adminNotes, updatedAt: new Date() },
-      { where: { id: req.params.id } }
+      { where: { id: candidateId } }
     );
-    res.redirect(`/admin/candidate/${req.params.id}?flash=Updated+successfully`);
+
+    // Log status change
+    if (current && status && oldStatus !== status) {
+      await ActivityLog.create({
+        candidateId,
+        activityType: 'status_changed',
+        title: 'Status updated',
+        oldValue: oldStatus,
+        newValue: status,
+        performedBy: req.session.adminName || 'Admin',
+        createdAt: new Date()
+      }).catch(e => console.error('ActivityLog status error:', e.message));
+    }
+
+    // Log note change
+    if (adminNotes && adminNotes.trim() && adminNotes.trim() !== oldNotes.trim()) {
+      await ActivityLog.create({
+        candidateId,
+        activityType: 'note_saved',
+        title: 'Admin note saved',
+        details: adminNotes.substring(0, 500),
+        performedBy: req.session.adminName || 'Admin',
+        createdAt: new Date()
+      }).catch(e => console.error('ActivityLog note error:', e.message));
+    }
+
+    res.redirect(`/admin/candidate/${candidateId}?flash=Updated+successfully`);
   } catch (err) {
     res.redirect(`/admin/candidate/${req.params.id}?flash=Update+failed&flashType=danger`);
   }
@@ -185,6 +218,15 @@ exports.sendCommunication = async (req, res) => {
       sentBy:  req.session.adminName || 'Admin',
       status:  'Sent'
     });
+
+    await ActivityLog.create({
+      candidateId: candidate.id,
+      activityType: channel === 'Email' ? 'email_sent' : 'whatsapp_sent',
+      title: subject || 'Message sent',
+      details: message.substring(0, 300),
+      performedBy: req.session.adminName || 'Admin',
+      createdAt: new Date()
+    }).catch(e => console.error('ActivityLog comm error:', e.message));
 
     res.json({ success: true, message: `${channel} sent successfully` });
   } catch (err) {

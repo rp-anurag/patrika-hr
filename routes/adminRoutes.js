@@ -6,6 +6,7 @@ const detailFormController    = require('../controllers/detailFormController');
 const requisitionController   = require('../controllers/requisitionController');
 const talentAnalystController = require('../controllers/talentAnalystController');
 const interviewController     = require('../controllers/interviewController');
+const timelineController      = require('../controllers/timelineController');
 const { requireAdmin, redirectIfLoggedIn } = require('../middleware/auth');
 
 const path = require('path');
@@ -74,6 +75,10 @@ router.get('/candidate/:id/detail-form',       requireAdmin, detailFormControlle
 router.get('/candidate/:id/interview',  requireAdmin, interviewController.showSheet);
 router.post('/candidate/:id/interview', requireAdmin, interviewController.saveSheet);
 router.get('/candidate/:id/interview/print', requireAdmin, interviewController.printSheet);
+
+// Activity Timeline
+router.get('/candidate/:id/timeline',        requireAdmin, timelineController.showTimeline);
+router.post('/candidate/:id/timeline/email', requireAdmin, timelineController.emailTimeline);
 
 // Positions Management
 router.get('/positions',              requireAdmin, adminController.listPositions);
