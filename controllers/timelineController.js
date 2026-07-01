@@ -107,13 +107,13 @@ function buildEvents(candidate, communications, activityLogs, interviewSheet) {
   );
 
   for (const comm of communications) {
-    const bucket = Math.floor(new Date(comm.createdAt).getTime() / 60000);
+    const bucket = Math.floor(new Date(comm.sentAt).getTime() / 60000);
     if (loggedCommTimes.has(bucket)) continue; // already logged via ActivityLog
 
     const isEmail = comm.channel === 'Email';
     events.push({
       type: isEmail ? 'email_sent' : 'whatsapp_sent',
-      timestamp: comm.createdAt ? new Date(comm.createdAt) : new Date(0),
+      timestamp: comm.sentAt ? new Date(comm.sentAt) : new Date(0),
       title: comm.subject || (isEmail ? 'Email Sent' : 'WhatsApp Sent'),
       body: comm.message ? comm.message.substring(0, 300) : '—',
       meta: { subject: comm.subject, status: comm.status },
@@ -156,7 +156,7 @@ exports.showTimeline = async (req, res) => {
     const [communications, activityLogs, interviewSheet] = await Promise.all([
       Communication.findAll({
         where: { candidateId },
-        order: [['createdAt', 'DESC']]
+        order: [['sentAt', 'DESC']]
       }),
       ActivityLog.findAll({
         where: { candidateId },
@@ -195,7 +195,7 @@ exports.emailTimeline = async (req, res) => {
     if (!candidate) return res.json({ success: false, message: 'Candidate not found' });
 
     const [communications, activityLogs, interviewSheet] = await Promise.all([
-      Communication.findAll({ where: { candidateId }, order: [['createdAt', 'DESC']] }),
+      Communication.findAll({ where: { candidateId }, order: [['sentAt', 'DESC']] }),
       ActivityLog.findAll({ where: { candidateId }, order: [['createdAt', 'DESC']] }),
       InterviewSheet.findOne({ where: { candidateId } })
     ]);
