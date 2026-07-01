@@ -10,306 +10,370 @@
 </head>
 <body class="admin-page">
 
-  <!-- TOP NAV -->
-  <nav class="li-nav">
-    <a href="/admin/dashboard" class="li-nav-brand">
-      <div class="li-nav-logo">P</div>
-      <span class="li-nav-brand-text d-none d-sm-inline">Patrika HR</span>
-    </a>
-    <form class="li-nav-search" action="/admin/candidates" method="GET">
-      <input type="text" name="search" placeholder="Search candidates..." value="<%= query && query.search ? query.search : '' %>" autocomplete="off">
-    </form>
-    <div class="li-nav-icons">
-      <a href="/admin/dashboard" class="li-nav-icon" title="Dashboard">
-        <i class="bi bi-speedometer2"></i><span>Dashboard</span>
-      </a>
-      <a href="/admin/candidates" class="li-nav-icon active" title="Candidates">
-        <i class="bi bi-people-fill"></i><span>Candidates</span>
-      </a>
-      <a href="/admin/positions" class="li-nav-icon" title="Positions">
-        <i class="bi bi-briefcase-fill"></i><span>Positions</span>
-      </a>
-      <a href="/admin/requisitions" class="li-nav-icon" title="Requisitions">
-        <i class="bi bi-clipboard-check-fill"></i><span>Requisitions</span>
-      </a>
-      <a href="/admin/talent-analyst" class="li-nav-icon" title="AI Analyst">
-        <i class="bi bi-robot"></i><span>AI Analyst</span>
-      </a>
-      <a href="/admin/resume-parser" class="li-nav-icon" title="Parser">
-        <i class="bi bi-file-earmark-text"></i><span>Parser</span>
-      </a>
-      <div class="li-nav-divider"></div>
-      <div class="li-nav-admin">
-        <button class="li-nav-admin-btn" id="adminDropBtn" onclick="toggleAdminDrop()">
-          <div class="li-avatar li-avatar-xs"><%= (adminName||'A').charAt(0).toUpperCase() %></div>
-          <span style="font-size:.65rem;margin-top:1px;">Me</span>
-        </button>
-        <div class="li-nav-admin-dropdown" id="adminDropMenu">
-          <div style="padding:10px 16px;font-size:.82rem;color:rgba(0,0,0,0.6);">Signed in as<br><strong style="color:rgba(0,0,0,0.9);"><%= adminName %></strong></div>
-          <hr>
-          <a href="/admin/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+  <div class="admin-wrapper">
+
+    <!-- Sidebar -->
+    <nav class="admin-sidebar d-flex flex-column">
+      <div class="sidebar-brand">
+        <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo"
+          onerror="this.style.display='none'">
+        <div>
+          <div class="fw-bold text-gold">Patrika HR</div>
+          <small class="text-white-50">Admin Panel</small>
         </div>
       </div>
-    </div>
-  </nav>
-
-  <!-- 2-COLUMN LAYOUT -->
-  <div class="li-layout">
-
-    <!-- LEFT SIDEBAR -->
-    <aside class="li-sidebar-left">
-      <div class="li-card">
-        <div class="li-card-body" style="text-align:center;padding:20px 16px 12px;">
-          <div class="li-avatar mx-auto mb-2" style="width:56px;height:56px;font-size:22px;"><%= (adminName||'A').charAt(0).toUpperCase() %></div>
-          <div style="font-weight:700;font-size:.95rem;color:rgba(0,0,0,0.9);"><%= adminName %></div>
-          <div style="font-size:.8rem;color:rgba(0,0,0,0.6);">HR Administrator</div>
-        </div>
-        <hr style="margin:0;border-color:rgba(0,0,0,0.15);">
-        <ul class="li-sidebar-nav">
-          <li><a href="/admin/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
-          <li><a href="/admin/candidates" class="active"><i class="bi bi-people-fill"></i>Candidates</a></li>
-          <li><a href="/admin/positions"><i class="bi bi-briefcase-fill"></i>Positions</a></li>
-          <li><a href="/admin/requisitions"><i class="bi bi-clipboard-check-fill"></i>Requisitions</a></li>
-          <li><a href="/admin/talent-analyst"><i class="bi bi-robot"></i>AI Analyst</a></li>
-          <li><a href="/admin/resume-parser"><i class="bi bi-file-earmark-text"></i>Resume Parser</a></li>
-        </ul>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="li-main">
-
-      <div class="li-page-header">
-        <div class="li-page-title"><i class="bi bi-people-fill me-2" style="color:#0a66c2;"></i>Candidates <span style="font-size:.85rem;font-weight:400;color:rgba(0,0,0,0.6);margin-left:6px;"><%= total %> total</span></div>
-        <div class="d-flex gap-2 flex-wrap">
-          <a href="/admin/candidates/export?<%= new URLSearchParams(query).toString() %>" class="btn-li-outline" style="font-size:.8rem;padding:4px 12px;">
-            <i class="bi bi-file-earmark-excel me-1"></i>Export
+      <hr class="border-secondary my-2">
+      <ul class="nav flex-column px-2 flex-grow-1">
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/dashboard">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
           </a>
-          <button class="btn-li-outline" id="gradeAllBtn" style="font-size:.8rem;padding:4px 12px;" title="Re-grade all candidates">
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link active" href="/admin/candidates">
+            <i class="bi bi-people-fill me-2"></i>Candidates
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/positions">
+            <i class="bi bi-briefcase-fill me-2"></i>Positions
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/requisitions">
+            <i class="bi bi-clipboard-check-fill me-2"></i>Requisitions
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/talent-analyst"><i class="bi bi-robot me-2"></i>Talent Analyst</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/resume-parser">
+            <i class="bi bi-file-earmark-text me-2"></i>Resume Parser
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/apply" target="_blank">
+            <i class="bi bi-file-earmark-person me-2"></i>Application Form
+          </a>
+        </li>
+      </ul>
+      <div class="px-2 pb-3">
+        <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
+          <i class="bi bi-box-arrow-right me-1"></i>Logout
+        </a>
+        <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">
+          Logged in as <strong><%= adminName %></strong>
+        </p>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- Top Bar -->
+      <div class="admin-topbar d-flex align-items-center justify-content-between">
+        <h5 class="mb-0 fw-bold">
+          <i class="bi bi-people-fill me-2 text-gold"></i>Candidates
+          <span class="badge bg-secondary ms-2" style="font-size:.75rem;"><%= total %></span>
+        </h5>
+        <div class="d-flex gap-2">
+          <a href="/admin/candidates/export?<%= new URLSearchParams(query).toString() %>"
+             class="btn btn-sm btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+          </a>
+          <button class="btn btn-sm btn-outline-secondary" id="gradeAllBtn" title="Re-grade all candidates based on JD match">
             <i class="bi bi-stars me-1"></i>Re-grade All
           </button>
-          <button class="btn-li-primary d-none" id="downloadSelectedBtn" onclick="openBulkDownload()" disabled style="font-size:.8rem;">
+          <button class="btn btn-sm btn-warning d-none" id="downloadSelectedBtn" onclick="openBulkDownload()" disabled>
             <i class="bi bi-download me-1"></i>Download Selected
           </button>
         </div>
       </div>
 
-      <!-- Filter Bar -->
-      <div class="li-card mb-2">
-        <div class="li-card-header" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#filterBody">
-          <span><i class="bi bi-funnel me-1" style="color:#0a66c2;"></i>Filters</span>
-          <i class="bi bi-chevron-up" id="filterChevron"></i>
-        </div>
-        <div class="collapse show" id="filterBody">
-          <div class="li-card-body pt-2 pb-3">
-            <form method="GET" action="/admin/candidates">
-              <div class="row g-2 mb-2 align-items-end">
-                <div class="col-md-4">
-                  <input type="text" class="form-control form-control-sm" name="search"
-                    placeholder="Search name, email, phone..." value="<%= query.search || '' %>">
+      <div class="p-4">
+
+        <!-- Advanced Filter Bar -->
+        <div class="card shadow-sm mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <span class="fw-semibold small"><i class="bi bi-funnel me-1"></i>Filters</span>
+            <button class="btn btn-xs btn-sm btn-outline-secondary" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#filterBody" aria-expanded="true">
+              <i class="bi bi-chevron-up" id="filterChevron"></i>
+            </button>
+          </div>
+          <div class="collapse show" id="filterBody">
+            <div class="card-body py-3">
+              <form method="GET" action="/admin/candidates">
+                <!-- Row 1 -->
+                <div class="row g-2 mb-2 align-items-end">
+                  <div class="col-md-4">
+                    <input type="text" class="form-control form-control-sm" name="search"
+                      placeholder="Search name, email, phone..." value="<%= query.search || '' %>">
+                  </div>
+                  <div class="col-md-2">
+                    <select class="form-select form-select-sm" name="status">
+                      <option value="">All Statuses</option>
+                      <% ['New','Screening','Shortlisted','Interview Scheduled','Offer Extended','Hired','Rejected'].forEach(s => { %>
+                      <option value="<%= s %>" <%= query.status === s ? 'selected' : '' %>><%= s %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <select class="form-select form-select-sm" name="position">
+                      <option value="">All Positions</option>
+                      <% allPositions.forEach(p => { %>
+                      <option value="<%= p.name %>" <%= query.position === p.name ? 'selected' : '' %>><%= p.name %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div class="col-md-2">
+                    <select class="form-select form-select-sm" name="grade">
+                      <option value="">All Grades</option>
+                      <% ['A','B','C','D'].forEach(g => { %>
+                      <option value="<%= g %>" <%= query.grade === g ? 'selected' : '' %>>Grade <%= g %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-sm btn-gold flex-fill">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <a href="/admin/candidates" class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-x"></i>
+                    </a>
+                  </div>
                 </div>
-                <div class="col-md-2">
-                  <select class="form-select form-select-sm" name="status">
-                    <option value="">All Statuses</option>
-                    <% ['New','Screening','Shortlisted','Interview Scheduled','Offer Extended','Hired','Rejected'].forEach(s => { %>
-                    <option value="<%= s %>" <%= query.status === s ? 'selected' : '' %>><%= s %></option>
-                    <% }) %>
-                  </select>
+                <!-- Row 2: Sort + Date Range -->
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-2">
+                    <select class="form-select form-select-sm" name="sort">
+                      <option value="submittedAt" <%= (query.sort||'submittedAt')==='submittedAt' ? 'selected':'' %>>Sort: Applied Date</option>
+                      <option value="fullName"   <%= query.sort==='fullName'    ? 'selected':'' %>>Sort: Name</option>
+                      <option value="status"     <%= query.sort==='status'      ? 'selected':'' %>>Sort: Status</option>
+                      <option value="grade"      <%= query.sort==='grade'       ? 'selected':'' %>>Sort: Grade</option>
+                    </select>
+                  </div>
+                  <div class="col-md-1">
+                    <select class="form-select form-select-sm" name="order">
+                      <option value="desc" <%= (query.order||'desc')==='desc' ? 'selected':'' %>>DESC</option>
+                      <option value="asc"  <%= query.order==='asc'  ? 'selected':'' %>>ASC</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2">
+                    <input type="date" class="form-control form-control-sm" name="dateFrom"
+                      value="<%= query.dateFrom || '' %>" placeholder="From date">
+                  </div>
+                  <div class="col-md-2">
+                    <input type="date" class="form-control form-control-sm" name="dateTo"
+                      value="<%= query.dateTo || '' %>" placeholder="To date">
+                  </div>
                 </div>
-                <div class="col-md-3">
-                  <select class="form-select form-select-sm" name="position">
-                    <option value="">All Positions</option>
-                    <% allPositions.forEach(p => { %>
-                    <option value="<%= p.name %>" <%= query.position === p.name ? 'selected' : '' %>><%= p.name %></option>
-                    <% }) %>
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <select class="form-select form-select-sm" name="grade">
-                    <option value="">All Grades</option>
-                    <% ['A','B','C','D'].forEach(g => { %>
-                    <option value="<%= g %>" <%= query.grade === g ? 'selected' : '' %>>Grade <%= g %></option>
-                    <% }) %>
-                  </select>
-                </div>
-                <div class="col-md-1 d-flex gap-1">
-                  <button type="submit" class="btn-li-primary flex-fill" style="padding:5px 8px;font-size:.8rem;border-radius:4px;">
-                    <i class="bi bi-search"></i>
-                  </button>
-                  <a href="/admin/candidates" class="btn-li-outline" style="padding:4px 8px;font-size:.8rem;border-radius:4px;">
-                    <i class="bi bi-x"></i>
-                  </a>
-                </div>
-              </div>
-              <div class="row g-2 align-items-end">
-                <div class="col-md-2">
-                  <select class="form-select form-select-sm" name="sort">
-                    <option value="submittedAt" <%= (query.sort||'submittedAt')==='submittedAt' ? 'selected':'' %>>Sort: Applied Date</option>
-                    <option value="fullName"   <%= query.sort==='fullName'    ? 'selected':'' %>>Sort: Name</option>
-                    <option value="status"     <%= query.sort==='status'      ? 'selected':'' %>>Sort: Status</option>
-                    <option value="grade"      <%= query.sort==='grade'       ? 'selected':'' %>>Sort: Grade</option>
-                  </select>
-                </div>
-                <div class="col-md-1">
-                  <select class="form-select form-select-sm" name="order">
-                    <option value="desc" <%= (query.order||'desc')==='desc' ? 'selected':'' %>>DESC</option>
-                    <option value="asc"  <%= query.order==='asc'  ? 'selected':'' %>>ASC</option>
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <input type="date" class="form-control form-control-sm" name="dateFrom" value="<%= query.dateFrom || '' %>">
-                </div>
-                <div class="col-md-2">
-                  <input type="date" class="form-control form-control-sm" name="dateTo" value="<%= query.dateTo || '' %>">
-                </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Bulk Toolbar -->
-      <div id="bulkToolbar" class="d-none li-card mb-2" style="background:#fdf3ec;border-color:#b24020;">
-        <div class="li-card-body d-flex align-items-center gap-3 py-2">
-          <span style="font-size:.875rem;"><strong id="selectedCount">0</strong> selected</span>
-          <button onclick="openBulkDownload()" class="btn-li-primary" style="font-size:.8rem;">
+        <!-- Bulk Toolbar (hidden until selection) -->
+        <div id="bulkToolbar" class="d-none alert alert-warning d-flex align-items-center gap-3 py-2 mb-3">
+          <span><strong id="selectedCount">0</strong> selected</span>
+          <button onclick="openBulkDownload()" class="btn btn-sm btn-warning">
             <i class="bi bi-download me-1"></i>Download Documents
           </button>
-          <button onclick="clearSelection()" class="btn-li-outline" style="font-size:.8rem;">
+          <button onclick="clearSelection()" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-x me-1"></i>Clear
           </button>
         </div>
-      </div>
 
-      <!-- Candidates Table -->
-      <div class="li-card">
-        <div class="li-card-header">
-          <span><i class="bi bi-table me-2" style="color:#0a66c2;"></i>Candidates (<%= total %>)</span>
-          <small style="color:rgba(0,0,0,0.6);">Page <%= page %> of <%= totalPages %></small>
-        </div>
-        <div class="table-responsive">
-          <table class="li-table">
-            <thead>
-              <tr>
-                <th style="width:36px;padding:10px 8px 10px 14px;">
-                  <input type="checkbox" id="selectAllCandidates" class="form-check-input">
-                </th>
-                <th>#</th>
-                <th>Candidate</th>
-                <th>Position</th>
-                <th style="text-align:center;">Grade</th>
-                <th>Package</th>
-                <th>Notice</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (candidates.length === 0) { %>
-              <tr><td colspan="10" style="text-align:center;padding:40px;color:rgba(0,0,0,0.6);">
-                <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;"></i>
-                No candidates found matching your criteria.
-              </td></tr>
-              <% } %>
-              <%
-                const sClass = { New:'li-badge-new', Screening:'li-badge-screening', Shortlisted:'li-badge-shortlisted', 'Interview Scheduled':'li-badge-interview', 'Offer Extended':'li-badge-offer', Hired:'li-badge-hired', Rejected:'li-badge-rejected' };
-                const gc = { A:'#057642', B:'#0a66c2', C:'#b24020', D:'#cc1016' };
-              %>
-              <% candidates.forEach((c, i) => { %>
-              <tr class="candidate-row" onclick="window.location='/admin/candidate/<%= c.id %>'" style="cursor:pointer;">
-                <td onclick="event.stopPropagation()" style="padding:12px 8px 12px 14px;">
-                  <input type="checkbox" class="candidate-check form-check-input" value="<%= c.id %>">
-                </td>
-                <td style="color:rgba(0,0,0,0.45);font-size:.8rem;"><%= ((page - 1) * 20) + i + 1 %></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:10px;">
-                    <div class="li-avatar li-avatar-xs"><%= c.fullName.charAt(0).toUpperCase() %></div>
-                    <div>
-                      <div style="font-weight:600;font-size:.875rem;"><%= c.fullName %></div>
-                      <div style="font-size:.75rem;color:rgba(0,0,0,0.6);"><%= c.email %></div>
-                      <div style="font-size:.72rem;color:rgba(0,0,0,0.45);"><%= c.contactNumber %></div>
+        <!-- Candidates Table -->
+        <div class="card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="bi bi-table me-2"></i>Candidates (<%= total %>)</h6>
+            <small class="text-muted">Page <%= page %> of <%= totalPages %></small>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th style="width:36px;">
+                    <input type="checkbox" id="selectAllCandidates" class="form-check-input" title="Select all on this page">
+                  </th>
+                  <th>#</th>
+                  <th>Candidate</th>
+                  <th>Position</th>
+                  <th class="text-center">Grade</th>
+                  <th>Package</th>
+                  <th>Notice</th>
+                  <th>Status</th>
+                  <th>Applied</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (candidates.length === 0) { %>
+                <tr>
+                  <td colspan="10" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                    No candidates found matching your criteria.
+                  </td>
+                </tr>
+                <% } %>
+                <%
+                  const sColor = { New:'primary', Screening:'info', Shortlisted:'warning', 'Interview Scheduled':'secondary', 'Offer Extended':'dark', Hired:'success', Rejected:'danger' };
+                  const gc = { A:'success', B:'primary', C:'warning', D:'danger' };
+                %>
+                <% candidates.forEach((c, i) => { %>
+                <tr class="candidate-row" onclick="window.location='/admin/candidate/<%= c.id %>'" style="cursor:pointer;">
+                  <td onclick="event.stopPropagation()" style="width:36px;">
+                    <input type="checkbox" class="candidate-check form-check-input" value="<%= c.id %>">
+                  </td>
+                  <td class="text-muted small"><%= ((page - 1) * 20) + i + 1 %></td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="avatar-circle">
+                        <%= c.fullName.charAt(0).toUpperCase() %>
+                      </div>
+                      <div>
+                        <div class="fw-semibold small"><%= c.fullName %></div>
+                        <div class="text-muted" style="font-size:11px;"><%= c.email %></div>
+                        <div class="text-muted" style="font-size:11px;"><%= c.contactNumber %></div>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <span style="background:#e8f0f9;color:#0a66c2;border-radius:12px;padding:2px 8px;font-size:.75rem;font-weight:500;">
-                    <%= c.positionApplying %>
-                  </span>
-                </td>
-                <td style="text-align:center;">
-                  <% if (c.grade) {
-                    const src = c.gradeSource === 'ai' ? '🤖 AI' : '🔑 Keyword';
-                    const tip = `${src} | Score: ${c.gradeScore}\n${c.gradeReason || ''}`;
-                  %>
-                  <span style="font-weight:700;color:<%= gc[c.grade]||'#6c757d' %>;font-size:.875rem;"
-                    data-bs-toggle="tooltip" data-bs-placement="left"
-                    title="<%= tip.replace(/"/g,'&quot;') %>">
-                    <%= c.grade %><% if (c.gradeSource === 'ai') { %><i class="bi bi-stars" style="font-size:10px;margin-left:2px;"></i><% } %>
-                  </span>
-                  <% } else { %>
-                  <span style="color:rgba(0,0,0,0.45);font-size:.8rem;">—</span>
-                  <% } %>
-                </td>
-                <td style="font-size:.82rem;">₹<%= ((c.currentPackage.fixed||0)+(c.currentPackage.variables||0)+(c.currentPackage.others||0)).toFixed(1) %>L</td>
-                <td style="font-size:.8rem;color:rgba(0,0,0,0.6);"><%= c.noticePeriod %></td>
-                <td><span class="li-badge <%= sClass[c.status] || 'li-badge-new' %>"><%= c.status %></span></td>
-                <td style="font-size:.8rem;color:rgba(0,0,0,0.6);"><%= new Date(c.submittedAt).toLocaleDateString('en-IN') %></td>
-                <td onclick="event.stopPropagation()">
-                  <div class="d-flex gap-1">
-                    <a href="/admin/candidate/<%= c.id %>" class="btn btn-xs btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
-                    <a href="/admin/candidate/<%= c.id %>/interview" class="btn btn-xs btn-outline-secondary" title="Interview Sheet"><i class="bi bi-clipboard-check"></i></a>
-                    <a href="/admin/candidate/<%= c.id %>/timeline" class="btn btn-xs btn-outline-info" title="Activity History"><i class="bi bi-clock-history"></i></a>
-                    <% if (c.resumeFile) { %>
-                    <a href="/admin/candidate/<%= c.id %>/download" class="btn btn-xs btn-outline-success" title="Download CV"><i class="bi bi-download"></i></a>
+                  </td>
+                  <td><span class="badge bg-dark" style="font-size:10px;"><%= c.positionApplying %></span></td>
+                  <td class="text-center">
+                    <% if (c.grade) {
+                      const src = c.gradeSource === 'ai' ? '🤖 AI' : '🔑 Keyword';
+                      const tip = `${src} | Score: ${c.gradeScore}\n${c.gradeReason || ''}`;
+                    %>
+                    <span class="badge bg-<%= gc[c.grade]||'secondary' %> px-2"
+                      style="font-size:13px;cursor:help;"
+                      data-bs-toggle="tooltip" data-bs-placement="left"
+                      title="<%= tip.replace(/"/g,'&quot;') %>">
+                      <%= c.grade %>
+                      <% if (c.gradeSource === 'ai') { %><i class="bi bi-stars" style="font-size:10px;"></i><% } %>
+                    </span>
+                    <% } else { %>
+                    <span class="text-muted" style="font-size:11px;">—</span>
                     <% } %>
-                    <button class="btn btn-xs btn-outline-danger" onclick="deleteCandidate('<%= c.id %>')" title="Delete"><i class="bi bi-trash"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
+                  </td>
+                  <td>
+                    <small>
+                      ₹<%= ((c.currentPackage.fixed||0)+(c.currentPackage.variables||0)+(c.currentPackage.others||0)).toFixed(1) %>L
+                    </small>
+                  </td>
+                  <td><small class="text-muted"><%= c.noticePeriod %></small></td>
+                  <td>
+                    <span class="badge bg-<%= sColor[c.status] || 'secondary' %>"><%= c.status %></span>
+                  </td>
+                  <td><small class="text-muted"><%= new Date(c.submittedAt).toLocaleDateString('en-IN') %></small></td>
+                  <td onclick="event.stopPropagation()">
+                    <div class="d-flex gap-1 flex-wrap">
+                      <a href="/admin/candidate/<%= c.id %>" class="btn btn-xs btn-outline-primary" title="View">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                      <a href="/admin/candidate/<%= c.id %>/interview" class="btn btn-xs btn-outline-secondary" title="Interview Sheet">
+                        <i class="bi bi-clipboard-check"></i>
+                      </a>
+                      <a href="/admin/candidate/<%= c.id %>/timeline" class="btn btn-xs btn-outline-info" title="Activity History">
+                        <i class="bi bi-clock-history"></i>
+                      </a>
+                      <% if (c.resumeFile) { %>
+                      <a href="/admin/candidate/<%= c.id %>/download" class="btn btn-xs btn-outline-success" title="Download CV">
+                        <i class="bi bi-download"></i>
+                      </a>
+                      <% } %>
+                      <button class="btn btn-xs btn-outline-danger" onclick="deleteCandidate('<%= c.id %>')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
 
-        <!-- Pagination -->
-        <% if (totalPages > 1) { %>
-        <div class="li-pagination">
-          <a href="/admin/candidates?<%= new URLSearchParams({...query, page: page-1}).toString() %>"
-             class="li-page-btn <%= page === 1 ? 'disabled' : '' %>">&laquo;</a>
-          <% for(let p = Math.max(1, page-3); p <= Math.min(totalPages, page+3); p++) { %>
-          <a href="/admin/candidates?<%= new URLSearchParams({...query, page: p}).toString() %>"
-             class="li-page-btn <%= p === page ? 'active' : '' %>"><%= p %></a>
+          <!-- Pagination -->
+          <% if (totalPages > 1) { %>
+          <div class="card-footer d-flex justify-content-center">
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="/admin/candidates?<%= new URLSearchParams({...query, page: page-1}).toString() %>">
+                    &laquo;
+                  </a>
+                </li>
+                <% for(let p = Math.max(1, page-3); p <= Math.min(totalPages, page+3); p++) { %>
+                <li class="page-item <%= p === page ? 'active' : '' %>">
+                  <a class="page-link" href="/admin/candidates?<%= new URLSearchParams({...query, page: p}).toString() %>">
+                    <%= p %>
+                  </a>
+                </li>
+                <% } %>
+                <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="/admin/candidates?<%= new URLSearchParams({...query, page: page+1}).toString() %>">
+                    &raquo;
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
           <% } %>
-          <a href="/admin/candidates?<%= new URLSearchParams({...query, page: page+1}).toString() %>"
-             class="li-page-btn <%= page === totalPages ? 'disabled' : '' %>">&raquo;</a>
         </div>
-        <% } %>
-      </div>
 
+      </div>
     </main>
   </div>
 
   <!-- Bulk Download Modal -->
-  <div class="modal fade" id="bulkDownloadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="bulkDownloadModal" tabindex="-1" aria-labelledby="bulkDownloadModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title"><i class="bi bi-archive me-2" style="color:#b24020;"></i>Bulk Download Documents</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <h5 class="modal-title" id="bulkDownloadModalLabel">
+            <i class="bi bi-archive me-2 text-warning"></i>Bulk Download Documents
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="text-muted small mb-3">Select documents for <strong><span id="bulkCountLabel">0</span> candidate(s)</strong>:</p>
+          <p class="text-muted small mb-3">
+            Select the documents to include in the ZIP bundle for
+            <strong><span id="bulkCountLabel">0</span> candidate(s)</strong>:
+          </p>
           <div class="d-flex flex-column gap-2">
-            <div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="bdResume" value="resume" checked><label class="form-check-label" for="bdResume"><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>Resume</label></div>
-            <div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="bdInterview" value="interview" checked><label class="form-check-label" for="bdInterview"><i class="bi bi-clipboard-check me-1 text-primary"></i>Interview Sheet</label></div>
-            <div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="bdDetailForm" value="detail_form" checked><label class="form-check-label" for="bdDetailForm"><i class="bi bi-person-lines-fill me-1 text-info"></i>Personal Detail Form</label></div>
-            <div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="bdTimeline" value="timeline" checked><label class="form-check-label" for="bdTimeline"><i class="bi bi-clock-history me-1 text-success"></i>Activity History</label></div>
+            <div class="form-check">
+              <input class="form-check-input doc-check" type="checkbox" id="bdResume" value="resume" checked>
+              <label class="form-check-label" for="bdResume">
+                <i class="bi bi-file-earmark-pdf me-1 text-danger"></i>Resume
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input doc-check" type="checkbox" id="bdInterview" value="interview" checked>
+              <label class="form-check-label" for="bdInterview">
+                <i class="bi bi-clipboard-check me-1 text-primary"></i>Interview Sheet
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input doc-check" type="checkbox" id="bdDetailForm" value="detail_form" checked>
+              <label class="form-check-label" for="bdDetailForm">
+                <i class="bi bi-person-lines-fill me-1 text-info"></i>Personal Detail Form
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input doc-check" type="checkbox" id="bdTimeline" value="timeline" checked>
+              <label class="form-check-label" for="bdTimeline">
+                <i class="bi bi-clock-history me-1 text-success"></i>Activity History
+              </label>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn-li-primary" onclick="downloadBulk()" style="font-size:.875rem;border-radius:4px;"><i class="bi bi-download me-1"></i>Download ZIP</button>
+          <button type="button" class="btn btn-warning btn-sm" onclick="downloadBulk()">
+            <i class="bi bi-download me-1"></i>Download ZIP
+          </button>
         </div>
       </div>
     </div>
@@ -317,19 +381,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    function toggleAdminDrop() {
-      document.getElementById('adminDropMenu').classList.toggle('show');
-    }
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.li-nav-admin')) {
-        document.getElementById('adminDropMenu').classList.remove('show');
-      }
-    });
-
+    // Init Bootstrap tooltips
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
       new bootstrap.Tooltip(el, { html: false });
     });
 
+    // Filter chevron toggle
     document.getElementById('filterBody').addEventListener('hidden.bs.collapse', function() {
       document.getElementById('filterChevron').className = 'bi bi-chevron-down';
     });
@@ -348,7 +405,7 @@
     }
 
     document.getElementById('gradeAllBtn').addEventListener('click', async function() {
-      if (!confirm('Re-grade all candidates based on their resume vs job description match?')) return;
+      if (!confirm('Re-grade all candidates based on their resume vs job description match? This may take a moment.')) return;
       this.disabled = true;
       this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Grading...';
       try {
@@ -369,44 +426,64 @@
       }
     });
 
+    // ── Checkbox selection & bulk download ──────────────────────────────────
+
     document.getElementById('selectAllCandidates').addEventListener('change', function() {
       document.querySelectorAll('.candidate-check').forEach(cb => cb.checked = this.checked);
       updateBulkToolbar();
     });
+
     document.querySelectorAll('.candidate-check').forEach(cb => {
       cb.addEventListener('change', updateBulkToolbar);
     });
+
     function updateBulkToolbar() {
       const checked = document.querySelectorAll('.candidate-check:checked');
       document.getElementById('selectedCount').textContent = checked.length;
       const isAny = checked.length > 0;
       document.getElementById('bulkToolbar').classList.toggle('d-none', !isAny);
+      // Also update top-bar "Download Selected" button
       const dlBtn = document.getElementById('downloadSelectedBtn');
       if (dlBtn) { dlBtn.classList.toggle('d-none', !isAny); dlBtn.disabled = !isAny; }
+      // Sync select-all state
       const total = document.querySelectorAll('.candidate-check').length;
       const selectAll = document.getElementById('selectAllCandidates');
       selectAll.indeterminate = checked.length > 0 && checked.length < total;
       selectAll.checked = checked.length === total && total > 0;
     }
+
     function openBulkDownload() {
       const count = document.querySelectorAll('.candidate-check:checked').length;
       document.getElementById('bulkCountLabel').textContent = count;
       new bootstrap.Modal(document.getElementById('bulkDownloadModal')).show();
     }
+
     function clearSelection() {
       document.querySelectorAll('.candidate-check, #selectAllCandidates').forEach(cb => cb.checked = false);
       document.getElementById('selectAllCandidates').indeterminate = false;
       updateBulkToolbar();
     }
+
     function downloadBulk() {
       const ids  = [...document.querySelectorAll('.candidate-check:checked')].map(cb => cb.value);
       const docs = [...document.querySelectorAll('#bulkDownloadModal .doc-check:checked')].map(cb => cb.value);
-      if (!ids.length || !docs.length) { alert('Select at least one candidate and one document type.'); return; }
+      if (!ids.length || !docs.length) {
+        alert('Select at least one candidate and one document type.');
+        return;
+      }
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = '/admin/candidates/bulk-download';
-      ids.forEach(id => { const input = document.createElement('input'); input.type = 'hidden'; input.name = 'candidateIds[]'; input.value = id; form.appendChild(input); });
-      docs.forEach(doc => { const input = document.createElement('input'); input.type = 'hidden'; input.name = 'docs[]'; input.value = doc; form.appendChild(input); });
+      ids.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden'; input.name = 'candidateIds[]'; input.value = id;
+        form.appendChild(input);
+      });
+      docs.forEach(doc => {
+        const input = document.createElement('input');
+        input.type = 'hidden'; input.name = 'docs[]'; input.value = doc;
+        form.appendChild(input);
+      });
       document.body.appendChild(form);
       form.submit();
       document.body.removeChild(form);

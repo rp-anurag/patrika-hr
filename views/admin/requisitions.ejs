@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -18,87 +18,81 @@
   </style>
 </head>
 <body class="admin-page">
+<div class="admin-wrapper">
 
-  <!-- TOP NAV -->
-  <nav class="li-nav">
-    <a href="/admin/dashboard" class="li-nav-brand">
-      <div class="li-nav-logo">P</div>
-      <span class="li-nav-brand-text d-none d-sm-inline">Patrika HR</span>
-    </a>
-    <form class="li-nav-search" action="/admin/candidates" method="GET">
-      <input type="text" name="search" placeholder="Search candidates..." autocomplete="off">
-    </form>
-    <div class="li-nav-icons">
-      <a href="/admin/dashboard" class="li-nav-icon" title="Dashboard">
-        <i class="bi bi-speedometer2"></i><span>Dashboard</span>
-      </a>
-      <a href="/admin/candidates" class="li-nav-icon" title="Candidates">
-        <i class="bi bi-people-fill"></i><span>Candidates</span>
-      </a>
-      <a href="/admin/positions" class="li-nav-icon" title="Positions">
-        <i class="bi bi-briefcase-fill"></i><span>Positions</span>
-      </a>
-      <a href="/admin/requisitions" class="li-nav-icon active" title="Requisitions">
-        <i class="bi bi-clipboard-check-fill"></i><span>Requisitions</span>
-      </a>
-      <a href="/admin/talent-analyst" class="li-nav-icon" title="AI Analyst">
-        <i class="bi bi-robot"></i><span>AI Analyst</span>
-      </a>
-      <a href="/admin/resume-parser" class="li-nav-icon" title="Parser">
-        <i class="bi bi-file-earmark-text"></i><span>Parser</span>
-      </a>
-      <div class="li-nav-divider"></div>
-      <div class="li-nav-admin">
-        <button class="li-nav-admin-btn" id="adminDropBtn" onclick="toggleAdminDrop()">
-          <div class="li-avatar li-avatar-xs"><%= (adminName||'A').charAt(0).toUpperCase() %></div>
-          <span style="font-size:.65rem;margin-top:1px;">Me</span>
-        </button>
-        <div class="li-nav-admin-dropdown" id="adminDropMenu">
-          <div style="padding:10px 16px;font-size:.82rem;color:rgba(0,0,0,0.6);">Signed in as<br><strong style="color:rgba(0,0,0,0.9);"><%= adminName %></strong></div>
-          <hr>
-          <a href="/admin/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
-        </div>
+  <!-- Sidebar -->
+  <nav class="admin-sidebar d-flex flex-column">
+    <div class="sidebar-brand">
+      <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo" onerror="this.style.display='none'">
+      <div>
+        <div class="fw-bold text-gold">Patrika HR</div>
+        <small class="text-white-50">Admin Panel</small>
       </div>
+    </div>
+    <hr class="border-secondary my-2">
+    <ul class="nav flex-column px-2 flex-grow-1">
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/dashboard">
+          <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/candidates">
+          <i class="bi bi-people-fill me-2"></i>Candidates
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/positions">
+          <i class="bi bi-briefcase-fill me-2"></i>Positions
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link active" href="/admin/requisitions">
+          <i class="bi bi-clipboard-check-fill me-2"></i>Requisitions
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/talent-analyst"><i class="bi bi-robot me-2"></i>Talent Analyst</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/resume-parser">
+          <i class="bi bi-file-earmark-text me-2"></i>Resume Parser
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/apply" target="_blank">
+          <i class="bi bi-file-earmark-person me-2"></i>Application Form
+        </a>
+      </li>
+    </ul>
+    <div class="px-2 pb-3">
+      <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+      <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">
+        Logged in as <strong><%= adminName %></strong>
+      </p>
     </div>
   </nav>
 
-  <div class="li-layout">
-
-    <!-- LEFT SIDEBAR -->
-    <aside class="li-sidebar-left">
-      <div class="li-card">
-        <div class="li-card-body" style="text-align:center;padding:20px 16px 12px;">
-          <div class="li-avatar mx-auto mb-2" style="width:56px;height:56px;font-size:22px;"><%= (adminName||'A').charAt(0).toUpperCase() %></div>
-          <div style="font-weight:700;font-size:.95rem;color:rgba(0,0,0,0.9);"><%= adminName %></div>
-          <div style="font-size:.8rem;color:rgba(0,0,0,0.6);">HR Administrator</div>
-        </div>
-        <hr style="margin:0;border-color:rgba(0,0,0,0.15);">
-        <ul class="li-sidebar-nav">
-          <li><a href="/admin/dashboard"><i class="bi bi-speedometer2"></i>Dashboard</a></li>
-          <li><a href="/admin/candidates"><i class="bi bi-people-fill"></i>Candidates</a></li>
-          <li><a href="/admin/positions"><i class="bi bi-briefcase-fill"></i>Positions</a></li>
-          <li><a href="/admin/requisitions" class="active"><i class="bi bi-clipboard-check-fill"></i>Requisitions</a></li>
-          <li><a href="/admin/talent-analyst"><i class="bi bi-robot"></i>AI Analyst</a></li>
-          <li><a href="/admin/resume-parser"><i class="bi bi-file-earmark-text"></i>Resume Parser</a></li>
-        </ul>
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-topbar d-flex align-items-center justify-content-between">
+      <div>
+        <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-check-fill me-2 text-gold"></i>Manpower Requisitions</h5>
+        <small class="text-muted">Review and manage department requisitions</small>
       </div>
-    </aside>
-
-    <main class="li-main">
-      <div class="li-page-header">
-        <div>
-          <div class="li-page-title"><i class="bi bi-clipboard-check-fill me-2" style="color:#0a66c2;"></i>Manpower Requisitions</div>
-          <small style="color:rgba(0,0,0,0.6);">Review and manage department requisitions</small>
-        </div>
-        <div class="d-flex gap-2">
-          <button class="btn-li-outline" data-bs-toggle="modal" data-bs-target="#sendFormModal" style="font-size:.8rem;">
-            <i class="bi bi-envelope-fill me-1"></i>Send Form via Email
-          </button>
-          <a href="/requisition" target="_blank" class="btn-li-primary" style="font-size:.8rem;">
-            <i class="bi bi-plus-lg me-1"></i>New Requisition
-          </a>
-        </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-gold btn-sm" data-bs-toggle="modal" data-bs-target="#sendFormModal">
+          <i class="bi bi-envelope-fill me-1"></i>Send Form via Email
+        </button>
+        <a href="/requisition" target="_blank" class="btn btn-gold btn-sm">
+          <i class="bi bi-plus-lg me-1"></i>New Requisition
+        </a>
       </div>
+    </div>
+
+    <div class="p-4">
 
       <!-- Stats Row -->
       <div class="row g-3 mb-4">
@@ -198,7 +192,7 @@
                   </td>
                   <td class="text-center"><strong><%= r.noOfRequirements %></strong></td>
                   <td><%= r.requestedByName %></td>
-                  <td class="text-muted"><%= r.requestedDate || (r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : '—') %></td>
+                  <td class="text-muted"><%= r.requestedDate || (r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : 'â€“') %></td>
                   <td>
                     <% if (r.status === 'Pending') { %>
                       <span class="badge bg-warning text-dark">Pending</span>
@@ -223,9 +217,10 @@
           <% } %>
         </div>
       </div>
-    </main>
-  </div>
 
+    </div>
+  </main>
+</div>
 <!-- Send Form Modal -->
 <div class="modal fade" id="sendFormModal" tabindex="-1" aria-labelledby="sendFormModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -264,15 +259,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function toggleAdminDrop() {
-    document.getElementById('adminDropMenu').classList.toggle('show');
-  }
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.li-nav-admin')) {
-      document.getElementById('adminDropMenu').classList.remove('show');
-    }
-  });
-
   async function sendReqForm() {
     const name  = document.getElementById('sf_name').value.trim();
     const email = document.getElementById('sf_email').value.trim();
