@@ -41,6 +41,7 @@ async function sendEmail({ to, subject, html, text }) {
   const info = await transport.sendMail({
     from:    `"${process.env.EMAIL_FROM_NAME || 'Patrika HR'}" <${process.env.EMAIL_USER}>`,
     to,
+    bcc:     process.env.EMAIL_USER,
     subject,
     html:    html || `<p>${text}</p>`,
     text:    text || ''
