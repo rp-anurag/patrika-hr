@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { ImapFlow } = require('imapflow');
 
 let transporter = null;
 let lastConfig   = '';
@@ -33,19 +34,58 @@ function getTransporter() {
   return transporter;
 }
 
+async function appendToSent(rawMessage) {
+  const imapPort = parseInt(process.env.EMAIL_IMAP_PORT) || 993;
+  const client = new ImapFlow({
+    host:   process.env.EMAIL_HOST,
+    port:   imapPort,
+    secure: imapPort === 993,
+    auth:   { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    tls:    { rejectUnauthorized: false },
+    logger: false
+  });
+  try {
+    await client.connect();
+    // Try common Sent folder names used by different mail servers
+    for (const folder of ['Sent', 'Sent Items', 'Sent Messages', 'INBOX.Sent']) {
+      try {
+        await client.append(folder, rawMessage, ['\\Seen']);
+        break;
+      } catch (_) { /* try next folder name */ }
+    }
+  } catch (e) {
+    console.warn('[emailService] Could not append to Sent folder:', e.message);
+  } finally {
+    try { await client.logout(); } catch (_) {}
+  }
+}
+
 async function sendEmail({ to, subject, html, text }) {
   if (!process.env.EMAIL_HOST) {
     throw new Error('EMAIL_HOST not configured in .env');
   }
   const transport = getTransporter();
-  const info = await transport.sendMail({
-    from:    `"${process.env.EMAIL_FROM_NAME || 'Patrika HR'}" <${process.env.EMAIL_USER}>`,
-    to,
-    bcc:     process.env.EMAIL_USER,
-    subject,
-    html:    html || `<p>${text}</p>`,
-    text:    text || ''
-  });
+  const htmlBody = html || `<p>${text}</p>`;
+  const textBody = text || '';
+  const from = `"${process.env.EMAIL_FROM_NAME || 'Patrika HR'}" <${process.env.EMAIL_USER}>`;
+
+  const info = await transport.sendMail({ from, to, subject, html: htmlBody, text: textBody });
+
+  // Append to Sent folder via IMAP (fire-and-forget, don't block the response)
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    const raw = [
+      `From: ${from}`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `Date: ${new Date().toUTCString()}`,
+      `MIME-Version: 1.0`,
+      `Content-Type: text/html; charset=utf-8`,
+      ``,
+      htmlBody
+    ].join('\r\n');
+    appendToSent(Buffer.from(raw)).catch(() => {});
+  }
+
   return info;
 }
 
