@@ -19,17 +19,19 @@ exports.showLogin = (req, res) => {
 exports.processLogin = async (req, res) => {
   const { username, password } = req.body;
   try {
-    // .env credentials (simple / no DB required)
+    // .env credentials (simple / no DB required) — always super-admin
     if (username === (process.env.ADMIN_USERNAME || 'admin') &&
         password === (process.env.ADMIN_PASSWORD || 'Patrika@2024')) {
-      req.session.adminId   = 'env-admin';
-      req.session.adminName = 'Admin';
+      req.session.adminId         = 'env-admin';
+      req.session.adminName       = 'Admin';
+      req.session.adminRole       = 'admin';
+      req.session.adminDepartment = null;
       const returnTo = req.session.returnTo || '/admin/dashboard';
       delete req.session.returnTo;
       return res.redirect(returnTo);
     }
 
-    // DB admin fallback
+    // DB admin/user fallback
     const admin = await Admin.findOne({ where: { username } });
     if (!admin || !(await admin.comparePassword(password))) {
       return res.render('admin/login', {
@@ -37,8 +39,10 @@ exports.processLogin = async (req, res) => {
         error: 'Invalid username or password'
       });
     }
-    req.session.adminId   = admin.id;
-    req.session.adminName = admin.name;
+    req.session.adminId         = admin.id;
+    req.session.adminName       = admin.name;
+    req.session.adminRole       = admin.role || 'admin';
+    req.session.adminDepartment = admin.department || null;
     const returnTo = req.session.returnTo || '/admin/dashboard';
     delete req.session.returnTo;
     res.redirect(returnTo);
@@ -56,20 +60,31 @@ exports.logout = (req, res) => {
 
 exports.dashboard = async (req, res) => {
   try {
+    const isSuperAdmin = req.session.adminRole === 'admin';
+    const dept = req.session.adminDepartment;
+    const deptFilter = !isSuperAdmin && dept ? `AND p.department = ${sequelize.escape(dept)}` : '';
+    const candFilter = !isSuperAdmin && dept
+      ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`
+      : '';
+    const candFilterStatus = !isSuperAdmin && dept
+      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`
+      : '';
+
     const [statusRows, positionRows, todayRows, recentCandidates, recentActivity, totalRow] = await Promise.all([
       sequelize.query(
-        `SELECT status, COUNT(*) as count FROM candidates GROUP BY status`,
+        `SELECT status, COUNT(*) as count FROM candidates ${candFilterStatus} GROUP BY status`,
         { type: sequelize.QueryTypes.SELECT }
       ),
       sequelize.query(
-        `SELECT p.name as position, COUNT(c.id) as count FROM positions p LEFT JOIN candidates c ON c.positionApplying COLLATE utf8mb4_general_ci = p.name COLLATE utf8mb4_general_ci WHERE p.isActive = 1 GROUP BY p.name ORDER BY count DESC`,
+        `SELECT p.name as position, COUNT(c.id) as count FROM positions p LEFT JOIN candidates c ON c.positionApplying COLLATE utf8mb4_general_ci = p.name COLLATE utf8mb4_general_ci WHERE p.isActive = 1 ${deptFilter} GROUP BY p.name ORDER BY count DESC`,
         { type: sequelize.QueryTypes.SELECT }
       ),
       sequelize.query(
-        `SELECT COUNT(*) as count FROM candidates WHERE DATE(submittedAt) = CURDATE()`,
+        `SELECT COUNT(*) as count FROM candidates ${candFilterStatus ? candFilterStatus + ' AND DATE(submittedAt) = CURDATE()' : 'WHERE DATE(submittedAt) = CURDATE()'}`,
         { type: sequelize.QueryTypes.SELECT }
       ),
       Candidate.findAll({
+        where: !isSuperAdmin && dept ? { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`) } } : {},
         order: [['submittedAt', 'DESC']],
         limit: 8,
         attributes: ['id', 'fullName', 'email', 'positionApplying', 'grade', 'status', 'submittedAt']
@@ -77,10 +92,18 @@ exports.dashboard = async (req, res) => {
       ActivityLog.findAll({
         order: [['createdAt', 'DESC']],
         limit: 8,
-        include: [{ model: Candidate, as: 'candidate', attributes: ['fullName', 'id'] }]
+        include: [{
+          model: Candidate,
+          as: 'candidate',
+          attributes: ['fullName', 'id'],
+          ...(!isSuperAdmin && dept ? {
+            where: { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`) } },
+            required: true
+          } : { required: false })
+        }]
       }),
       sequelize.query(
-        `SELECT COUNT(*) as count FROM candidates`,
+        `SELECT COUNT(*) as count FROM candidates ${candFilterStatus}`,
         { type: sequelize.QueryTypes.SELECT }
       )
     ]);
@@ -94,6 +117,8 @@ exports.dashboard = async (req, res) => {
     res.render('admin/dashboard', {
       title:            'Dashboard – Patrika HR',
       adminName:        req.session.adminName,
+      adminRole:        req.session.adminRole,
+      adminDepartment:  req.session.adminDepartment,
       statusCounts,
       positionCounts:   positionRows,
       newToday,
@@ -115,6 +140,9 @@ exports.candidatesList = async (req, res) => {
     const limit  = 20;
     const offset = (parseInt(page) - 1) * limit;
 
+    const isSuperAdmin = req.session.adminRole === 'admin';
+    const dept = req.session.adminDepartment;
+
     // Build where clause
     const where = {};
     if (search) {
@@ -132,11 +160,20 @@ exports.candidatesList = async (req, res) => {
       if (dateFrom) where.submittedAt[Op.gte] = new Date(dateFrom);
       if (dateTo)   where.submittedAt[Op.lte] = new Date(dateTo + 'T23:59:59');
     }
+    // Department restriction for non-super-admin users
+    if (!isSuperAdmin && dept) {
+      where.positionApplying = { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`) };
+      if (position) where.positionApplying = position; // allow further filter within dept
+    }
 
     // Validate sort column to prevent SQL injection
     const SAFE_SORT_COLS = ['fullName','email','submittedAt','status','positionApplying','grade'];
     const safeSort  = SAFE_SORT_COLS.includes(sort) ? sort : 'submittedAt';
     const safeOrder = order === 'asc' ? 'ASC' : 'DESC';
+
+    const deptStatusFilter = !isSuperAdmin && dept
+      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`
+      : '';
 
     const [{ rows: candidates, count: total }, statusRows, allPositions] = await Promise.all([
       Candidate.findAndCountAll({
@@ -147,24 +184,29 @@ exports.candidatesList = async (req, res) => {
         attributes: { exclude: ['parsedRawText'] }
       }),
       sequelize.query(
-        `SELECT status, COUNT(*) as count FROM candidates GROUP BY status`,
+        `SELECT status, COUNT(*) as count FROM candidates ${deptStatusFilter} GROUP BY status`,
         { type: sequelize.QueryTypes.SELECT }
       ),
-      Position.findAll({ order: [['sortOrder','ASC'],['name','ASC']] })
+      Position.findAll({
+        where: !isSuperAdmin && dept ? { department: dept } : {},
+        order: [['sortOrder','ASC'],['name','ASC']]
+      })
     ]);
 
     const statusCounts = {};
     statusRows.forEach(r => { statusCounts[r.status] = parseInt(r.count); });
 
     res.render('admin/candidates', {
-      title:      'Candidates – Patrika HR',
+      title:           'Candidates – Patrika HR',
       candidates,
       total,
-      page:       parseInt(page),
-      totalPages: Math.ceil(total / limit),
-      query:      req.query,
+      page:            parseInt(page),
+      totalPages:      Math.ceil(total / limit),
+      query:           req.query,
       statusCounts,
-      adminName:  req.session.adminName,
+      adminName:       req.session.adminName,
+      adminRole:       req.session.adminRole,
+      adminDepartment: req.session.adminDepartment,
       allPositions
     });
   } catch (err) {
@@ -190,12 +232,14 @@ exports.candidateDetail = async (req, res) => {
     if (!candidate) return res.status(404).send('Candidate not found');
 
     res.render('admin/candidate-detail', {
-      title:      `${candidate.fullName} – Patrika HR`,
+      title:           `${candidate.fullName} – Patrika HR`,
       candidate,
-      detailForm: detailForm || null,
-      adminName:  req.session.adminName,
-      flash:      req.query.flash,
-      flashType:  req.query.flashType || 'success'
+      detailForm:      detailForm || null,
+      adminName:       req.session.adminName,
+      adminRole:       req.session.adminRole,
+      adminDepartment: req.session.adminDepartment,
+      flash:           req.query.flash,
+      flashType:       req.query.flashType || 'success'
     });
   } catch (err) {
     console.error(err);
@@ -466,8 +510,10 @@ exports.deleteCandidate = async (req, res) => {
 
 exports.showResumeParser = (req, res) => {
   res.render('admin/resume-parser', {
-    title:     'Resume Parser – Patrika HR',
-    adminName: req.session.adminName
+    title:           'Resume Parser – Patrika HR',
+    adminName:       req.session.adminName,
+    adminRole:       req.session.adminRole,
+    adminDepartment: req.session.adminDepartment
   });
 };
 
@@ -658,22 +704,42 @@ exports.gradeAll = async (req, res) => {
 };
 
 exports.gradeOne = async (req, res) => {
+  console.log('[gradeOne] called for candidate id:', req.params.id, '| session:', req.session && req.session.adminId ? 'OK' : 'NO SESSION');
   try {
     const c = await Candidate.findByPk(req.params.id);
-    if (!c) return res.status(404).json({ error: 'Not found' });
+    if (!c) { console.log('[gradeOne] candidate not found'); return res.status(404).json({ error: 'Not found' }); }
+    console.log('[gradeOne] candidate:', c.fullName, '| position:', c.positionApplying);
+
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) { console.log('[gradeOne] no API key'); return res.status(400).json({ success: false, error: 'GROQ_API_KEY not configured' }); }
+
     const pos = await Position.findOne({ where: { name: c.positionApplying } });
-    const result = await computeGradeAsync(c, pos ? (pos.jdHtml || '') : '', c.positionApplying);
+    const jdHtml = pos ? (pos.jdHtml || '') : '';
+    console.log('[gradeOne] position found:', pos ? pos.name : 'NONE');
+
+    const { analyseCandidate, reportToGrade } = require('../utils/talentAnalyst');
+    console.log('[gradeOne] calling analyseCandidate...');
+    const report = await analyseCandidate(c, jdHtml, c.positionApplying);
+    if (!report || !report.tier) {
+      console.log('[gradeOne] analyseCandidate returned null');
+      return res.status(500).json({ success: false, error: 'Talent Analyst returned no result — check GROQ API key / connectivity' });
+    }
+    console.log('[gradeOne] report tier:', report.tier, 'score:', report.weightedTotal);
+
+    const g = reportToGrade(report);
     await c.update({
-      grade:         result.grade,
-      gradeScore:    result.score,
-      gradeReason:   result.gradeReason,
-      gradeSource:   result.gradeSource,
-      analystReport: result.analystReport || c.analystReport,
+      grade:         g.grade,
+      gradeScore:    g.score,
+      gradeReason:   g.gradeReason,
+      gradeSource:   g.gradeSource,
+      analystReport: JSON.stringify(report),
       updatedAt:     new Date()
     });
-    res.json({ success: true, grade: result.grade, score: result.score, source: result.gradeSource, reason: result.gradeReason });
+    console.log('[gradeOne] saved grade:', g.grade, 'gradeSource:', g.gradeSource);
+    res.json({ success: true, grade: g.grade, score: g.score, source: g.gradeSource });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[gradeOne] ERROR:', err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
@@ -683,8 +749,10 @@ exports.listPositions = async (req, res) => {
   try {
     const positions = await Position.findAll({ order: [['sortOrder','ASC'],['name','ASC']] });
     res.render('admin/positions', {
-      title: 'Manage Positions – Patrika HR',
-      adminName: req.session.adminName,
+      title:           'Manage Positions – Patrika HR',
+      adminName:       req.session.adminName,
+      adminRole:       req.session.adminRole,
+      adminDepartment: req.session.adminDepartment,
       positions,
       v: res.locals.v
     });

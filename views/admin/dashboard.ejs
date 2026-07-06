@@ -47,11 +47,13 @@
             <i class="bi bi-people-fill me-2"></i>Candidates
           </a>
         </li>
+        <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
         <li class="nav-item">
           <a class="nav-link sidebar-link" href="/admin/positions">
             <i class="bi bi-briefcase-fill me-2"></i>Positions
           </a>
         </li>
+        <% } %>
         <li class="nav-item">
           <a class="nav-link sidebar-link" href="/admin/requisitions">
             <i class="bi bi-clipboard-check-fill me-2"></i>Requisitions
@@ -70,6 +72,13 @@
             <i class="bi bi-file-earmark-person me-2"></i>Application Form
           </a>
         </li>
+        <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
+        <li class="nav-item">
+          <a class="nav-link sidebar-link" href="/admin/users">
+            <i class="bi bi-person-gear me-2"></i>User Management
+          </a>
+        </li>
+        <% } %>
       </ul>
       <div class="px-2 pb-3">
         <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
@@ -77,6 +86,9 @@
         </a>
         <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">
           Logged in as <strong><%= adminName %></strong>
+          <% if (typeof adminDepartment !== 'undefined' && adminDepartment) { %>
+          <span class="badge bg-warning text-dark d-block mt-1"><%= adminDepartment %></span>
+          <% } %>
         </p>
       </div>
     </nav>

@@ -8,7 +8,8 @@ const talentAnalystController = require('../controllers/talentAnalystController'
 const interviewController     = require('../controllers/interviewController');
 const timelineController      = require('../controllers/timelineController');
 const downloadController      = require('../controllers/downloadController');
-const { requireAdmin, redirectIfLoggedIn } = require('../middleware/auth');
+const { requireAdmin, requireSuperAdmin, redirectIfLoggedIn } = require('../middleware/auth');
+const userController = require('../controllers/userController');
 
 const path = require('path');
 
@@ -92,12 +93,18 @@ router.get('/candidate/:id/interview/print', requireAdmin, interviewController.p
 router.get('/candidate/:id/timeline',        requireAdmin, timelineController.showTimeline);
 router.post('/candidate/:id/timeline/email', requireAdmin, timelineController.emailTimeline);
 
-// Positions Management
-router.get('/positions',              requireAdmin, adminController.listPositions);
-router.post('/positions',             requireAdmin, adminController.createPosition);
-router.put('/positions/:id',          requireAdmin, adminController.updatePosition);
-router.post('/positions/:id/toggle',  requireAdmin, adminController.togglePosition);
-router.delete('/positions/:id',       requireAdmin, adminController.deletePosition);
+// Positions Management (super-admin only)
+router.get('/positions',              requireSuperAdmin, adminController.listPositions);
+router.post('/positions',             requireSuperAdmin, adminController.createPosition);
+router.put('/positions/:id',          requireSuperAdmin, adminController.updatePosition);
+router.post('/positions/:id/toggle',  requireSuperAdmin, adminController.togglePosition);
+router.delete('/positions/:id',       requireSuperAdmin, adminController.deletePosition);
+
+// User Management (super-admin only)
+router.get('/users',          requireSuperAdmin, userController.listUsers);
+router.post('/users',         requireSuperAdmin, userController.createUser);
+router.put('/users/:id',      requireSuperAdmin, userController.updateUser);
+router.delete('/users/:id',   requireSuperAdmin, userController.deleteUser);
 
 // Talent Analyst
 router.get('/talent-analyst',         requireAdmin, talentAnalystController.showPage);

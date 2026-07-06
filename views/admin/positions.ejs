@@ -42,11 +42,13 @@
           <i class="bi bi-people-fill me-2"></i>Candidates
         </a>
       </li>
+      <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
       <li class="nav-item">
         <a class="nav-link sidebar-link active" href="/admin/positions">
           <i class="bi bi-briefcase-fill me-2"></i>Positions
         </a>
       </li>
+      <% } %>
       <li class="nav-item">
         <a class="nav-link sidebar-link" href="/admin/requisitions">
           <i class="bi bi-clipboard-check-fill me-2"></i>Requisitions
@@ -65,6 +67,13 @@
           <i class="bi bi-file-earmark-person me-2"></i>Application Form
         </a>
       </li>
+      <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
+      <li class="nav-item">
+        <a class="nav-link sidebar-link" href="/admin/users">
+          <i class="bi bi-person-gear me-2"></i>User Management
+        </a>
+      </li>
+      <% } %>
     </ul>
     <div class="px-2 pb-3">
       <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
@@ -72,6 +81,9 @@
       </a>
       <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">
         Logged in as <strong><%= adminName %></strong>
+        <% if (typeof adminDepartment !== 'undefined' && adminDepartment) { %>
+        <span class="badge bg-warning text-dark d-block mt-1"><%= adminDepartment %></span>
+        <% } %>
       </p>
     </div>
   </nav>
@@ -201,7 +213,19 @@
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold">Department</label>
-            <input type="text" class="form-control" id="add-dept" placeholder="e.g. Sales">
+            <select class="form-select" id="add-dept">
+              <option value="">— Select Department —</option>
+              <option>Finance</option>
+              <option>HR</option>
+              <option>IT</option>
+              <option>Legal</option>
+              <option>Marketing</option>
+              <option>OOH</option>
+              <option>Print</option>
+              <option>Print Advertising</option>
+              <option>Radio</option>
+              <option>Sales &amp; Distribution</option>
+            </select>
           </div>
           <div class="col-md-2">
             <label class="form-label fw-semibold">Sort Order</label>
@@ -255,7 +279,19 @@
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold">Department</label>
-            <input type="text" class="form-control" id="edit-dept">
+            <select class="form-select" id="edit-dept">
+              <option value="">— Select Department —</option>
+              <option>Finance</option>
+              <option>HR</option>
+              <option>IT</option>
+              <option>Legal</option>
+              <option>Marketing</option>
+              <option>OOH</option>
+              <option>Print</option>
+              <option>Print Advertising</option>
+              <option>Radio</option>
+              <option>Sales &amp; Distribution</option>
+            </select>
           </div>
           <div class="col-md-2">
             <label class="form-label fw-semibold">Sort Order</label>

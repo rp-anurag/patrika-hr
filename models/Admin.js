@@ -6,8 +6,10 @@ const Admin = sequelize.define('Admin', {
   id:        { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   username:  { type: DataTypes.STRING(100), allowNull: false, unique: true },
   password:  { type: DataTypes.STRING(255), allowNull: false },
-  name:      { type: DataTypes.STRING(255), defaultValue: 'Admin' },
-  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+  name:       { type: DataTypes.STRING(255), defaultValue: 'Admin' },
+  role:       { type: DataTypes.STRING(20),  defaultValue: 'admin' },
+  department: { type: DataTypes.STRING(100), defaultValue: null },
+  createdAt:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: 'admins',
   timestamps: false,
