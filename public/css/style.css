@@ -59,15 +59,90 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 
 /* ── Hero Banner ──────────────────────────── */
 .hero-banner {
-  line-height: 0;
-  border-bottom: 1px solid #e0dbd0;
+  display: flex;
+  background: #fff;
+  border-bottom: 2px solid #ddd;
+  min-height: 380px;
 }
-.hero-full-img {
+.hero-left {
+  flex: 0 0 32%;
+  overflow: hidden;
+}
+.hero-chairs-img {
   width: 100%;
-  display: block;
-  max-height: 420px;
+  height: 100%;
   object-fit: cover;
-  object-position: center;
+  display: block;
+}
+.hero-right {
+  flex: 1;
+  padding: 24px 28px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fff;
+}
+.hero-right-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.hero-title {
+  font-size: clamp(1.3rem, 2vw, 1.75rem);
+  font-weight: 900;
+  color: #111;
+  line-height: 1.2;
+  margin: 0;
+  flex: 1;
+}
+.hero-title span { display: block; }
+.hero-logo {
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.hero-body {
+  font-size: 0.78rem;
+  color: #222;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.hero-badge-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.hero-elevate {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: #cc1010;
+  border-radius: 6px;
+  padding: 7px 24px 6px;
+  box-shadow: 0 3px 10px rgba(204,16,16,0.4);
+}
+.elevate-text {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+  line-height: 1.2;
+}
+.elevate-sub {
+  color: rgba(255,255,255,0.9);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+@media (max-width: 768px) {
+  .hero-banner { flex-direction: column; }
+  .hero-left { flex: 0 0 200px; }
+  .hero-right { padding: 16px; }
+  .hero-right-top { flex-direction: column-reverse; }
+  .hero-logo { height: 36px; }
 }
 
 .form-card { border: none; border-radius: 12px; }
