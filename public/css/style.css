@@ -57,21 +57,101 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 }
 .header-logo { height: 48px; object-fit: contain; }
 
+/* ── Hero Two-Column Banner ───────────────── */
 .hero-banner {
-  background: #ffffff;
-  border-bottom: 1px solid #e8e2d8;
+  background: #fff;
+  border-bottom: 1px solid #e0dbd0;
+  overflow: hidden;
+}
+.hero-two-col {
+  display: flex;
+  min-height: 340px;
+}
+
+/* Left chairs column */
+.hero-chairs-col {
+  flex: 0 0 32%;
+  background: #f0ece6;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-chairs-art {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 20px;
+  transform: perspective(600px) rotateY(6deg);
+}
+.chair-row {
+  display: flex;
+  gap: 10px;
+}
+.chair {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.chair-back {
+  width: 38px;
+  height: 38px;
+  background: #fff;
+  border-radius: 6px 6px 2px 2px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.chair-seat {
+  width: 42px;
+  height: 14px;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.chair-red .chair-back,
+.chair-red .chair-seat {
+  background: #cc1010;
+  box-shadow: 0 3px 10px rgba(204,16,16,0.4);
+}
+
+/* Right content column */
+.hero-content-col {
+  flex: 1;
+  padding: 28px 36px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hero-content-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 .hero-title {
-  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
-  font-weight: 800;
-  color: #111111;
-  line-height: 1.25;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 900;
+  color: #111;
+  line-height: 1.2;
+  margin: 0;
 }
-.hero-sub {
-  color: #555;
-  font-size: 1.05rem;
-  max-width: 600px;
-  margin: 0 auto;
+.hero-title span { display: block; }
+.hero-patrika-logo {
+  height: 52px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.hero-body-text {
+  font-size: 0.8rem;
+  color: #333;
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.hero-elevate-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
 }
 .hero-elevate-badge {
   display: inline-flex;
@@ -79,24 +159,31 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
   align-items: center;
   background: #cc1010;
   border-radius: 8px;
-  padding: 8px 28px 7px;
-  margin-top: 20px;
-  position: relative;
-  box-shadow: 0 4px 14px rgba(204,16,16,0.45);
+  padding: 7px 22px 6px;
+  box-shadow: 0 4px 12px rgba(204,16,16,0.4);
 }
 .elevate-text {
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 4px;
   line-height: 1.2;
 }
 .elevate-sub {
-  color: rgba(255,255,255,0.88);
-  font-size: 0.62rem;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.58rem;
   font-weight: 600;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   margin-top: 2px;
+}
+
+/* Mobile: stack vertically, hide chairs art */
+@media (max-width: 768px) {
+  .hero-two-col { flex-direction: column; }
+  .hero-chairs-col { display: none; }
+  .hero-content-col { padding: 20px 16px; }
+  .hero-content-top { flex-direction: column-reverse; }
+  .hero-patrika-logo { height: 36px; }
 }
 
 .form-card { border: none; border-radius: 12px; }
@@ -321,10 +408,6 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
   .header-logo { height: 36px; }
   .patrika-header h5 { font-size: 1rem; }
 
-  /* Hero */
-  .hero-banner .container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
-  .hero-title { font-size: 1.5rem; }
-  .hero-sub { font-size: 0.9rem; }
 
   /* Container padding */
   .container { padding-left: 12px !important; padding-right: 12px !important; }
