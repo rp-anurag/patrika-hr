@@ -1,4 +1,4 @@
-const { Candidate, Communication, Admin, Position, CandidateDetailForm, ManpowerRequisition, InterviewSheet, ActivityLog } = require('../models');
+const { Candidate, Communication, Admin, Position, Department, CandidateDetailForm, ManpowerRequisition, InterviewSheet, ActivityLog } = require('../models');
 const { sequelize } = require('../config/db');
 const { sendEmail } = require('../utils/emailService');
 const { sendWhatsApp } = require('../utils/whatsappService');
@@ -747,18 +747,48 @@ exports.gradeOne = async (req, res) => {
 
 exports.listPositions = async (req, res) => {
   try {
-    const positions = await Position.findAll({ order: [['sortOrder','ASC'],['name','ASC']] });
+    const [positions, deptRows] = await Promise.all([
+      Position.findAll({ order: [['sortOrder','ASC'],['name','ASC']] }),
+      Department.findAll({ order: [['name','ASC']] })
+    ]);
     res.render('admin/positions', {
       title:           'Manage Positions – Patrika HR',
       adminName:       req.session.adminName,
       adminRole:       req.session.adminRole,
       adminDepartment: req.session.adminDepartment,
       positions,
+      departments:     deptRows.map(d => d.name),
+      departmentObjs:  deptRows.map(d => ({ id: d.id, name: d.name })),
       v: res.locals.v
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
+  }
+};
+
+// ─── DEPARTMENT MANAGEMENT ────────────────────────────────────────────────────
+
+exports.createDepartment = async (req, res) => {
+  try {
+    const name = (req.body.name || '').trim();
+    if (!name) return res.status(400).json({ error: 'Department name is required' });
+    const [dept, created] = await Department.findOrCreate({ where: { name } });
+    if (!created) return res.status(409).json({ error: 'Department already exists' });
+    res.json({ success: true, department: { id: dept.id, name: dept.name } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteDepartment = async (req, res) => {
+  try {
+    const dept = await Department.findByPk(req.params.id);
+    if (!dept) return res.status(404).json({ error: 'Not found' });
+    await dept.destroy();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 

@@ -79,7 +79,19 @@ app.use((err, req, res, next) => {
 const PORT    = parseInt(process.env.PORT) || 4000;
 const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
 
+async function seedDepartments() {
+  const { Department } = require('./models');
+  const defaults = [
+    'Finance','HR','IT','Legal','Marketing','OOH',
+    'Print','Print Advertising','Radio','Sales & Distribution'
+  ];
+  for (const name of defaults) {
+    await Department.findOrCreate({ where: { name } });
+  }
+}
+
 connectDB().then(async () => {
+  await seedDepartments().catch(e => console.warn('Dept seed warning:', e.message));
   app.listen(PORT, '0.0.0.0', async () => {
     console.log(`\n========================================`);
     console.log(`  Patrika HR System running`);

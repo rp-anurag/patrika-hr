@@ -1,20 +1,14 @@
 'use strict';
-const { Admin, Position } = require('../models');
+const { Admin, Department } = require('../models');
 const bcrypt = require('bcryptjs');
-
-const DEPARTMENTS = [
-  'Finance', 'HR', 'IT', 'Legal', 'Marketing', 'OOH',
-  'Print', 'Print Advertising', 'Radio', 'Sales & Distribution'
-];
 
 exports.listUsers = async (req, res) => {
   try {
     const [users, deptRows] = await Promise.all([
       Admin.findAll({ order: [['createdAt', 'DESC']], attributes: { exclude: ['password'] } }),
-      Position.findAll({ attributes: ['department'], group: ['department'], order: [['department', 'ASC']] })
+      Department.findAll({ order: [['name', 'ASC']] })
     ]);
-    const deptFromPositions = deptRows.map(d => d.department).filter(Boolean);
-    const allDepts = [...new Set([...DEPARTMENTS, ...deptFromPositions])].sort();
+    const allDepts = deptRows.map(d => d.name);
     res.render('admin/users', {
       title:           'User Management – Patrika HR',
       adminName:       req.session.adminName,

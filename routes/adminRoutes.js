@@ -100,6 +100,10 @@ router.put('/positions/:id',          requireSuperAdmin, adminController.updateP
 router.post('/positions/:id/toggle',  requireSuperAdmin, adminController.togglePosition);
 router.delete('/positions/:id',       requireSuperAdmin, adminController.deletePosition);
 
+// Department Management (super-admin only)
+router.post('/departments',        requireSuperAdmin, adminController.createDepartment);
+router.delete('/departments/:id',  requireSuperAdmin, adminController.deleteDepartment);
+
 // User Management (super-admin only)
 router.get('/users',          requireSuperAdmin, userController.listUsers);
 router.post('/users',         requireSuperAdmin, userController.createUser);

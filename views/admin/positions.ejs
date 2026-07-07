@@ -102,6 +102,29 @@
 
     <div class="p-4">
 
+      <!-- Manage Departments -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <span class="fw-semibold"><i class="bi bi-diagram-3 me-2 text-gold"></i>Manage Departments</span>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="text" class="form-control form-control-sm" id="newDeptName" placeholder="New department name" style="width:220px;">
+            <button class="btn btn-gold btn-sm" onclick="addDepartment()"><i class="bi bi-plus-lg me-1"></i>Add</button>
+          </div>
+        </div>
+        <div class="card-body py-2">
+          <div class="d-flex flex-wrap gap-2" id="deptTagsContainer">
+            <% if (typeof departmentObjs !== 'undefined' && departmentObjs.length > 0) { departmentObjs.forEach(function(d) { %>
+            <span class="badge bg-warning text-dark d-flex align-items-center gap-1 px-2 py-2 dept-tag" data-name="<%= d.name %>" data-id="<%= d.id %>" style="font-size:13px;">
+              <%= d.name %>
+              <button type="button" class="btn-close btn-close-dark ms-1" style="font-size:9px;" onclick="deleteDepartmentByName('<%= d.name.replace(/'/g, '\\&#39;') %>', <%= d.id %>)" title="Remove"></button>
+            </span>
+            <% }) } else { %>
+            <span class="text-muted small">No departments yet. Add one above.</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
       <!-- Stats bar -->
       <div class="row g-3 mb-4">
         <div class="col-auto">
@@ -215,16 +238,9 @@
             <label class="form-label fw-semibold">Department</label>
             <select class="form-select" id="add-dept">
               <option value="">— Select Department —</option>
-              <option>Finance</option>
-              <option>HR</option>
-              <option>IT</option>
-              <option>Legal</option>
-              <option>Marketing</option>
-              <option>OOH</option>
-              <option>Print</option>
-              <option>Print Advertising</option>
-              <option>Radio</option>
-              <option>Sales &amp; Distribution</option>
+              <% (typeof departments !== 'undefined' ? departments : []).forEach(d => { %>
+              <option><%= d %></option>
+              <% }) %>
             </select>
           </div>
           <div class="col-md-2">
@@ -281,16 +297,9 @@
             <label class="form-label fw-semibold">Department</label>
             <select class="form-select" id="edit-dept">
               <option value="">— Select Department —</option>
-              <option>Finance</option>
-              <option>HR</option>
-              <option>IT</option>
-              <option>Legal</option>
-              <option>Marketing</option>
-              <option>OOH</option>
-              <option>Print</option>
-              <option>Print Advertising</option>
-              <option>Radio</option>
-              <option>Sales &amp; Distribution</option>
+              <% (typeof departments !== 'undefined' ? departments : []).forEach(d => { %>
+              <option><%= d %></option>
+              <% }) %>
             </select>
           </div>
           <div class="col-md-2">
@@ -495,6 +504,80 @@ document.getElementById('deleteConfirmBtn').addEventListener('click', async func
   } catch(e) { alert('Network error'); }
   this.disabled = false;
   deleteId = null;
+});
+
+// ── Department Management ────────────────────────────────────
+// Keep a client-side map of name→id so we can delete by name
+const deptMap = {};
+<%  if (typeof departments !== 'undefined') { %>
+// We'll fetch IDs from server on delete; no need to embed IDs in HTML
+<% } %>
+
+async function addDepartment() {
+  const input = document.getElementById('newDeptName');
+  const name = input.value.trim();
+  if (!name) return alert('Enter a department name');
+  try {
+    const r = await fetch('/admin/departments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    const d = await r.json();
+    if (!d.success) return alert(d.error || 'Failed to add department');
+    // Add badge to UI
+    const container = document.getElementById('deptTagsContainer');
+    container.querySelectorAll('.text-muted').forEach(el => el.remove());
+    const badge = document.createElement('span');
+    badge.className = 'badge bg-warning text-dark d-flex align-items-center gap-1 px-2 py-2 dept-tag';
+    badge.dataset.name = name;
+    badge.dataset.id   = d.department.id;
+    badge.style.fontSize = '13px';
+    badge.innerHTML = `${name} <button type="button" class="btn-close btn-close-dark ms-1" style="font-size:9px;" onclick="deleteDepartmentByName('${name.replace(/'/g,"\\'")}', ${d.department.id})" title="Remove"></button>`;
+    container.appendChild(badge);
+    // Add to both dropdowns
+    ['add-dept','edit-dept'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (sel) {
+        const opt = document.createElement('option');
+        opt.text = name; opt.value = name;
+        sel.appendChild(opt);
+      }
+    });
+    input.value = '';
+  } catch(e) { alert('Network error: ' + e.message); }
+}
+
+async function deleteDepartmentByName(name, knownId) {
+  if (!confirm(`Remove department "${name}"?\nExisting positions will keep this department but it won't appear in the dropdown.`)) return;
+  try {
+    let id = knownId;
+    if (!id) {
+      // fetch ID from server if not known
+      const r = await fetch('/admin/departments');
+      // fallback: just reload
+      location.reload(); return;
+    }
+    const r = await fetch(`/admin/departments/${id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (!d.success) return alert(d.error || 'Failed to delete');
+    // Remove badge
+    document.querySelectorAll(`.dept-tag`).forEach(el => {
+      if (el.dataset.name === name) el.remove();
+    });
+    if (!document.querySelector('.dept-tag')) {
+      document.getElementById('deptTagsContainer').innerHTML = '<span class="text-muted small">No departments yet. Add one above.</span>';
+    }
+    // Remove from dropdowns
+    ['add-dept','edit-dept'].forEach(selId => {
+      const sel = document.getElementById(selId);
+      if (sel) Array.from(sel.options).forEach(o => { if (o.value === name) sel.remove(o.index); });
+    });
+  } catch(e) { alert('Network error: ' + e.message); }
+}
+
+document.getElementById('newDeptName').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); addDepartment(); }
 });
 </script>
 </body>
