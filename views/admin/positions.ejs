@@ -424,11 +424,53 @@ function insertJdTemplate(mode) {
 }
 
 function previewJd(mode) {
-  const html = document.getElementById(mode + '-jd').value;
+  const raw = document.getElementById(mode + '-jd').value;
   const area = document.getElementById(mode + '-preview-area');
   const content = document.getElementById(mode + '-preview-content');
-  content.innerHTML = html;
-  area.style.display = html.trim() ? 'block' : 'none';
+  if (!raw.trim()) { area.style.display = 'none'; return; }
+
+  // Detect HTML vs plain text
+  const isHtml = /<[a-z][\s\S]*>/i.test(raw);
+  let rendered;
+
+  if (isHtml) {
+    rendered = raw;
+  } else {
+    // Plain text → convert to styled HTML
+    // Escape HTML entities first
+    const escaped = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    rendered = escaped
+      // **bold**
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // *italic*
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // ==highlight==
+      .replace(/==(.+?)==/g, '<mark>$1</mark>')
+      // __underline__
+      .replace(/__(.+?)__/g, '<u>$1</u>')
+      // Blank line → paragraph break
+      .replace(/\n{2,}/g, '</p><p>')
+      // Single line break → <br>
+      .replace(/\n/g, '<br>');
+
+    // Wrap in paragraph
+    rendered = '<p>' + rendered + '</p>';
+
+    // Lines starting with - or • → list items
+    rendered = rendered.replace(/<br>[-•]\s+(.+?)(?=<br>|<\/p>)/g, '<li>$1</li>');
+    rendered = rendered.replace(/(<li>.*<\/li>)/gs, '<ul class="mb-2 ps-3">$1</ul>');
+
+    // Bold lines that look like labels (e.g. "Key: value")
+    rendered = rendered.replace(/<p>([A-Za-z ]{3,30}):\s/g, '<p><strong>$1:</strong> ');
+    rendered = rendered.replace(/<br>([A-Za-z ]{3,30}):\s/g, '<br><strong>$1:</strong> ');
+  }
+
+  content.innerHTML = rendered;
+  area.style.display = 'block';
 }
 
 // â”€â”€ Toggle active â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
