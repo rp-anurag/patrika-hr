@@ -352,6 +352,23 @@
 
 
 
+  function formatJd(raw) {
+    if (!raw || !raw.trim()) return '';
+    if (/<[a-z][\s\S]*>/i.test(raw)) return raw; // already HTML
+    // Plain text: convert to readable HTML
+    const esc = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let html = esc
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/==(.+?)==/g, '<mark>$1</mark>')
+      .replace(/\n{2,}/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+    html = '<p>' + html + '</p>';
+    // Auto-bold label lines e.g. "Experience Required: "
+    html = html.replace(/(<p>|<br>)([A-Za-z][A-Za-z &]{2,35}):\s/g, '$1<strong>$2:</strong> ');
+    return html;
+  }
+
   // Show / hide JD panel when a position radio is selected
   document.querySelectorAll('input[name="positionApplying"]').forEach(radio => {
     radio.addEventListener('change', function () {
@@ -363,7 +380,7 @@
       if (jd) {
         title.textContent   = this.value;
         badge.textContent   = jd.badge;
-        content.innerHTML   = jd.html;
+        content.innerHTML   = formatJd(jd.html);
         panel.classList.remove('d-none');
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
