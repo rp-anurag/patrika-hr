@@ -257,12 +257,37 @@
             <input type="text" class="form-control" id="add-badge" placeholder="e.g. Jaipur Â· Full-Time Â· 5+ Yrs">
           </div>
           <div class="col-12">
-            <label class="form-label fw-semibold">Job Description (HTML)</label>
-            <div class="d-flex gap-2 mb-1">
-              <button class="btn btn-sm btn-outline-secondary" onclick="insertJdTemplate('add')">Insert Template</button>
-              <button class="btn btn-sm btn-outline-secondary" onclick="previewJd('add')">Preview</button>
+            <label class="form-label fw-semibold">Job Description</label>
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-2" id="add-jd-tabs">
+              <li class="nav-item">
+                <button class="nav-link active px-3 py-1" onclick="switchJdTab('add','paste',this)" type="button"><i class="bi bi-pencil-square me-1"></i>Type / Paste</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link px-3 py-1" onclick="switchJdTab('add','upload',this)" type="button"><i class="bi bi-upload me-1"></i>Upload File</button>
+              </li>
+              <li class="nav-item ms-auto d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary py-0" onclick="insertJdTemplate('add')" type="button">Insert Template</button>
+                <button class="btn btn-sm btn-outline-secondary py-0" onclick="previewJd('add')" type="button">Preview</button>
+              </li>
+            </ul>
+            <!-- Paste tab -->
+            <div id="add-jd-paste-tab">
+              <textarea class="form-control" id="add-jd" rows="12" style="font-family:monospace;font-size:12px;" placeholder="Type or paste your job description here (plain text or HTML)..."></textarea>
             </div>
-            <textarea class="form-control" id="add-jd" rows="12" style="font-family:monospace;font-size:12px;" placeholder="Paste HTML job description here..."></textarea>
+            <!-- Upload tab -->
+            <div id="add-jd-upload-tab" style="display:none;">
+              <div class="border rounded p-4 text-center bg-light" id="add-jd-dropzone" ondragover="event.preventDefault()" ondrop="handleJdDrop(event,'add')">
+                <i class="bi bi-file-earmark-arrow-up fs-2 text-gold d-block mb-2"></i>
+                <p class="mb-2 text-muted">Drag &amp; drop a file here, or click to browse</p>
+                <input type="file" id="add-jd-file" accept=".txt,.html,.htm" class="d-none" onchange="handleJdFile(this,'add')">
+                <button type="button" class="btn btn-outline-gold btn-sm" onclick="document.getElementById('add-jd-file').click()">
+                  <i class="bi bi-folder2-open me-1"></i>Browse File
+                </button>
+                <p class="mt-2 mb-0 text-muted" style="font-size:11px;">Supported: .txt, .html</p>
+              </div>
+              <div id="add-jd-file-info" class="mt-2 small text-success" style="display:none;"></div>
+            </div>
           </div>
           <div class="col-12" id="add-preview-area" style="display:none;">
             <label class="form-label fw-semibold text-muted">Preview</label>
@@ -316,12 +341,34 @@
             <input type="text" class="form-control" id="edit-badge">
           </div>
           <div class="col-12">
-            <label class="form-label fw-semibold">Job Description (HTML)</label>
-            <div class="d-flex gap-2 mb-1">
-              <button class="btn btn-sm btn-outline-secondary" onclick="insertJdTemplate('edit')">Insert Template</button>
-              <button class="btn btn-sm btn-outline-secondary" onclick="previewJd('edit')">Preview</button>
+            <label class="form-label fw-semibold">Job Description</label>
+            <ul class="nav nav-tabs mb-2" id="edit-jd-tabs">
+              <li class="nav-item">
+                <button class="nav-link active px-3 py-1" onclick="switchJdTab('edit','paste',this)" type="button"><i class="bi bi-pencil-square me-1"></i>Type / Paste</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link px-3 py-1" onclick="switchJdTab('edit','upload',this)" type="button"><i class="bi bi-upload me-1"></i>Upload File</button>
+              </li>
+              <li class="nav-item ms-auto d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary py-0" onclick="insertJdTemplate('edit')" type="button">Insert Template</button>
+                <button class="btn btn-sm btn-outline-secondary py-0" onclick="previewJd('edit')" type="button">Preview</button>
+              </li>
+            </ul>
+            <div id="edit-jd-paste-tab">
+              <textarea class="form-control" id="edit-jd" rows="14" style="font-family:monospace;font-size:12px;" placeholder="Type or paste your job description here (plain text or HTML)..."></textarea>
             </div>
-            <textarea class="form-control" id="edit-jd" rows="14" style="font-family:monospace;font-size:12px;"></textarea>
+            <div id="edit-jd-upload-tab" style="display:none;">
+              <div class="border rounded p-4 text-center bg-light" id="edit-jd-dropzone" ondragover="event.preventDefault()" ondrop="handleJdDrop(event,'edit')">
+                <i class="bi bi-file-earmark-arrow-up fs-2 text-gold d-block mb-2"></i>
+                <p class="mb-2 text-muted">Drag &amp; drop a file here, or click to browse</p>
+                <input type="file" id="edit-jd-file" accept=".txt,.html,.htm" class="d-none" onchange="handleJdFile(this,'edit')">
+                <button type="button" class="btn btn-outline-gold btn-sm" onclick="document.getElementById('edit-jd-file').click()">
+                  <i class="bi bi-folder2-open me-1"></i>Browse File
+                </button>
+                <p class="mt-2 mb-0 text-muted" style="font-size:11px;">Supported: .txt, .html</p>
+              </div>
+              <div id="edit-jd-file-info" class="mt-2 small text-success" style="display:none;"></div>
+            </div>
           </div>
           <div class="col-12" id="edit-preview-area" style="display:none;">
             <label class="form-label fw-semibold text-muted">Preview</label>
@@ -422,6 +469,7 @@ document.querySelectorAll('.edit-btn').forEach(btn => {
     document.getElementById('edit-sort').value  = this.dataset.sort;
     document.getElementById('edit-jd').value    = decodeURIComponent(this.dataset.jd);
     document.getElementById('edit-preview-area').style.display = 'none';
+    switchJdTab('edit','paste', document.querySelector('#edit-jd-tabs .nav-link'));
     new bootstrap.Modal(document.getElementById('editModal')).show();
   });
 });
@@ -505,6 +553,38 @@ document.getElementById('deleteConfirmBtn').addEventListener('click', async func
   this.disabled = false;
   deleteId = null;
 });
+
+// ── JD File Upload ───────────────────────────────────────────
+function switchJdTab(mode, tab, btn) {
+  document.getElementById(mode + '-jd-paste-tab').style.display  = tab === 'paste'  ? '' : 'none';
+  document.getElementById(mode + '-jd-upload-tab').style.display = tab === 'upload' ? '' : 'none';
+  document.querySelectorAll('#' + mode + '-jd-tabs .nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function handleJdFile(input, mode) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    document.getElementById(mode + '-jd').value = content;
+    const info = document.getElementById(mode + '-jd-file-info');
+    info.textContent = `✓ Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    info.style.display = '';
+    // Switch to paste tab so user can see/edit the loaded content
+    switchJdTab(mode, 'paste', document.querySelector('#' + mode + '-jd-tabs .nav-link'));
+  };
+  reader.readAsText(file);
+}
+
+function handleJdDrop(event, mode) {
+  event.preventDefault();
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  const fakeInput = { files: [file] };
+  handleJdFile(fakeInput, mode);
+}
 
 // ── Department Management ────────────────────────────────────
 // Keep a client-side map of name→id so we can delete by name
