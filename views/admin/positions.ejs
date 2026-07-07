@@ -176,11 +176,11 @@
                       </div>
                     </div>
                   </td>
-                  <td><span class="badge bg-light text-dark border badge-pill"><%= pos.department || 'â€”' %></span></td>
-                  <td><small class="text-muted"><%= pos.badge || 'â€”' %></small></td>
+                  <td><span class=”badge bg-light text-dark border badge-pill”><%= pos.department || '—' %></span></td>
+                  <td><small class=”text-muted”><%= pos.badge || '—' %></small></td>
                   <td>
                     <% if (pos.jdHtml && pos.jdHtml.trim()) { %>
-                      <div class="jd-preview"><%- pos.jdHtml.replace(/<[^>]+>/g,'').substring(0,120) %>â€¦</div>
+                      <div class="jd-preview"><%- pos.jdHtml.replace(/<[^>]+>/g,'').substring(0,120) %>…</div>
                     <% } else { %>
                       <span class="text-danger small"><i class="bi bi-exclamation-circle me-1"></i>No JD</span>
                     <% } %>
@@ -254,7 +254,7 @@
           </div>
           <div class="col-12">
             <label class="form-label fw-semibold">Badge Text</label>
-            <input type="text" class="form-control" id="add-badge" placeholder="e.g. Jaipur Â· Full-Time Â· 5+ Yrs">
+            <input type="text" class="form-control" id="add-badge" placeholder="e.g. Jaipur · Full-Time · 5+ Yrs">
           </div>
           <div class="col-12">
             <label class="form-label fw-semibold">Job Description</label>
