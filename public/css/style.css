@@ -71,47 +71,13 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 /* Left chairs column */
 .hero-chairs-col {
   flex: 0 0 32%;
-  background: #f0ece6;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.hero-chairs-art {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 24px 20px;
-  transform: perspective(600px) rotateY(6deg);
-}
-.chair-row {
-  display: flex;
-  gap: 10px;
-}
-.chair {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-.chair-back {
-  width: 38px;
-  height: 38px;
-  background: #fff;
-  border-radius: 6px 6px 2px 2px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-}
-.chair-seat {
-  width: 42px;
-  height: 14px;
-  background: #fff;
-  border-radius: 3px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.chair-red .chair-back,
-.chair-red .chair-seat {
-  background: #cc1010;
-  box-shadow: 0 3px 10px rgba(204,16,16,0.4);
+.hero-chairs-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* Right content column */

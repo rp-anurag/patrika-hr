@@ -33,22 +33,9 @@
   <!-- Hero Banner -->
   <section class="hero-banner">
     <div class="hero-two-col">
-      <!-- Left: Chairs visual -->
+      <!-- Left: Chairs photo -->
       <div class="hero-chairs-col">
-        <% if (true) { %>
-        <div class="hero-chairs-art">
-          <% for (let r = 0; r < 6; r++) { %>
-          <div class="chair-row">
-            <% for (let c = 0; c < 4; c++) { %>
-            <div class="chair <%= (r===2 && c===1) ? 'chair-red' : '' %>">
-              <div class="chair-back"></div>
-              <div class="chair-seat"></div>
-            </div>
-            <% } %>
-          </div>
-          <% } %>
-        </div>
-        <% } %>
+        <img src="/images/hero-chairs.jpg" alt="" class="hero-chairs-img">
       </div>
       <!-- Right: Content -->
       <div class="hero-content-col">
