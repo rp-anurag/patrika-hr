@@ -281,10 +281,10 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-semibold">Position Applying <span class="text-danger">*</span></label>
-                <select class="form-select" id="s-position">
+                <select class="form-select" id="s-position" required>
                   <option value="">-- Select Position --</option>
-                  <% ['FMCG Jaipur','FMCG Rajasthan','FMCG MPCG','Chief Digital Officer','Business Analyst','CTO','Raj Head- Radio','Jaipur Head- Radio','Delhi Head- Print','OOH Delhi','OOH Mumbai','Dy. Raj Head-Print'].forEach(p => { %>
-                  <option value="<%= p %>"><%= p %></option>
+                  <% positions.forEach(p => { %>
+                  <option value="<%= p.name %>"><%= p.name %> <% if(p.department) { %>(<%= p.department %>)<% } %></option>
                   <% }) %>
                 </select>
               </div>

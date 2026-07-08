@@ -508,12 +508,17 @@ exports.deleteCandidate = async (req, res) => {
 
 // ─── OFFLINE RESUME PARSER PAGE ──────────────────────────────────────────────
 
-exports.showResumeParser = (req, res) => {
+exports.showResumeParser = async (req, res) => {
+  const positions = await Position.findAll({
+    where: { isActive: true },
+    order: [['sortOrder','ASC'],['name','ASC']]
+  });
   res.render('admin/resume-parser', {
     title:           'Resume Parser – Patrika HR',
     adminName:       req.session.adminName,
     adminRole:       req.session.adminRole,
-    adminDepartment: req.session.adminDepartment
+    adminDepartment: req.session.adminDepartment,
+    positions
   });
 };
 
