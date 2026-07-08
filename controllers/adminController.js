@@ -219,7 +219,7 @@ exports.candidatesList = async (req, res) => {
 
 exports.candidateDetail = async (req, res) => {
   try {
-    const [candidate, detailForm] = await Promise.all([
+    const [candidate, detailForm, positionRows] = await Promise.all([
       Candidate.findByPk(req.params.id, {
         include: [{
           model: Communication,
@@ -227,7 +227,8 @@ exports.candidateDetail = async (req, res) => {
           order: [['sentAt', 'DESC']]
         }]
       }),
-      CandidateDetailForm.findOne({ where: { candidateId: req.params.id }, order: [['createdAt','DESC']] })
+      CandidateDetailForm.findOne({ where: { candidateId: req.params.id }, order: [['createdAt','DESC']] }),
+      Position.findAll({ where: { isActive: true }, order: [['sortOrder','ASC'],['name','ASC']] })
     ]);
     if (!candidate) return res.status(404).send('Candidate not found');
 
@@ -235,6 +236,7 @@ exports.candidateDetail = async (req, res) => {
       title:           `${candidate.fullName} – Patrika HR`,
       candidate,
       detailForm:      detailForm || null,
+      positions:       positionRows,
       adminName:       req.session.adminName,
       adminRole:       req.session.adminRole,
       adminDepartment: req.session.adminDepartment,
@@ -251,7 +253,7 @@ exports.candidateDetail = async (req, res) => {
 
 exports.updateCandidate = async (req, res) => {
   try {
-    const { status, adminNotes } = req.body;
+    const { status, adminNotes, positionApplying } = req.body;
     const candidateId = req.params.id;
 
     // Fetch current values before overwriting
@@ -259,8 +261,11 @@ exports.updateCandidate = async (req, res) => {
     const oldStatus = current ? current.status : null;
     const oldNotes  = current ? (current.adminNotes || '') : '';
 
+    const updateFields = { status, adminNotes, updatedAt: new Date() };
+    if (positionApplying !== undefined) updateFields.positionApplying = positionApplying;
+
     await Candidate.update(
-      { status, adminNotes, updatedAt: new Date() },
+      updateFields,
       { where: { id: candidateId } }
     );
 
@@ -289,8 +294,14 @@ exports.updateCandidate = async (req, res) => {
       }).catch(e => console.error('ActivityLog note error:', e.message));
     }
 
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+      return res.json({ success: true });
+    }
     res.redirect(`/admin/candidate/${candidateId}?flash=Updated+successfully`);
   } catch (err) {
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
     res.redirect(`/admin/candidate/${req.params.id}?flash=Update+failed&flashType=danger`);
   }
 };

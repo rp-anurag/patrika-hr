@@ -165,7 +165,23 @@
                 <% } %>
                 <div class="col-sm-6">
                   <label class="detail-label">Position Applied</label>
-                  <div class="detail-value"><span class="badge bg-dark fs-6"><%= candidate.positionApplying %></span></div>
+                  <div class="detail-value d-flex align-items-center gap-2 flex-wrap">
+                    <% if (candidate.positionApplying) { %>
+                    <span class="badge bg-dark fs-6" id="positionBadge"><%= candidate.positionApplying %></span>
+                    <% } else { %>
+                    <span class="text-muted" id="positionBadge">Not set</span>
+                    <% } %>
+                    <select id="positionEditSelect" class="form-select form-select-sm d-none" style="max-width:220px;">
+                      <option value="">-- Select Position --</option>
+                      <% positions.forEach(p => { %>
+                      <option value="<%= p.name %>" <%= candidate.positionApplying === p.name ? 'selected' : '' %>><%= p.name %></option>
+                      <% }) %>
+                    </select>
+                    <button class="btn btn-xs btn-outline-secondary" id="positionEditBtn" onclick="togglePositionEdit()" type="button">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-xs btn-gold d-none" id="positionSaveBtn" onclick="savePosition()" type="button">Save</button>
+                  </div>
                 </div>
                 <div class="col-sm-6">
                   <label class="detail-label">Notice Period</label>
@@ -855,6 +871,43 @@
       if (modal) modal.hide();
     }, 500);
   }
+
+function togglePositionEdit() {
+  const badge  = document.getElementById('positionBadge');
+  const select = document.getElementById('positionEditSelect');
+  const saveBtn = document.getElementById('positionSaveBtn');
+  const editBtn = document.getElementById('positionEditBtn');
+  const editing = select.classList.contains('d-none');
+  badge.classList.toggle('d-none', editing);
+  select.classList.toggle('d-none', !editing);
+  saveBtn.classList.toggle('d-none', !editing);
+  editBtn.innerHTML = editing ? '<i class="bi bi-x"></i>' : '<i class="bi bi-pencil"></i>';
+}
+
+async function savePosition() {
+  const pos = document.getElementById('positionEditSelect').value;
+  const btn = document.getElementById('positionSaveBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/admin/candidate/<%= candidate.id %>/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: '<%= candidate.status %>',
+        adminNotes: document.getElementById('adminNotes') ? document.getElementById('adminNotes').value : '<%= (candidate.adminNotes||"").replace(/'/g, "\\'") %>',
+        positionApplying: pos
+      })
+    });
+    const d = await r.json();
+    if (d.success || r.ok) {
+      const badge = document.getElementById('positionBadge');
+      badge.textContent = pos || 'Not set';
+      badge.className = pos ? 'badge bg-dark fs-6' : 'text-muted';
+      togglePositionEdit();
+    } else { alert('Failed to save'); }
+  } catch(e) { alert('Network error'); }
+  btn.disabled = false;
+}
 </script>
 </body>
 </html>
