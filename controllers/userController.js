@@ -26,13 +26,14 @@ exports.listUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { username, password, name, role, department } = req.body;
+    const { username, password, name, role, departments } = req.body;
     if (!username || !password || !name) return res.status(400).json({ error: 'username, password, name are required' });
     if (!['admin', 'user'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
-    if (role === 'user' && !department) return res.status(400).json({ error: 'Department is required for user role' });
+    const deptArr = Array.isArray(departments) ? departments.filter(Boolean) : (departments ? [departments] : []);
+    if (role === 'user' && deptArr.length === 0) return res.status(400).json({ error: 'At least one department is required for user role' });
     const existing = await Admin.findOne({ where: { username } });
     if (existing) return res.status(409).json({ error: 'Username already exists' });
-    const user = await Admin.create({ username, password, name, role, department: role === 'user' ? department : null });
+    const user = await Admin.create({ username, password, name, role, department: role === 'user' ? deptArr : [] });
     res.json({ success: true, user: { id: user.id, username: user.username, name: user.name, role: user.role, department: user.department } });
   } catch (err) {
     console.error('createUser error:', err);
@@ -44,9 +45,10 @@ exports.updateUser = async (req, res) => {
   try {
     const user = await Admin.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    const { name, password, role, department } = req.body;
+    const { name, password, role, departments } = req.body;
     const updates = { name: name || user.name, role: role || user.role };
-    updates.department = (updates.role === 'user') ? (department || user.department) : null;
+    const deptArr = Array.isArray(departments) ? departments.filter(Boolean) : (departments ? [departments] : []);
+    updates.department = (updates.role === 'user') ? deptArr : [];
     if (password && password.trim()) updates.password = password.trim();
     await user.update(updates);
     res.json({ success: true });

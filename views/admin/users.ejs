@@ -87,15 +87,22 @@
     <div class="p-4">
 
       <%
-        const admins   = users.filter(u => u.role === 'admin');
+        const admins    = users.filter(u => u.role === 'admin');
         const deptUsers = users.filter(u => u.role === 'user');
 
-        // group by department
+        // department getter returns array; group by each dept the user belongs to
         const byDept = {};
         deptUsers.forEach(u => {
-          const d = u.department || 'Unassigned';
-          if (!byDept[d]) byDept[d] = [];
-          byDept[d].push(u);
+          const dArr = Array.isArray(u.department) ? u.department : (u.department ? [u.department] : []);
+          if (dArr.length === 0) {
+            if (!byDept['Unassigned']) byDept['Unassigned'] = [];
+            byDept['Unassigned'].push(u);
+          } else {
+            dArr.forEach(d => {
+              if (!byDept[d]) byDept[d] = [];
+              byDept[d].push(u);
+            });
+          }
         });
 
         // departments that have no users yet
@@ -135,7 +142,7 @@
         <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
         <div class="small">
           <strong>Admin</strong> — Full access to all candidates, positions, and settings across all departments.<br>
-          <strong>User</strong> — Restricted to one department. Can view/manage candidates only for their department's positions.
+          <strong>User</strong> — Restricted to selected departments. Can view/manage candidates only for their assigned departments' positions.
         </div>
       </div>
 
@@ -166,7 +173,7 @@
                 <td class="text-end pe-3">
                   <button class="btn btn-sm btn-outline-gold me-1 edit-user-btn"
                     data-id="<%= u.id %>" data-name="<%= u.name %>"
-                    data-role="admin" data-dept="" title="Edit">
+                    data-role="admin" data-depts="[]" title="Edit">
                     <i class="bi bi-pencil"></i>
                   </button>
                   <button class="btn btn-sm btn-outline-danger delete-user-btn"
@@ -200,18 +207,24 @@
         <div class="card-body p-0">
           <table class="table table-hover mb-0">
             <thead class="table-light"><tr>
-              <th class="ps-4">Name</th><th>Username</th><th>Created</th><th class="text-end pe-4">Actions</th>
+              <th class="ps-4">Name</th><th>Username</th><th>Departments</th><th>Created</th><th class="text-end pe-4">Actions</th>
             </tr></thead>
             <tbody>
               <% dUsers.forEach(u => { %>
+              <% const uDepts = Array.isArray(u.department) ? u.department : (u.department ? [u.department] : []); %>
               <tr class="user-row">
                 <td class="ps-4 fw-semibold"><i class="bi bi-person-fill text-primary me-2"></i><%= u.name %></td>
                 <td><code><%= u.username %></code></td>
+                <td>
+                  <% uDepts.forEach(d => { %>
+                  <span class="badge bg-warning text-dark me-1"><%= d %></span>
+                  <% }) %>
+                </td>
                 <td class="text-muted small"><%= u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN') : '—' %></td>
                 <td class="text-end pe-3">
                   <button class="btn btn-sm btn-outline-gold me-1 edit-user-btn"
                     data-id="<%= u.id %>" data-name="<%= u.name %>"
-                    data-role="user" data-dept="<%= u.department || '' %>" title="Edit">
+                    data-role="user" data-depts='<%- JSON.stringify(uDepts) %>' title="Edit">
                     <i class="bi bi-pencil"></i>
                   </button>
                   <button class="btn btn-sm btn-outline-danger delete-user-btn"
@@ -283,13 +296,15 @@
           </select>
         </div>
         <div class="mb-3" id="dept-wrapper">
-          <label class="form-label fw-semibold">Department *</label>
-          <select class="form-select" id="modal-dept">
-            <option value="">— Select Department —</option>
+          <label class="form-label fw-semibold">Departments * <small class="text-muted fw-normal">(select one or more)</small></label>
+          <div class="border rounded p-2" style="max-height:200px;overflow-y:auto;" id="dept-checkboxes">
             <% allDepts.forEach(d => { %>
-            <option value="<%= d %>"><%= d %></option>
+            <div class="form-check">
+              <input class="form-check-input dept-cb" type="checkbox" value="<%= d %>" id="cb_<%= d.replace(/\s+/g,'_') %>">
+              <label class="form-check-label" for="cb_<%= d.replace(/\s+/g,'_') %>"><%= d %></label>
+            </div>
             <% }) %>
-          </select>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -310,6 +325,16 @@ function toggleDept() {
   document.getElementById('dept-wrapper').style.display = role === 'user' ? '' : 'none';
 }
 
+function setCheckedDepts(depts) {
+  document.querySelectorAll('.dept-cb').forEach(cb => {
+    cb.checked = depts.includes(cb.value);
+  });
+}
+
+function getCheckedDepts() {
+  return [...document.querySelectorAll('.dept-cb:checked')].map(cb => cb.value);
+}
+
 function openAddModal(dept, role) {
   modalMode = 'add';
   document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-plus me-2 text-gold"></i>Add New User';
@@ -318,7 +343,7 @@ function openAddModal(dept, role) {
   document.getElementById('modal-username').value = '';
   document.getElementById('modal-password').value = '';
   document.getElementById('modal-role').value     = role || 'user';
-  document.getElementById('modal-dept').value     = dept || '';
+  setCheckedDepts(dept ? [dept] : []);
   document.getElementById('username-wrapper').style.display = '';
   document.getElementById('password-label').textContent     = 'Password *';
   document.getElementById('password-hint').style.display    = 'none';
@@ -336,7 +361,8 @@ document.querySelectorAll('.edit-user-btn').forEach(btn => {
     document.getElementById('modal-username').value = '';
     document.getElementById('modal-password').value = '';
     document.getElementById('modal-role').value     = this.dataset.role;
-    document.getElementById('modal-dept').value     = this.dataset.dept;
+    const depts = JSON.parse(this.dataset.depts || '[]');
+    setCheckedDepts(depts);
     document.getElementById('username-wrapper').style.display = 'none';
     document.getElementById('password-label').textContent     = 'New Password';
     document.getElementById('password-hint').style.display    = '';
@@ -347,23 +373,23 @@ document.querySelectorAll('.edit-user-btn').forEach(btn => {
 
 // Save
 document.getElementById('saveUserBtn').addEventListener('click', async function() {
-  const name     = document.getElementById('modal-name').value.trim();
-  const username = document.getElementById('modal-username').value.trim();
-  const password = document.getElementById('modal-password').value.trim();
-  const role     = document.getElementById('modal-role').value;
-  const dept     = document.getElementById('modal-dept').value;
-  const id       = document.getElementById('modal-id').value;
+  const name       = document.getElementById('modal-name').value.trim();
+  const username   = document.getElementById('modal-username').value.trim();
+  const password   = document.getElementById('modal-password').value.trim();
+  const role       = document.getElementById('modal-role').value;
+  const departments = getCheckedDepts();
+  const id         = document.getElementById('modal-id').value;
 
   if (!name) return alert('Name is required');
   if (modalMode === 'add' && (!username || !password)) return alert('Username and password are required');
-  if (role === 'user' && !dept) return alert('Please select a department for this user');
+  if (role === 'user' && departments.length === 0) return alert('Please select at least one department');
 
   this.disabled = true;
   try {
     let url = '/admin/users', method = 'POST';
     if (modalMode === 'edit') { url = `/admin/users/${id}`; method = 'PUT'; }
 
-    const body = { name, role, department: role === 'user' ? dept : null };
+    const body = { name, role, departments: role === 'user' ? departments : [] };
     if (modalMode === 'add') { body.username = username; body.password = password; }
     if (modalMode === 'edit' && password) body.password = password;
 

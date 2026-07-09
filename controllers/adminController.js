@@ -39,10 +39,12 @@ exports.processLogin = async (req, res) => {
         error: 'Invalid username or password'
       });
     }
-    req.session.adminId         = admin.id;
-    req.session.adminName       = admin.name;
-    req.session.adminRole       = admin.role || 'admin';
-    req.session.adminDepartment = admin.department || null;
+    req.session.adminId          = admin.id;
+    req.session.adminName        = admin.name;
+    req.session.adminRole        = admin.role || 'admin';
+    const depts = admin.department; // getter returns array
+    req.session.adminDepartments = Array.isArray(depts) ? depts : [];
+    req.session.adminDepartment  = req.session.adminDepartments[0] || null;
     const returnTo = req.session.returnTo || '/admin/dashboard';
     delete req.session.returnTo;
     res.redirect(returnTo);
@@ -61,13 +63,15 @@ exports.logout = (req, res) => {
 exports.dashboard = async (req, res) => {
   try {
     const isSuperAdmin = req.session.adminRole === 'admin';
-    const dept = req.session.adminDepartment;
-    const deptFilter = !isSuperAdmin && dept ? `AND p.department = ${sequelize.escape(dept)}` : '';
-    const candFilter = !isSuperAdmin && dept
-      ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`
+    const depts = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
+    const hasFilter = !isSuperAdmin && depts.length > 0;
+    const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
+    const deptFilter = hasFilter ? `AND p.department IN (${deptsEsc})` : '';
+    const candFilter = hasFilter
+      ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
       : '';
-    const candFilterStatus = !isSuperAdmin && dept
-      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`
+    const candFilterStatus = hasFilter
+      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
       : '';
 
     const [statusRows, positionRows, todayRows, recentCandidates, recentActivity, totalRow] = await Promise.all([
@@ -84,7 +88,7 @@ exports.dashboard = async (req, res) => {
         { type: sequelize.QueryTypes.SELECT }
       ),
       Candidate.findAll({
-        where: !isSuperAdmin && dept ? { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`) } } : {},
+        where: hasFilter ? { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } } : {},
         order: [['submittedAt', 'DESC']],
         limit: 8,
         attributes: ['id', 'fullName', 'email', 'positionApplying', 'grade', 'status', 'submittedAt']
@@ -96,8 +100,8 @@ exports.dashboard = async (req, res) => {
           model: Candidate,
           as: 'candidate',
           attributes: ['fullName', 'id'],
-          ...(!isSuperAdmin && dept ? {
-            where: { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`) } },
+          ...(hasFilter ? {
+            where: { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } },
             required: true
           } : { required: false })
         }]
@@ -141,7 +145,9 @@ exports.candidatesList = async (req, res) => {
     const offset = (parseInt(page) - 1) * limit;
 
     const isSuperAdmin = req.session.adminRole === 'admin';
-    const dept = req.session.adminDepartment;
+    const depts = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
+    const hasFilter = !isSuperAdmin && depts.length > 0;
+    const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
 
     // Build where clause
     const where = {};
@@ -161,9 +167,9 @@ exports.candidatesList = async (req, res) => {
       if (dateTo)   where.submittedAt[Op.lte] = new Date(dateTo + 'T23:59:59');
     }
     // Department restriction for non-super-admin users
-    if (!isSuperAdmin && dept) {
-      where.positionApplying = { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`) };
-      if (position) where.positionApplying = position; // allow further filter within dept
+    if (hasFilter) {
+      where.positionApplying = { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) };
+      if (position) where.positionApplying = position;
     }
 
     // Validate sort column to prevent SQL injection
@@ -171,8 +177,8 @@ exports.candidatesList = async (req, res) => {
     const safeSort  = SAFE_SORT_COLS.includes(sort) ? sort : 'submittedAt';
     const safeOrder = order === 'asc' ? 'ASC' : 'DESC';
 
-    const deptStatusFilter = !isSuperAdmin && dept
-      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department = ${sequelize.escape(dept)})`
+    const deptStatusFilter = hasFilter
+      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
       : '';
 
     const [{ rows: candidates, count: total }, statusRows, allPositions] = await Promise.all([
@@ -188,7 +194,7 @@ exports.candidatesList = async (req, res) => {
         { type: sequelize.QueryTypes.SELECT }
       ),
       Position.findAll({
-        where: !isSuperAdmin && dept ? { department: dept } : {},
+        where: hasFilter ? { department: { [Op.in]: depts } } : {},
         order: [['sortOrder','ASC'],['name','ASC']]
       })
     ]);
