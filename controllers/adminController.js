@@ -197,7 +197,7 @@ exports.candidatesList = async (req, res) => {
     statusRows.forEach(r => { statusCounts[r.status] = parseInt(r.count); });
 
     res.render('admin/candidates', {
-      title:           req.newsTechTab ? 'News-Tech Lab Trainee – Patrika HR' : 'Candidates – Patrika HR',
+      title:           'Candidates – Patrika HR',
       candidates,
       total,
       page:            parseInt(page),
@@ -207,22 +207,12 @@ exports.candidatesList = async (req, res) => {
       adminName:       req.session.adminName,
       adminRole:       req.session.adminRole,
       adminDepartment: req.session.adminDepartment,
-      allPositions,
-      newsTechTab:     req.newsTechTab || false
+      allPositions
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error: ' + err.message);
   }
-};
-
-// ─── NEWS-TECH LAB TAB ────────────────────────────────────────────────────────
-const NEWSTECH_POSITION = 'News-Tech Lab Trainee (Print Journalism)';
-
-exports.newsTechCandidates = (req, res, next) => {
-  if (!req.query.position) req.query.position = NEWSTECH_POSITION;
-  req.newsTechTab = true;
-  return exports.candidatesList(req, res, next);
 };
 
 // ─── CANDIDATE DETAIL ─────────────────────────────────────────────────────────

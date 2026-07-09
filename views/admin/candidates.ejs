@@ -30,13 +30,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link sidebar-link <%= (typeof newsTechTab === 'undefined' || !newsTechTab) ? 'active' : '' %>" href="/admin/candidates">
+          <a class="nav-link sidebar-link active" href="/admin/candidates">
             <i class="bi bi-people-fill me-2"></i>Candidates
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link sidebar-link <%= (typeof newsTechTab !== 'undefined' && newsTechTab) ? 'active' : '' %>" href="/admin/newstech" style="padding-left:2rem;font-size:.85rem;">
-            <i class="bi bi-newspaper me-2"></i>News-Tech Lab
           </a>
         </li>
         <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
@@ -81,11 +76,7 @@
       <!-- Top Bar -->
       <div class="admin-topbar d-flex align-items-center justify-content-between">
         <h5 class="mb-0 fw-bold">
-          <% if (typeof newsTechTab !== 'undefined' && newsTechTab) { %>
-          <i class="bi bi-newspaper me-2 text-gold"></i>News-Tech Lab Trainee (Print Journalism)
-          <% } else { %>
           <i class="bi bi-people-fill me-2 text-gold"></i>Candidates
-          <% } %>
           <span class="badge bg-secondary ms-2" style="font-size:.75rem;"><%= total %></span>
         </h5>
         <div class="d-flex gap-2">

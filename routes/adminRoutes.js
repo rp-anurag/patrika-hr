@@ -45,7 +45,6 @@ router.get('/logout', adminController.logout);
 // Dashboard
 router.get('/dashboard', requireAdmin, adminController.dashboard);
 router.get('/candidates', requireAdmin, adminController.candidatesList);
-router.get('/newstech',   requireAdmin, adminController.newsTechCandidates);
 router.get('/', requireAdmin, (req, res) => res.redirect('/admin/dashboard'));
 
 // Candidate CRUD
