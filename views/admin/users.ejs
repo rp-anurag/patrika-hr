@@ -89,24 +89,6 @@
       <%
         const admins    = users.filter(u => u.role === 'admin');
         const deptUsers = users.filter(u => u.role === 'user');
-
-        // department getter returns array; group by each dept the user belongs to
-        const byDept = {};
-        deptUsers.forEach(u => {
-          const dArr = Array.isArray(u.department) ? u.department : (u.department ? [u.department] : []);
-          if (dArr.length === 0) {
-            if (!byDept['Unassigned']) byDept['Unassigned'] = [];
-            byDept['Unassigned'].push(u);
-          } else {
-            dArr.forEach(d => {
-              if (!byDept[d]) byDept[d] = [];
-              byDept[d].push(u);
-            });
-          }
-        });
-
-        // departments that have no users yet
-        const emptyDepts = allDepts.filter(d => !byDept[d]);
       %>
 
       <!-- Stats row -->
@@ -191,34 +173,49 @@
         </div>
       </div>
 
-      <!-- ── Department sections ────────────────────────────────────────── -->
-      <% Object.entries(byDept).forEach(([dept, dUsers]) => { %>
-      <div class="card shadow-sm dept-card mb-3">
+      <!-- ── Dept Users flat table ─────────────────────────────────────── -->
+      <div class="card shadow-sm dept-card">
         <div class="dept-header d-flex align-items-center justify-content-between px-4 py-3">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-diagram-3-fill text-gold fs-5"></i>
-            <span class="fw-bold"><%= dept %></span>
-            <span class="badge bg-warning text-dark rounded-pill"><%= dUsers.length %> user<%= dUsers.length !== 1 ? 's' : '' %></span>
+            <i class="bi bi-people-fill text-gold fs-5"></i>
+            <span class="fw-bold">Department Users</span>
+            <span class="badge bg-warning text-dark rounded-pill"><%= deptUsers.length %></span>
           </div>
-          <button class="btn btn-sm btn-outline-gold" onclick="openAddModal('<%= dept %>')">
-            <i class="bi bi-person-plus me-1"></i>Add to <%= dept %>
-          </button>
+          <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="deptFilter" style="width:200px;" onchange="filterByDept()">
+              <option value="">All Departments</option>
+              <% allDepts.forEach(d => { %>
+              <option value="<%= d %>"><%= d %></option>
+              <% }) %>
+            </select>
+            <button class="btn btn-sm btn-outline-gold" onclick="openAddModal('')">
+              <i class="bi bi-person-plus me-1"></i>Add User
+            </button>
+          </div>
         </div>
         <div class="card-body p-0">
-          <table class="table table-hover mb-0">
-            <thead class="table-light"><tr>
-              <th class="ps-4">Name</th><th>Username</th><th>Departments</th><th>Created</th><th class="text-end pe-4">Actions</th>
-            </tr></thead>
+          <% if (deptUsers.length) { %>
+          <table class="table table-hover mb-0" id="deptUsersTable">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Name</th>
+                <th>Username</th>
+                <th>Departments</th>
+                <th>Created</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              <% dUsers.forEach(u => { %>
+              <% deptUsers.forEach(u => { %>
               <% const uDepts = Array.isArray(u.department) ? u.department : (u.department ? [u.department] : []); %>
-              <tr class="user-row">
+              <tr class="user-row" data-depts="<%= uDepts.join(',') %>">
                 <td class="ps-4 fw-semibold"><i class="bi bi-person-fill text-primary me-2"></i><%= u.name %></td>
                 <td><code><%= u.username %></code></td>
                 <td>
                   <% uDepts.forEach(d => { %>
-                  <span class="badge bg-warning text-dark me-1"><%= d %></span>
+                  <span class="badge bg-warning text-dark me-1 mb-1"><%= d %></span>
                   <% }) %>
+                  <% if (!uDepts.length) { %><span class="text-muted">—</span><% } %>
                 </td>
                 <td class="text-muted small"><%= u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN') : '—' %></td>
                 <td class="text-end pe-3">
@@ -236,30 +233,11 @@
               <% }) %>
             </tbody>
           </table>
+          <% } else { %>
+          <p class="text-muted text-center py-4 mb-0">No department users yet</p>
+          <% } %>
         </div>
       </div>
-      <% }) %>
-
-      <!-- Departments with no users yet -->
-      <% if (emptyDepts.length) { %>
-      <div class="card shadow-sm border-dashed mb-3" style="border:2px dashed #ddd;">
-        <div class="card-header bg-white">
-          <span class="fw-semibold text-muted"><i class="bi bi-inbox me-2"></i>Departments with no users yet</span>
-        </div>
-        <div class="card-body">
-          <div class="d-flex flex-wrap gap-2">
-            <% emptyDepts.forEach(d => { %>
-            <div class="d-flex align-items-center gap-2 border rounded px-3 py-2 bg-light">
-              <span class="badge bg-secondary badge-dept"><%= d %></span>
-              <button class="btn btn-xs btn-sm btn-outline-gold py-0 px-2" style="font-size:12px;" onclick="openAddModal('<%= d %>')">
-                <i class="bi bi-person-plus me-1"></i>Add User
-              </button>
-            </div>
-            <% }) %>
-          </div>
-        </div>
-      </div>
-      <% } %>
 
     </div>
   </main>
@@ -400,6 +378,16 @@ document.getElementById('saveUserBtn').addEventListener('click', async function(
   } catch(e) { alert('Network error: ' + e.message); }
   this.disabled = false;
 });
+
+// Filter table by department
+function filterByDept() {
+  const val = document.getElementById('deptFilter').value;
+  document.querySelectorAll('#deptUsersTable tbody tr').forEach(tr => {
+    if (!val) { tr.style.display = ''; return; }
+    const depts = tr.dataset.depts ? tr.dataset.depts.split(',') : [];
+    tr.style.display = depts.includes(val) ? '' : 'none';
+  });
+}
 
 // Delete
 document.querySelectorAll('.delete-user-btn').forEach(btn => {
