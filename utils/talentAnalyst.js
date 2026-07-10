@@ -35,12 +35,30 @@ Score each dimension 1–5:
   2 = Weak — limited or indirect evidence
   1 = Not evidenced / clear gap
 
-DIMENSIONS & WEIGHTS (default):
+DIMENSIONS & WEIGHTS — EXPERIENCED CANDIDATES (default):
   D1. Relevant Experience       (30%) — depth, recency, role-specific experience
   D2. Skills & Competency Match (25%) — technical/functional skills vs JD
   D3. Leadership & Scope        (20%) — scale of responsibility, measurable outcomes
   D4. Motivation & Culture Fit  (15%) — whyJoinUs answer quality, 90-day plan
   D5. Compensation Alignment    (10%) — current package vs role budget fit
+
+DIMENSIONS & WEIGHTS — FRESHERS (MANDATORY when candidate has less than 1 year of
+professional experience, OR the role is entry-level/trainee/intern):
+  D1. Education & Academic Fit     (25%) — degree relevance, academic performance, certifications
+  D2. Skills & Competency Match    (30%) — technical/functional skills vs JD; internships,
+                                            academic projects, training, and freelance work
+                                            COUNT AS VALID EVIDENCE of skill
+  D3. Learning Agility & Potential (15%) — self-learning, projects, extracurricular initiative,
+                                            competitions, portfolio work
+  D4. Motivation & Culture Fit     (20%) — whyJoinUs answer quality, career clarity, enthusiasm
+  D5. Compensation Alignment       (10%) — expected package vs role budget fit
+
+FRESHER RULES (apply whenever the fresher rubric is used):
+- NEVER score a fresher 1 on any dimension merely for lacking professional work experience.
+- Do NOT include "lack of work experience" as a concern for a fresher — it is expected.
+- Use the fresher dimension names above in the output (e.g. "Education & Academic Fit"
+  instead of "Relevant Experience").
+- State in the summary that the candidate was assessed as a fresher.
 
 TIER:
   A = 75–100  (strong fit — recommend for interview)
@@ -103,7 +121,8 @@ function buildCandidateProfile(c) {
     `NOTICE PERIOD: ${c.noticePeriod}`,
     c.linkedInProfile ? `LINKEDIN: ${c.linkedInProfile}` : 'LINKEDIN: not provided',
     c.parsedCurrentRole      ? `CURRENT ROLE: ${c.parsedCurrentRole}` : '',
-    c.parsedTotalExperience  ? `TOTAL EXPERIENCE: ${c.parsedTotalExperience}` : '',
+    c.parsedTotalExperience  ? `TOTAL EXPERIENCE: ${c.parsedTotalExperience}`
+                             : (experience ? '' : 'TOTAL EXPERIENCE: None — this candidate is a FRESHER; use the FRESHER rubric'),
     c.parsedSummary          ? `PROFESSIONAL SUMMARY:\n${c.parsedSummary}` : '',
     skills                   ? `SKILLS: ${skills}` : '',
     experience               ? `EXPERIENCE ENTRIES:\n${experience}` : '',
