@@ -16,15 +16,32 @@ const { generateQR }     = require('./utils/qrGenerator');
 const app = express();
 
 // ── MySQL session store ───────────────────────────────────────────────────────
-const sessionStore = new MySQLStore({
+// Use our own mysql2 pool with keep-alive so idle connections to AWS RDS are
+// not silently dropped (dropped connections caused ECONNRESET crashes).
+const mysql2 = require('mysql2/promise');
+const sessionPool = mysql2.createPool({
   host:     process.env.DB_HOST || 'localhost',
   port:     parseInt(process.env.DB_PORT) || 3306,
   user:     process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',
   database: process.env.DB_NAME || 'patrika_hr',
+  waitForConnections:   true,
+  connectionLimit:      5,
+  enableKeepAlive:      true,
+  keepAliveInitialDelay: 10000
+});
+const sessionStore = new MySQLStore({
   clearExpired:            true,
   checkExpirationInterval: 900000,
   expiration:              86400000
+}, sessionPool);
+
+// Never let a dropped DB connection kill the whole server
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandledRejection]', err && err.message ? err.message : err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err && err.message ? err.message : err);
 });
 
 // ── View engine ───────────────────────────────────────────────────────────────
