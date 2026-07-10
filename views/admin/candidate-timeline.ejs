@@ -58,6 +58,8 @@
     .bc-purple  { border-color: #6f42c1 !important; }
     .bc-info    { border-color: #0dcaf0 !important; }
     .bc-secondary { border-color: #6c757d !important; }
+    .bc-orange  { border-color: #fd7e14 !important; }
+    .bg-orange  { background-color: #fd7e14 !important; }
 
     .bg-teal   { background-color: #20c997 !important; }
     .bg-purple { background-color: #6f42c1 !important; }
@@ -218,6 +220,7 @@
               else if (ev.colorClass === 'teal')      borderClass = 'bc-teal';
               else if (ev.colorClass === 'purple')    borderClass = 'bc-purple';
               else if (ev.colorClass === 'info')      borderClass = 'bc-info';
+              else if (ev.colorClass === 'orange')    borderClass = 'bc-orange';
 
               var bgClass = 'bg-secondary';
               if (ev.colorClass === 'gold')      bgClass = '';
@@ -227,6 +230,7 @@
               else if (ev.colorClass === 'teal')      bgClass = 'bg-teal';
               else if (ev.colorClass === 'purple')    bgClass = 'bg-purple';
               else if (ev.colorClass === 'info')      bgClass = 'bg-info';
+              else if (ev.colorClass === 'orange')    bgClass = 'bg-orange';
             %>
 
             <div class="tl-event">
@@ -280,13 +284,20 @@
                 <% } else if (ev.type === 'email_sent') { %>
                 <div class="tl-body">
                   <% if (ev.meta && ev.meta.subject) { %><div class="fw-semibold mb-1"><i class="bi bi-envelope me-1"></i><%= ev.meta.subject %></div><% } %>
-                  <div class="text-muted" style="white-space:pre-line;"><%= ev.body %></div>
+                  <div style="white-space:pre-line;"><%= ev.body %></div>
                   <% if (ev.meta && ev.meta.status) { %><div class="mt-1"><span class="badge <%= ev.meta.status === 'Sent' ? 'bg-success' : 'bg-danger' %>"><%= ev.meta.status %></span></div><% } %>
+                </div>
+
+                <% } else if (ev.type === 'email_received') { %>
+                <div class="tl-body">
+                  <% if (ev.meta && ev.meta.subject) { %><div class="fw-semibold mb-1"><i class="bi bi-envelope-arrow-down me-1"></i><%= ev.meta.subject %></div><% } %>
+                  <div style="white-space:pre-line;"><%= ev.body %></div>
+                  <div class="mt-1"><span class="badge" style="background:#fd7e14;">Reply from Candidate</span></div>
                 </div>
 
                 <% } else if (ev.type === 'whatsapp_sent') { %>
                 <div class="tl-body">
-                  <div class="text-muted" style="white-space:pre-line;"><%= ev.body %></div>
+                  <div style="white-space:pre-line;"><%= ev.body %></div>
                 </div>
 
                 <% } else { %>

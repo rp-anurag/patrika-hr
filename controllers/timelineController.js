@@ -120,7 +120,7 @@ function buildEvents(candidate, communications, activityLogs, interviewSheet) {
   // Deduplicate: skip comms that already appear in activityLogs by approximate time+channel
   const loggedCommTimes = new Set(
     activityLogs
-      .filter(l => l.activityType === 'email_sent' || l.activityType === 'whatsapp_sent')
+      .filter(l => ['email_sent', 'whatsapp_sent', 'email_received'].includes(l.activityType))
       .map(l => Math.floor(new Date(l.createdAt).getTime() / 60000)) // minute bucket
   );
 
@@ -129,15 +129,16 @@ function buildEvents(candidate, communications, activityLogs, interviewSheet) {
     if (loggedCommTimes.has(bucket)) continue; // already logged via ActivityLog
 
     const isEmail = comm.channel === 'Email';
+    const isInbound = comm.direction === 'inbound';
     events.push({
-      type: isEmail ? 'email_sent' : 'whatsapp_sent',
+      type: isInbound ? 'email_received' : (isEmail ? 'email_sent' : 'whatsapp_sent'),
       timestamp: comm.sentAt ? new Date(comm.sentAt) : new Date(0),
-      title: comm.subject || (isEmail ? 'Email Sent' : 'WhatsApp Sent'),
+      title: isInbound ? 'Reply received from candidate' : (comm.subject || (isEmail ? 'Email Sent' : 'WhatsApp Sent')),
       body: comm.message ? comm.message.substring(0, 300) : '—',
       meta: { subject: comm.subject, status: comm.status },
-      icon: isEmail ? 'bi-envelope-fill' : 'bi-whatsapp',
-      color: isEmail ? '#198754' : '#20c997',
-      colorClass: isEmail ? 'success' : 'teal',
+      icon: isInbound ? 'bi-envelope-arrow-down-fill' : (isEmail ? 'bi-envelope-fill' : 'bi-whatsapp'),
+      color: isInbound ? '#fd7e14' : (isEmail ? '#198754' : '#20c997'),
+      colorClass: isInbound ? 'orange' : (isEmail ? 'success' : 'teal'),
       performedBy: comm.sentBy || 'Admin'
     });
   }
