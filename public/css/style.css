@@ -59,13 +59,66 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 
 /* ── Hero Banner ──────────────────────────── */
 .hero-banner {
-  line-height: 0;
   border-bottom: 1px solid #ddd;
+  background: #fff;
 }
-.hero-full-img {
-  width: 100%;
-  height: auto;
+.hero-card {
+  display: flex;
+  background: #fff;
+  overflow: hidden;
+}
+.hero-photo {
+  flex: 0 0 30%;
+  min-height: 100%;
+  /* left third of the original banner = the chairs photo */
+  background-image: url('/images/hero-banner.jpg');
+  background-size: 334% auto;   /* zoom so only the left ~30% (chair section) shows */
+  background-position: left center;
+  background-repeat: no-repeat;
+}
+.hero-content {
+  flex: 1;
+  padding: 28px 32px 20px;
+  position: relative;
+}
+.hero-title {
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+  font-weight: 800;
+  color: #111;
+  line-height: 1.15;
+  margin-bottom: 14px;
+}
+.hero-title span { color: #111; }
+.hero-logo { height: 74px; object-fit: contain; }
+.hero-lead, .hero-text {
+  font-size: clamp(.82rem, 1.15vw, .95rem);
+  color: #333;
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+.hero-elevate {
+  display: inline-block;
+  background: #e01b22;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: .25em;
+  padding: 8px 22px 6px;
+  margin-top: 12px;
+  float: right;
+  text-align: center;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+}
+.hero-elevate small {
   display: block;
+  font-size: .55rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  opacity: .85;
+}
+@media (max-width: 767px) {
+  .hero-photo { display: none; }
+  .hero-content { padding: 20px; }
+  .hero-elevate { float: none; display: block; width: fit-content; margin-left: auto; }
 }
 
 .form-card { border: none; border-radius: 12px; }
