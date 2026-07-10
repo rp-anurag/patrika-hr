@@ -135,8 +135,18 @@ async function migrateActivityLogEnum() {
     ALTER TABLE candidate_activity_logs MODIFY COLUMN activityType
     ENUM('application_received','status_changed','note_saved','email_sent',
          'whatsapp_sent','interview_updated','detail_form_submitted',
-         'test_sent','test_submitted') NOT NULL
+         'test_sent','test_submitted','email_received') NOT NULL
   `);
+}
+
+async function migrateCommunicationDirection() {
+  const { sequelize } = require('./config/db');
+  const [cols] = await sequelize.query("SHOW COLUMNS FROM communications LIKE 'direction'");
+  if (!cols.length) {
+    await sequelize.query(
+      "ALTER TABLE communications ADD COLUMN direction ENUM('outbound','inbound') DEFAULT 'outbound' AFTER channel"
+    );
+  }
 }
 
 async function migrateCandidateTests() {
@@ -165,6 +175,7 @@ connectDB().then(async () => {
   await migrateDepartmentColumn().catch(e => console.warn('Dept column migration warning:', e.message));
   await migrateCandidateTests().catch(e => console.warn('Candidate tests table warning:', e.message));
   await migrateActivityLogEnum().catch(e => console.warn('Activity log enum warning:', e.message));
+  await migrateCommunicationDirection().catch(e => console.warn('Communication direction warning:', e.message));
   await seedDepartments().catch(e => console.warn('Dept seed warning:', e.message));
   app.listen(PORT, '0.0.0.0', async () => {
     console.log(`\n========================================`);
@@ -178,6 +189,13 @@ connectDB().then(async () => {
       await generateQR(`${APP_URL}/apply`);
     } catch (err) {
       console.warn('QR generation warning:', err.message);
+    }
+
+    // Poll IMAP inbox for candidate email replies
+    try {
+      require('./utils/inboundMail').startInboundMailPolling();
+    } catch (err) {
+      console.warn('Inbound mail warning:', err.message);
     }
   });
 });

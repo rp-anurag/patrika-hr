@@ -93,6 +93,12 @@ function buildEvents(candidate, communications, activityLogs, interviewSheet) {
         colorClass = 'success';
         body = log.details || 'Assessment test submitted';
         break;
+      case 'email_received':
+        icon = 'bi-envelope-arrow-down-fill';
+        color = '#fd7e14';
+        colorClass = 'orange';
+        body = log.details || 'Reply received from candidate';
+        break;
       default:
         body = log.details || '';
     }

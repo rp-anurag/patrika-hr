@@ -551,15 +551,24 @@
               <% } else { %>
               <div class="comm-log">
                 <% candidate.communications.slice().reverse().forEach(c => { %>
-                <div class="comm-entry">
+                <% const isReply = c.direction === 'inbound'; %>
+                <div class="comm-entry" <%= isReply ? 'style="background:#fff8ee;border-left:3px solid #fd7e14;"' : '' %>>
                   <div class="d-flex align-items-center gap-2 mb-1">
+                    <% if (isReply) { %>
+                    <span class="badge" style="background:#fd7e14;">
+                      <i class="bi bi-envelope-arrow-down me-1"></i>Reply from Candidate
+                    </span>
+                    <% } else { %>
                     <span class="badge bg-<%= c.channel === 'WhatsApp' ? 'success' : 'primary' %>">
                       <i class="bi bi-<%= c.channel === 'WhatsApp' ? 'whatsapp' : 'envelope' %> me-1"></i><%= c.channel %>
                     </span>
+                    <% } %>
                     <small class="text-muted"><%= new Date(c.sentAt).toLocaleString('en-IN') %></small>
+                    <% if (!isReply) { %>
                     <span class="badge bg-<%= c.status === 'Sent' ? 'success' : 'danger' %> ms-auto" style="font-size:10px;"><%= c.status %></span>
+                    <% } %>
                   </div>
-                  <% if (c.subject) { %><div class="small fw-semibold text-muted mb-1">Re: <%= c.subject %></div><% } %>
+                  <% if (c.subject) { %><div class="small fw-semibold text-muted mb-1"><%= isReply ? '' : 'Re: ' %><%= c.subject %></div><% } %>
                   <div class="comm-message"><%= c.message %></div>
                 </div>
                 <% }) %>

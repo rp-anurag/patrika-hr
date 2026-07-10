@@ -14,7 +14,8 @@ const ActivityLog = sequelize.define('ActivityLog', {
       'interview_updated',
       'detail_form_submitted',
       'test_sent',
-      'test_submitted'
+      'test_submitted',
+      'email_received'
     ),
     allowNull: false
   },
