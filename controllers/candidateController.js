@@ -41,13 +41,9 @@ exports.submitForm = async (req, res) => {
       whyJoinUs, first90DaysPlan
     } = req.body;
 
-    // Block re-application for the same position within 2 months (by email or phone)
-    const twoMonthsAgo = new Date();
-    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+    // Block if this candidate (by email or phone) has already applied for any position
     const existing = await Candidate.findOne({
       where: {
-        positionApplying,
-        submittedAt: { [Op.gte]: twoMonthsAgo },
         [Op.or]: [
           { email: email.trim().toLowerCase() },
           { contactNumber: contactNumber.trim() }
@@ -56,11 +52,8 @@ exports.submitForm = async (req, res) => {
       order: [['submittedAt', 'DESC']]
     });
     if (existing) {
-      const nextDate = new Date(existing.submittedAt);
-      nextDate.setMonth(nextDate.getMonth() + 2);
-      const nextStr = nextDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
       return res.redirect(`/apply?error=${encodeURIComponent(
-        `You have already applied for "${positionApplying}" recently. You can apply again for this position after ${nextStr}.`
+        `You have already submitted an application (for "${existing.positionApplying}"). Only one application per candidate is allowed.`
       )}`);
     }
 
