@@ -166,7 +166,7 @@ async function analyseCandidate(candidate, jdHtml, roleName, customRubric) {
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user',   content: userMsg }
         ],
-        temperature:     0.2,
+        temperature:     0,
         max_tokens:      2000,
         response_format: { type: 'json_object' }
       },
