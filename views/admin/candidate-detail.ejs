@@ -87,6 +87,9 @@
   <main class="admin-main">
     <div class="admin-topbar d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-3">
+        <a href="javascript:void(0)" onclick="goBack()" class="btn btn-sm btn-outline-secondary" title="Back">
+          <i class="bi bi-arrow-left"></i> Back
+        </a>
         <div class="avatar-circle avatar-lg"><%= candidate.fullName.charAt(0).toUpperCase() %></div>
         <div>
           <h5 class="mb-0 fw-bold"><%= candidate.fullName %></h5>
@@ -949,6 +952,14 @@ async function sendTest() {
     }
   } catch(e) { alert('Network error: ' + e.message); }
   btns.forEach(b => { b.disabled = false; b.innerHTML = '<i class="bi bi-ui-checks me-1"></i>Send Test'; });
+}
+
+function goBack() {
+  if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) {
+    history.back();
+  } else {
+    location.href = '/admin/candidates';
+  }
 }
 
 async function loadTestHistory() {
