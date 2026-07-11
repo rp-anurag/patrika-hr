@@ -124,9 +124,11 @@ function buildCandidateProfile(c) {
     (() => {
       const hasRawText = (c.parsedRawText || '').replace(/\s/g, '').length > 100;
       if (c.parsedTotalExperience) return `TOTAL EXPERIENCE: ${c.parsedTotalExperience}`;
-      if (experience) return '';
+      if (experience) return '';  // experience entries are included below; AI will derive total
       if (!hasRawText) return 'RESUME TEXT UNAVAILABLE: The resume could not be machine-read (likely a scanned/image PDF). Do NOT treat this candidate as a fresher and do NOT score dimensions as "not evidenced" due to missing resume text. Score conservatively at 3 with Low confidence, state clearly in the summary that the resume needs manual review, and add "Manually review the original resume file" to interviewVerify.';
-      return 'TOTAL EXPERIENCE: None — this candidate is a FRESHER; use the FRESHER rubric';
+      // Raw text is present but the parser could not extract structured experience.
+      // Let the AI infer experience level from the resume extract — do NOT assume fresher.
+      return 'NOTE: Structured experience data could not be parsed from this resume. Infer the candidate\'s experience level directly from the RESUME EXTRACT below. Use the EXPERIENCED rubric if the resume shows any work history, and the FRESHER rubric only if the resume clearly shows no professional experience.';
     })(),
     c.parsedSummary          ? `PROFESSIONAL SUMMARY:\n${c.parsedSummary}` : '',
     skills                   ? `SKILLS: ${skills}` : '',
