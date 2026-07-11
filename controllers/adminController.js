@@ -744,6 +744,38 @@ exports.gradeOne = async (req, res) => {
     const jdHtml = pos ? (pos.jdHtml || '') : '';
     console.log('[gradeOne] position found:', pos ? pos.name : 'NONE');
 
+    // If the stored resume text is empty (e.g. scanned PDF parsed before OCR
+    // support), re-parse the file with the OCR fallback before analysing.
+    const rawLen = (c.parsedRawText || '').replace(/\s/g, '').length;
+    if (rawLen < 100) {
+      const { resolveResumePath } = require('../utils/resumePath');
+      const filePath = resolveResumePath(c);
+      if (filePath) {
+        console.log('[gradeOne] empty resume text — re-parsing with OCR fallback...');
+        try {
+          const { parseResume } = require('../utils/resumeParser');
+          const parsed = await parseResume(filePath, c.resumeMimetype);
+          if ((parsed.rawText || '').replace(/\s/g, '').length >= 100) {
+            await c.update({
+              parsedSummary:           parsed.summary || c.parsedSummary,
+              parsedTotalExperience:   parsed.totalExperience || c.parsedTotalExperience,
+              parsedCurrentRole:       parsed.currentRole || c.parsedCurrentRole,
+              parsedExperienceEntries: JSON.stringify(parsed.experienceEntries || []),
+              parsedEducation:         JSON.stringify(parsed.education || []),
+              parsedSkills:            JSON.stringify(parsed.skills || []),
+              parsedRawText:           parsed.rawText
+            });
+            await c.reload();
+            console.log('[gradeOne] re-parse OK — rawText now', parsed.rawText.length, 'chars');
+          }
+        } catch (e) {
+          console.warn('[gradeOne] re-parse failed:', e.message);
+        }
+      } else {
+        console.log('[gradeOne] resume file not on this machine — skipping re-parse');
+      }
+    }
+
     const { analyseCandidate, reportToGrade } = require('../utils/talentAnalyst');
     console.log('[gradeOne] calling analyseCandidate...');
     const report = await analyseCandidate(c, jdHtml, c.positionApplying);

@@ -121,8 +121,13 @@ function buildCandidateProfile(c) {
     `NOTICE PERIOD: ${c.noticePeriod}`,
     c.linkedInProfile ? `LINKEDIN: ${c.linkedInProfile}` : 'LINKEDIN: not provided',
     c.parsedCurrentRole      ? `CURRENT ROLE: ${c.parsedCurrentRole}` : '',
-    c.parsedTotalExperience  ? `TOTAL EXPERIENCE: ${c.parsedTotalExperience}`
-                             : (experience ? '' : 'TOTAL EXPERIENCE: None — this candidate is a FRESHER; use the FRESHER rubric'),
+    (() => {
+      const hasRawText = (c.parsedRawText || '').replace(/\s/g, '').length > 100;
+      if (c.parsedTotalExperience) return `TOTAL EXPERIENCE: ${c.parsedTotalExperience}`;
+      if (experience) return '';
+      if (!hasRawText) return 'RESUME TEXT UNAVAILABLE: The resume could not be machine-read (likely a scanned/image PDF). Do NOT treat this candidate as a fresher and do NOT score dimensions as "not evidenced" due to missing resume text. Score conservatively at 3 with Low confidence, state clearly in the summary that the resume needs manual review, and add "Manually review the original resume file" to interviewVerify.';
+      return 'TOTAL EXPERIENCE: None — this candidate is a FRESHER; use the FRESHER rubric';
+    })(),
     c.parsedSummary          ? `PROFESSIONAL SUMMARY:\n${c.parsedSummary}` : '',
     skills                   ? `SKILLS: ${skills}` : '',
     experience               ? `EXPERIENCE ENTRIES:\n${experience}` : '',

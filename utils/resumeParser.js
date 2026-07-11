@@ -7,7 +7,56 @@ const mammoth = require('mammoth');
 async function extractPDF(input) {
   const buf = Buffer.isBuffer(input) ? input : fs.readFileSync(input);
   const data = await pdfParse(buf);
-  return data.text || '';
+  let text = data.text || '';
+
+  // Scanned/image PDF fallback: no usable text layer → OCR via Groq vision
+  if (text.replace(/\s/g, '').length < 100) {
+    try {
+      const ocrText = await ocrPdfWithVision(buf);
+      if (ocrText && ocrText.replace(/\s/g, '').length > text.replace(/\s/g, '').length) {
+        console.log('[resumeParser] Scanned PDF detected — used OCR fallback (' + ocrText.length + ' chars)');
+        text = ocrText;
+      }
+    } catch (e) {
+      console.warn('[resumeParser] OCR fallback failed:', e.message);
+    }
+  }
+  return text;
+}
+
+// Render PDF pages to PNG and transcribe them with Groq's vision model
+async function ocrPdfWithVision(pdfBuffer) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return '';
+  const axios = require('axios');
+  const { pdfToPng } = require('pdf-to-png-converter');
+
+  const pages = await pdfToPng(pdfBuffer, {
+    viewportScale: 2.0,
+    pagesToProcess: [1, 2, 3]   // first 3 pages are enough for a resume
+  });
+
+  let fullText = '';
+  for (const page of pages) {
+    const b64 = page.content.toString('base64');
+    const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Transcribe ALL text from this resume page exactly as written. Preserve section headings, dates, company names, and bullet points. Output plain text only, no commentary.' },
+          { type: 'image_url', image_url: { url: `data:image/png;base64,${b64}` } }
+        ]
+      }],
+      temperature: 0,
+      max_tokens: 4000
+    }, {
+      headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
+      timeout: 60000
+    });
+    fullText += (response.data.choices[0]?.message?.content || '') + '\n\n';
+  }
+  return fullText.trim();
 }
 
 async function extractDOCX(input) {
