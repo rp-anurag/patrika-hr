@@ -874,8 +874,10 @@ exports.updatePosition = async (req, res) => {
     const pos = await Position.findByPk(req.params.id);
     if (!pos) return res.status(404).json({ error: 'Position not found' });
     const { name, department, icon, badge, jdHtml, sortOrder } = req.body;
+    const oldName = pos.name;
+    const newName = (name || pos.name).trim();
     await pos.update({
-      name: (name||pos.name).trim(),
+      name: newName,
       department: (department !== undefined ? department : pos.department).trim(),
       icon: (icon || pos.icon).trim(),
       badge: (badge !== undefined ? badge : pos.badge).trim(),
@@ -883,6 +885,13 @@ exports.updatePosition = async (req, res) => {
       sortOrder: sortOrder !== undefined ? parseInt(sortOrder)||0 : pos.sortOrder,
       updatedAt: new Date()
     });
+    // Cascade rename to all candidates that had the old position name
+    if (newName !== oldName) {
+      await sequelize.query(
+        `UPDATE candidates SET positionApplying = ? WHERE positionApplying = ?`,
+        { replacements: [newName, oldName] }
+      );
+    }
     res.json({ success: true, position: pos });
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError')
