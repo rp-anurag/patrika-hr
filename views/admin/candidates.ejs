@@ -112,7 +112,7 @@
           </div>
           <div class="collapse show" id="filterBody">
             <div class="card-body py-3">
-              <form method="GET" action="/admin/candidates">
+              <form method="GET" action="/admin/candidates" id="filterForm">
                 <!-- Row 1 -->
                 <div class="row g-2 mb-2 align-items-end">
                   <div class="col-md-4">
@@ -500,6 +500,15 @@
     });
     document.getElementById('filterBody').addEventListener('shown.bs.collapse', function() {
       document.getElementById('filterChevron').className = 'bi bi-chevron-up';
+    });
+
+    // Auto-submit filter form on dropdown / date change
+    document.querySelectorAll('#filterForm select, #filterForm input[type="date"]').forEach(el => {
+      el.addEventListener('change', () => document.getElementById('filterForm').submit());
+    });
+    // Submit text search on Enter key
+    document.querySelector('#filterForm input[name="search"]').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('filterForm').submit(); }
     });
 
     function deleteCandidate(id) {
