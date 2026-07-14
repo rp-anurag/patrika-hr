@@ -471,9 +471,13 @@
         plugins: { legend: { display: false }, tooltip: { callbacks: {
           label: ctx => ` ${ctx.raw} applicant${ctx.raw !== 1 ? 's' : ''}`
         }}},
+        layout: { padding: { left: 4 } },
         scales: {
           x: { ticks: { color: '#aaa', stepSize: 1, precision: 0 }, grid: { color: 'rgba(255,255,255,.06)' }, min: 0 },
-          y: { ticks: { color: '#ccc', font: { size: 11 } }, grid: { display: false } }
+          y: { ticks: { color: '#ccc', font: { size: 11 }, callback: (val, idx) => {
+            const lbl = posLabels[idx] || '';
+            return lbl.length > 32 ? lbl.slice(0, 32) + '…' : lbl;
+          }}, grid: { display: false } }
         }
       }
     });
