@@ -42,9 +42,11 @@ exports.processLogin = async (req, res) => {
     req.session.adminId          = admin.id;
     req.session.adminName        = admin.name;
     req.session.adminRole        = admin.role || 'admin';
-    const depts = admin.department; // getter returns array
+    const depts = admin.department;
     req.session.adminDepartments = Array.isArray(depts) ? depts : [];
     req.session.adminDepartment  = req.session.adminDepartments[0] || null;
+    const posns = admin.positions;
+    req.session.adminPositions   = Array.isArray(posns) ? posns : [];
     const returnTo = req.session.returnTo || '/admin/dashboard';
     delete req.session.returnTo;
     res.redirect(returnTo);
@@ -64,15 +66,25 @@ exports.dashboard = async (req, res) => {
   try {
     const isSuperAdmin = req.session.adminRole === 'admin';
     const depts = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
-    const hasFilter = !isSuperAdmin && depts.length > 0;
+    const posns = req.session.adminPositions || [];
+    const hasPosFilter  = !isSuperAdmin && posns.length > 0;
+    const hasDeptFilter = !isSuperAdmin && !hasPosFilter && depts.length > 0;
+    const hasFilter     = hasDeptFilter || hasPosFilter;
+
     const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
-    const deptFilter = hasFilter ? `AND p.department IN (${deptsEsc})` : '';
-    const candFilter = hasFilter
-      ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
-      : '';
-    const candFilterStatus = hasFilter
-      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
-      : '';
+    const posnsEsc = posns.map(p => sequelize.escape(p)).join(',');
+
+    const deptFilter = hasDeptFilter ? `AND p.department IN (${deptsEsc})` : '';
+    const candFilter = hasPosFilter
+      ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (${posnsEsc})`
+      : hasDeptFilter
+        ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
+        : '';
+    const candFilterStatus = hasPosFilter
+      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (${posnsEsc})`
+      : hasDeptFilter
+        ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
+        : '';
 
     const [statusRows, positionRows, todayRows, recentCandidates, recentActivity, totalRow] = await Promise.all([
       sequelize.query(
@@ -88,7 +100,11 @@ exports.dashboard = async (req, res) => {
         { type: sequelize.QueryTypes.SELECT }
       ),
       Candidate.findAll({
-        where: hasFilter ? { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } } : {},
+        where: hasPosFilter
+          ? { positionApplying: { [Op.in]: posns } }
+          : hasDeptFilter
+            ? { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } }
+            : {},
         order: [['submittedAt', 'DESC']],
         limit: 8,
         attributes: ['id', 'fullName', 'email', 'positionApplying', 'grade', 'status', 'submittedAt']
@@ -100,7 +116,10 @@ exports.dashboard = async (req, res) => {
           model: Candidate,
           as: 'candidate',
           attributes: ['fullName', 'id'],
-          ...(hasFilter ? {
+          ...(hasPosFilter ? {
+            where: { positionApplying: { [Op.in]: posns } },
+            required: true
+          } : hasDeptFilter ? {
             where: { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } },
             required: true
           } : { required: false })
@@ -146,7 +165,10 @@ exports.candidatesList = async (req, res) => {
 
     const isSuperAdmin = req.session.adminRole === 'admin';
     const depts = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
-    const hasFilter = !isSuperAdmin && depts.length > 0;
+    const posns = req.session.adminPositions || [];
+    const hasPosFilter  = !isSuperAdmin && posns.length > 0;
+    const hasDeptFilter = !isSuperAdmin && !hasPosFilter && depts.length > 0;
+    const hasFilter     = hasDeptFilter || hasPosFilter;
     const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
 
     // Build where clause
@@ -166,8 +188,11 @@ exports.candidatesList = async (req, res) => {
       if (dateFrom) where.submittedAt[Op.gte] = new Date(dateFrom);
       if (dateTo)   where.submittedAt[Op.lte] = new Date(dateTo + 'T23:59:59');
     }
-    // Department restriction for non-super-admin users
-    if (hasFilter) {
+    // Scope restriction for non-super-admin users
+    if (hasPosFilter) {
+      where.positionApplying = { [Op.in]: posns };
+      if (position && posns.includes(position)) where.positionApplying = position;
+    } else if (hasDeptFilter) {
       where.positionApplying = { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) };
       if (position) where.positionApplying = position;
     }
@@ -177,9 +202,12 @@ exports.candidatesList = async (req, res) => {
     const safeSort  = SAFE_SORT_COLS.includes(sort) ? sort : 'submittedAt';
     const safeOrder = order === 'asc' ? 'ASC' : 'DESC';
 
-    const deptStatusFilter = hasFilter
-      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
-      : '';
+    const posnsEsc = posns.map(p => sequelize.escape(p)).join(',');
+    const scopeStatusFilter = hasPosFilter
+      ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (${posnsEsc})`
+      : hasDeptFilter
+        ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
+        : '';
 
     const [{ rows: candidates, count: total }, statusRows, allPositions] = await Promise.all([
       Candidate.findAndCountAll({
@@ -190,11 +218,15 @@ exports.candidatesList = async (req, res) => {
         attributes: { exclude: ['parsedRawText'] }
       }),
       sequelize.query(
-        `SELECT status, COUNT(*) as count FROM candidates ${deptStatusFilter} GROUP BY status`,
+        `SELECT status, COUNT(*) as count FROM candidates ${scopeStatusFilter} GROUP BY status`,
         { type: sequelize.QueryTypes.SELECT }
       ),
       Position.findAll({
-        where: hasFilter ? { department: { [Op.in]: depts } } : {},
+        where: hasPosFilter
+          ? { name: { [Op.in]: posns } }
+          : hasDeptFilter
+            ? { department: { [Op.in]: depts } }
+            : {},
         order: [['sortOrder','ASC'],['name','ASC']]
       })
     ]);

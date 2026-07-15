@@ -173,6 +173,11 @@ async function migrateCandidateTests() {
 connectDB().then(async () => {
   await migratePositionColumn().catch(e => console.warn('Migration warning:', e.message));
   await migrateDepartmentColumn().catch(e => console.warn('Dept column migration warning:', e.message));
+  await (async () => {
+    const { sequelize } = require('./config/db');
+    const [cols] = await sequelize.query("SHOW COLUMNS FROM admins LIKE 'positions'");
+    if (!cols.length) await sequelize.query("ALTER TABLE admins ADD COLUMN positions TEXT DEFAULT NULL AFTER department");
+  })().catch(e => console.warn('Positions column migration warning:', e.message));
   await migrateCandidateTests().catch(e => console.warn('Candidate tests table warning:', e.message));
   await migrateActivityLogEnum().catch(e => console.warn('Activity log enum warning:', e.message));
   await migrateCommunicationDirection().catch(e => console.warn('Communication direction warning:', e.message));

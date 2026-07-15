@@ -24,6 +24,22 @@ const Admin = sequelize.define('Admin', {
       }
     }
   },
+  positions: {
+    type: DataTypes.TEXT,
+    defaultValue: null,
+    get() {
+      const v = this.getDataValue('positions');
+      if (!v) return [];
+      try { return JSON.parse(v); } catch { return [v]; }
+    },
+    set(val) {
+      if (!val || (Array.isArray(val) && val.length === 0)) {
+        this.setDataValue('positions', null);
+      } else {
+        this.setDataValue('positions', JSON.stringify(Array.isArray(val) ? val : [val]));
+      }
+    }
+  },
   createdAt:  { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: 'admins',

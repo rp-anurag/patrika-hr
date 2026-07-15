@@ -77,7 +77,7 @@
     <div class="admin-topbar d-flex align-items-center justify-content-between">
       <div>
         <h5 class="mb-0 fw-bold"><i class="bi bi-person-gear me-2 text-gold"></i>User Management</h5>
-        <small class="text-muted">Department-wise user accounts</small>
+        <small class="text-muted">Department / Position-wise user accounts</small>
       </div>
       <button class="btn btn-gold btn-sm" onclick="openAddModal('')">
         <i class="bi bi-person-plus me-1"></i>Add User
@@ -117,14 +117,21 @@
             <div class="small text-muted">Departments</div>
           </div>
         </div>
+        <div class="col-auto">
+          <div class="stat-pill bg-white border shadow-sm">
+            <div class="fw-bold fs-4 text-success"><%= allPositions.length %></div>
+            <div class="small text-muted">Positions</div>
+          </div>
+        </div>
       </div>
 
       <!-- Role info -->
       <div class="alert alert-info d-flex gap-3 align-items-start py-2 mb-4">
         <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
         <div class="small">
-          <strong>Admin</strong> — Full access to all candidates, positions, and settings across all departments.<br>
-          <strong>User</strong> — Restricted to selected departments. Can view/manage candidates only for their assigned departments' positions.
+          <strong>Admin</strong> — Full access to all candidates, positions, and settings.<br>
+          <strong>User (By Department)</strong> — Sees all candidates for positions within selected departments.<br>
+          <strong>User (By Position)</strong> — Sees candidates only for the specific positions assigned.
         </div>
       </div>
 
@@ -200,7 +207,7 @@
               <tr>
                 <th class="ps-4">Name</th>
                 <th>Username</th>
-                <th>Departments</th>
+                <th>Scope</th>
                 <th>Created</th>
                 <th class="text-end pe-4">Actions</th>
               </tr>
@@ -208,20 +215,32 @@
             <tbody>
               <% deptUsers.forEach(u => { %>
               <% const uDepts = Array.isArray(u.department) ? u.department : (u.department ? [u.department] : []); %>
+              <% const uPosns = Array.isArray(u.positions)  ? u.positions  : (u.positions  ? [u.positions]  : []); %>
+              <% const scopeType = uPosns.length > 0 ? 'position' : 'department'; %>
               <tr class="user-row" data-depts="<%= uDepts.join(',') %>">
                 <td class="ps-4 fw-semibold"><i class="bi bi-person-fill text-primary me-2"></i><%= u.name %></td>
                 <td><code><%= u.username %></code></td>
                 <td>
-                  <% uDepts.forEach(d => { %>
-                  <span class="badge bg-warning text-dark me-1 mb-1"><%= d %></span>
-                  <% }) %>
-                  <% if (!uDepts.length) { %><span class="text-muted">—</span><% } %>
+                  <% if (scopeType === 'position') { %>
+                    <span class="badge bg-success text-white me-1 mb-1" style="font-size:10px;">BY POSITION</span><br>
+                    <% uPosns.forEach(p => { %>
+                    <span class="badge bg-light text-dark border me-1 mb-1" style="font-size:10px;"><%= p %></span>
+                    <% }) %>
+                  <% } else { %>
+                    <span class="badge bg-warning text-dark me-1 mb-1" style="font-size:10px;">BY DEPT</span><br>
+                    <% uDepts.forEach(d => { %>
+                    <span class="badge bg-warning text-dark me-1 mb-1" style="font-size:10px;"><%= d %></span>
+                    <% }) %>
+                    <% if (!uDepts.length) { %><span class="text-muted">—</span><% } %>
+                  <% } %>
                 </td>
                 <td class="text-muted small"><%= u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN') : '—' %></td>
                 <td class="text-end pe-3">
                   <button class="btn btn-sm btn-outline-gold me-1 edit-user-btn"
                     data-id="<%= u.id %>" data-name="<%= u.name %>"
-                    data-role="user" data-depts='<%- JSON.stringify(uDepts) %>' title="Edit">
+                    data-role="user"
+                    data-depts='<%- JSON.stringify(uDepts) %>'
+                    data-posns='<%- JSON.stringify(uPosns) %>' title="Edit">
                     <i class="bi bi-pencil"></i>
                   </button>
                   <button class="btn btn-sm btn-outline-danger delete-user-btn"
@@ -268,20 +287,49 @@
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold">Role *</label>
-          <select class="form-select" id="modal-role" onchange="toggleDept()">
-            <option value="user">User (Department Restricted)</option>
+          <select class="form-select" id="modal-role" onchange="toggleScope()">
+            <option value="user">User (Restricted Access)</option>
             <option value="admin">Admin (Full Access)</option>
           </select>
         </div>
-        <div class="mb-3" id="dept-wrapper">
-          <label class="form-label fw-semibold">Departments * <small class="text-muted fw-normal">(select one or more)</small></label>
-          <div class="border rounded p-2" style="max-height:200px;overflow-y:auto;" id="dept-checkboxes">
-            <% allDepts.forEach(d => { %>
-            <div class="form-check">
-              <input class="form-check-input dept-cb" type="checkbox" value="<%= d %>" id="cb_<%= d.replace(/\s+/g,'_') %>">
-              <label class="form-check-label" for="cb_<%= d.replace(/\s+/g,'_') %>"><%= d %></label>
+        <div id="scope-wrapper">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Scope Type *</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="scope-type" id="scope-dept" value="department" onchange="toggleScopeType()" checked>
+                <label class="form-check-label" for="scope-dept">By Department</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="scope-type" id="scope-pos" value="position" onchange="toggleScopeType()">
+                <label class="form-check-label" for="scope-pos">By Position</label>
+              </div>
             </div>
-            <% }) %>
+          </div>
+          <!-- Department picker -->
+          <div class="mb-3" id="dept-wrapper">
+            <label class="form-label fw-semibold">Departments * <small class="text-muted fw-normal">(select one or more)</small></label>
+            <div class="border rounded p-2" style="max-height:180px;overflow-y:auto;" id="dept-checkboxes">
+              <% allDepts.forEach(d => { %>
+              <div class="form-check">
+                <input class="form-check-input dept-cb" type="checkbox" value="<%= d %>" id="cb_<%= d.replace(/\W+/g,'_') %>">
+                <label class="form-check-label small" for="cb_<%= d.replace(/\W+/g,'_') %>"><%= d %></label>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+          <!-- Position picker -->
+          <div class="mb-3" id="pos-wrapper" style="display:none;">
+            <label class="form-label fw-semibold">Positions * <small class="text-muted fw-normal">(select one or more)</small></label>
+            <input type="text" class="form-control form-control-sm mb-1" id="pos-search" placeholder="Search positions…" oninput="filterPositions()">
+            <div class="border rounded p-2" style="max-height:200px;overflow-y:auto;" id="pos-checkboxes">
+              <% allPositions.forEach((p, pi) => { %>
+              <div class="form-check pos-item">
+                <input class="form-check-input pos-cb" type="checkbox" value="<%= p %>" id="poscb_<%= pi %>">
+                <label class="form-check-label small" for="poscb_<%= pi %>"><%= p %></label>
+              </div>
+              <% }) %>
+            </div>
           </div>
         </div>
       </div>
@@ -298,19 +346,39 @@
 let modalMode = 'add';
 const bsModal = new bootstrap.Modal(document.getElementById('userModal'));
 
-function toggleDept() {
+function toggleScope() {
   const role = document.getElementById('modal-role').value;
-  document.getElementById('dept-wrapper').style.display = role === 'user' ? '' : 'none';
+  document.getElementById('scope-wrapper').style.display = role === 'user' ? '' : 'none';
+}
+
+function toggleScopeType() {
+  const type = document.querySelector('input[name="scope-type"]:checked').value;
+  document.getElementById('dept-wrapper').style.display = type === 'department' ? '' : 'none';
+  document.getElementById('pos-wrapper').style.display  = type === 'position'   ? '' : 'none';
+}
+
+function setScopeType(type) {
+  document.querySelector(`input[name="scope-type"][value="${type}"]`).checked = true;
+  toggleScopeType();
 }
 
 function setCheckedDepts(depts) {
-  document.querySelectorAll('.dept-cb').forEach(cb => {
-    cb.checked = depts.includes(cb.value);
-  });
+  document.querySelectorAll('.dept-cb').forEach(cb => { cb.checked = depts.includes(cb.value); });
 }
-
+function setCheckedPosns(posns) {
+  document.querySelectorAll('.pos-cb').forEach(cb => { cb.checked = posns.includes(cb.value); });
+}
 function getCheckedDepts() {
   return [...document.querySelectorAll('.dept-cb:checked')].map(cb => cb.value);
+}
+function getCheckedPosns() {
+  return [...document.querySelectorAll('.pos-cb:checked')].map(cb => cb.value);
+}
+function filterPositions() {
+  const q = document.getElementById('pos-search').value.toLowerCase();
+  document.querySelectorAll('.pos-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
 }
 
 function openAddModal(dept, role) {
@@ -321,11 +389,15 @@ function openAddModal(dept, role) {
   document.getElementById('modal-username').value = '';
   document.getElementById('modal-password').value = '';
   document.getElementById('modal-role').value     = role || 'user';
+  document.getElementById('pos-search').value     = '';
+  filterPositions();
   setCheckedDepts(dept ? [dept] : []);
+  setCheckedPosns([]);
+  setScopeType('department');
   document.getElementById('username-wrapper').style.display = '';
   document.getElementById('password-label').textContent     = 'Password *';
   document.getElementById('password-hint').style.display    = 'none';
-  toggleDept();
+  toggleScope();
   bsModal.show();
 }
 
@@ -339,35 +411,49 @@ document.querySelectorAll('.edit-user-btn').forEach(btn => {
     document.getElementById('modal-username').value = '';
     document.getElementById('modal-password').value = '';
     document.getElementById('modal-role').value     = this.dataset.role;
+    document.getElementById('pos-search').value     = '';
+    filterPositions();
     const depts = JSON.parse(this.dataset.depts || '[]');
+    const posns = JSON.parse(this.dataset.posns || '[]');
     setCheckedDepts(depts);
+    setCheckedPosns(posns);
+    setScopeType(posns.length > 0 ? 'position' : 'department');
     document.getElementById('username-wrapper').style.display = 'none';
     document.getElementById('password-label').textContent     = 'New Password';
     document.getElementById('password-hint').style.display    = '';
-    toggleDept();
+    toggleScope();
     bsModal.show();
   });
 });
 
 // Save
 document.getElementById('saveUserBtn').addEventListener('click', async function() {
-  const name       = document.getElementById('modal-name').value.trim();
-  const username   = document.getElementById('modal-username').value.trim();
-  const password   = document.getElementById('modal-password').value.trim();
-  const role       = document.getElementById('modal-role').value;
+  const name     = document.getElementById('modal-name').value.trim();
+  const username = document.getElementById('modal-username').value.trim();
+  const password = document.getElementById('modal-password').value.trim();
+  const role     = document.getElementById('modal-role').value;
+  const id       = document.getElementById('modal-id').value;
+  const scopeType = document.querySelector('input[name="scope-type"]:checked').value;
   const departments = getCheckedDepts();
-  const id         = document.getElementById('modal-id').value;
+  const positions   = getCheckedPosns();
 
   if (!name) return alert('Name is required');
   if (modalMode === 'add' && (!username || !password)) return alert('Username and password are required');
-  if (role === 'user' && departments.length === 0) return alert('Please select at least one department');
+  if (role === 'user') {
+    if (scopeType === 'department' && departments.length === 0) return alert('Please select at least one department');
+    if (scopeType === 'position'   && positions.length   === 0) return alert('Please select at least one position');
+  }
 
   this.disabled = true;
   try {
     let url = '/admin/users', method = 'POST';
     if (modalMode === 'edit') { url = `/admin/users/${id}`; method = 'PUT'; }
 
-    const body = { name, role, departments: role === 'user' ? departments : [] };
+    const body = {
+      name, role,
+      departments: (role === 'user' && scopeType === 'department') ? departments : [],
+      positions:   (role === 'user' && scopeType === 'position')   ? positions   : [],
+    };
     if (modalMode === 'add') { body.username = username; body.password = password; }
     if (modalMode === 'edit' && password) body.password = password;
 
