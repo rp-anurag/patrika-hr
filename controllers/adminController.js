@@ -107,10 +107,18 @@ exports.dashboard = async (req, res) => {
         `SELECT status, COUNT(*) as count FROM candidates ${candFilterStatus} GROUP BY status`,
         { type: sequelize.QueryTypes.SELECT }
       ),
-      sequelize.query(
-        `SELECT p.name as position, COUNT(c.id) as count FROM positions p LEFT JOIN candidates c ON c.positionApplying COLLATE utf8mb4_general_ci = p.name COLLATE utf8mb4_general_ci WHERE p.isActive = 1 ${deptFilter} GROUP BY p.name ORDER BY count DESC`,
-        { type: sequelize.QueryTypes.SELECT }
-      ),
+      hasPosFilter
+        ? sequelize.query(
+            `SELECT positionApplying as position, COUNT(*) as count FROM candidates
+             ${candFilterStatus ? candFilterStatus + ' AND' : 'WHERE'}
+             positionApplying IS NOT NULL AND positionApplying != ''
+             GROUP BY positionApplying ORDER BY count DESC`,
+            { type: sequelize.QueryTypes.SELECT }
+          )
+        : sequelize.query(
+            `SELECT p.name as position, COUNT(c.id) as count FROM positions p LEFT JOIN candidates c ON c.positionApplying COLLATE utf8mb4_general_ci = p.name COLLATE utf8mb4_general_ci WHERE p.isActive = 1 ${deptFilter} GROUP BY p.name ORDER BY count DESC`,
+            { type: sequelize.QueryTypes.SELECT }
+          ),
       sequelize.query(
         `SELECT COUNT(*) as count FROM candidates ${candFilterStatus ? candFilterStatus + ' AND DATE(submittedAt) = CURDATE()' : 'WHERE DATE(submittedAt) = CURDATE()'}`,
         { type: sequelize.QueryTypes.SELECT }
