@@ -330,6 +330,14 @@
               </div>
               <% }) %>
             </div>
+            <div class="form-check mt-2 border-top pt-2">
+              <input class="form-check-input" type="checkbox" id="include-null-pos">
+              <label class="form-check-label small text-muted" for="include-null-pos">Also show candidates with <strong>no position assigned</strong></label>
+            </div>
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" id="inverse-pos">
+              <label class="form-check-label small text-muted" for="inverse-pos"><strong>Inverse</strong> — show all candidates <strong>EXCEPT</strong> selected positions</label>
+            </div>
           </div>
         </div>
       </div>
@@ -366,13 +374,19 @@ function setCheckedDepts(depts) {
   document.querySelectorAll('.dept-cb').forEach(cb => { cb.checked = depts.includes(cb.value); });
 }
 function setCheckedPosns(posns) {
-  document.querySelectorAll('.pos-cb').forEach(cb => { cb.checked = posns.includes(cb.value); });
+  const realPosns = posns.filter(p => p !== '__NULL__' && p !== '__INVERSE__');
+  document.querySelectorAll('.pos-cb').forEach(cb => { cb.checked = realPosns.includes(cb.value); });
+  document.getElementById('include-null-pos').checked = posns.includes('__NULL__');
+  document.getElementById('inverse-pos').checked = posns.includes('__INVERSE__');
 }
 function getCheckedDepts() {
   return [...document.querySelectorAll('.dept-cb:checked')].map(cb => cb.value);
 }
 function getCheckedPosns() {
-  return [...document.querySelectorAll('.pos-cb:checked')].map(cb => cb.value);
+  const posns = [...document.querySelectorAll('.pos-cb:checked')].map(cb => cb.value);
+  if (document.getElementById('include-null-pos').checked) posns.push('__NULL__');
+  if (document.getElementById('inverse-pos').checked) posns.push('__INVERSE__');
+  return posns;
 }
 function filterPositions() {
   const q = document.getElementById('pos-search').value.toLowerCase();
@@ -390,6 +404,8 @@ function openAddModal(dept, role) {
   document.getElementById('modal-password').value = '';
   document.getElementById('modal-role').value     = role || 'user';
   document.getElementById('pos-search').value     = '';
+  document.getElementById('include-null-pos').checked = false;
+  document.getElementById('inverse-pos').checked = false;
   filterPositions();
   setCheckedDepts(dept ? [dept] : []);
   setCheckedPosns([]);
@@ -441,7 +457,7 @@ document.getElementById('saveUserBtn').addEventListener('click', async function(
   if (modalMode === 'add' && (!username || !password)) return alert('Username and password are required');
   if (role === 'user') {
     if (scopeType === 'department' && departments.length === 0) return alert('Please select at least one department');
-    if (scopeType === 'position'   && positions.length   === 0) return alert('Please select at least one position');
+    if (scopeType === 'position'   && positions.filter(p => p !== '__NULL__').length === 0 && !positions.includes('__NULL__')) return alert('Please select at least one position');
   }
 
   this.disabled = true;

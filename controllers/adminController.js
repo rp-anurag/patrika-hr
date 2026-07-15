@@ -66,25 +66,41 @@ exports.dashboard = async (req, res) => {
   try {
     const isSuperAdmin = req.session.adminRole === 'admin';
     const depts = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
-    const posns = req.session.adminPositions || [];
+    const posns       = req.session.adminPositions || [];
+    const inclNull    = posns.includes('__NULL__');
+    const isInverse   = posns.includes('__INVERSE__');
+    const realPosns   = posns.filter(p => p !== '__NULL__' && p !== '__INVERSE__');
     const hasPosFilter  = !isSuperAdmin && posns.length > 0;
     const hasDeptFilter = !isSuperAdmin && !hasPosFilter && depts.length > 0;
     const hasFilter     = hasDeptFilter || hasPosFilter;
 
-    const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
-    const posnsEsc = posns.map(p => sequelize.escape(p)).join(',');
+    const deptsEsc  = depts.map(d => sequelize.escape(d)).join(',');
+    const posnsEsc  = realPosns.map(p => sequelize.escape(p)).join(',');
+    // __INVERSE__ = exclude realPosns; __NULL__ = also include null-position rows
+    const nullClause  = (inclNull || isInverse) ? ` OR c.positionApplying IS NULL OR c.positionApplying = ''` : '';
+    const nullClauseS = (inclNull || isInverse) ? ` OR positionApplying IS NULL OR positionApplying = ''` : '';
+    const inOp  = isInverse ? 'NOT IN' : 'IN';
 
     const deptFilter = hasDeptFilter ? `AND p.department IN (${deptsEsc})` : '';
     const candFilter = hasPosFilter
-      ? `WHERE (c.positionApplying COLLATE utf8mb4_unicode_ci IN (${posnsEsc}) OR c.positionApplying IS NULL OR c.positionApplying = '')`
+      ? `WHERE (c.positionApplying COLLATE utf8mb4_unicode_ci ${inOp} (${posnsEsc || "''"})${nullClause})`
       : hasDeptFilter
         ? `WHERE c.positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
         : '';
     const candFilterStatus = hasPosFilter
-      ? `WHERE (positionApplying COLLATE utf8mb4_unicode_ci IN (${posnsEsc}) OR positionApplying IS NULL OR positionApplying = '')`
+      ? `WHERE (positionApplying COLLATE utf8mb4_unicode_ci ${inOp} (${posnsEsc || "''"})${nullClauseS})`
       : hasDeptFilter
         ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
         : '';
+
+    // ORM where clause for position-scoped users
+    const posOrmWhere = isInverse
+      ? (inclNull
+          ? { [Op.or]: [{ positionApplying: { [Op.notIn]: realPosns } }, { positionApplying: null }, { positionApplying: '' }] }
+          : { positionApplying: { [Op.notIn]: realPosns } })
+      : (inclNull
+          ? { [Op.or]: [{ positionApplying: { [Op.in]: realPosns } }, { positionApplying: null }, { positionApplying: '' }] }
+          : { positionApplying: { [Op.in]: realPosns } });
 
     const [statusRows, positionRows, todayRows, recentCandidates, recentActivity, totalRow] = await Promise.all([
       sequelize.query(
@@ -101,7 +117,7 @@ exports.dashboard = async (req, res) => {
       ),
       Candidate.findAll({
         where: hasPosFilter
-          ? { [Op.or]: [{ positionApplying: { [Op.in]: posns } }, { positionApplying: null }, { positionApplying: '' }] }
+          ? posOrmWhere
           : hasDeptFilter
             ? { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } }
             : {},
@@ -117,7 +133,7 @@ exports.dashboard = async (req, res) => {
           as: 'candidate',
           attributes: ['fullName', 'id'],
           ...(hasPosFilter ? {
-            where: { [Op.or]: [{ positionApplying: { [Op.in]: posns } }, { positionApplying: null }, { positionApplying: '' }] },
+            where: posOrmWhere,
             required: true
           } : hasDeptFilter ? {
             where: { positionApplying: { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) } },
@@ -164,12 +180,18 @@ exports.candidatesList = async (req, res) => {
     const offset = (parseInt(page) - 1) * limit;
 
     const isSuperAdmin = req.session.adminRole === 'admin';
-    const depts = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
-    const posns = req.session.adminPositions || [];
+    const depts       = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
+    const posns       = req.session.adminPositions || [];
+    const inclNull    = posns.includes('__NULL__');
+    const isInverse   = posns.includes('__INVERSE__');
+    const realPosns   = posns.filter(p => p !== '__NULL__' && p !== '__INVERSE__');
     const hasPosFilter  = !isSuperAdmin && posns.length > 0;
     const hasDeptFilter = !isSuperAdmin && !hasPosFilter && depts.length > 0;
     const hasFilter     = hasDeptFilter || hasPosFilter;
-    const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
+    const deptsEsc  = depts.map(d => sequelize.escape(d)).join(',');
+    const posnsEsc  = realPosns.map(p => sequelize.escape(p)).join(',');
+    const nullClauseS = (inclNull || isInverse) ? ` OR positionApplying IS NULL OR positionApplying = ''` : '';
+    const inOp = isInverse ? 'NOT IN' : 'IN';
 
     // Build where clause
     const where = {};
@@ -189,12 +211,15 @@ exports.candidatesList = async (req, res) => {
       if (dateTo)   where.submittedAt[Op.lte] = new Date(dateTo + 'T23:59:59');
     }
     // Scope restriction for non-super-admin users
-    if (hasPosFilter) {
-      where[Op.or] = [{ positionApplying: { [Op.in]: posns } }, { positionApplying: null }, { positionApplying: '' }];
-      if (position && posns.includes(position)) { delete where[Op.or]; where.positionApplying = position; }
-    } else if (hasDeptFilter) {
+    if (hasPosFilter && !position) {
+      const nullParts = (inclNull || isInverse) ? [{ positionApplying: null }, { positionApplying: '' }] : [];
+      if (isInverse) {
+        where[Op.or] = [{ positionApplying: { [Op.notIn]: realPosns } }, ...nullParts];
+      } else {
+        where[Op.or] = [{ positionApplying: { [Op.in]: realPosns } }, ...nullParts];
+      }
+    } else if (hasDeptFilter && !position) {
       where.positionApplying = { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) };
-      if (position) where.positionApplying = position;
     }
 
     // Validate sort column to prevent SQL injection
@@ -202,9 +227,8 @@ exports.candidatesList = async (req, res) => {
     const safeSort  = SAFE_SORT_COLS.includes(sort) ? sort : 'submittedAt';
     const safeOrder = order === 'asc' ? 'ASC' : 'DESC';
 
-    const posnsEsc = posns.map(p => sequelize.escape(p)).join(',');
     const scopeStatusFilter = hasPosFilter
-      ? `WHERE (positionApplying COLLATE utf8mb4_unicode_ci IN (${posnsEsc}) OR positionApplying IS NULL OR positionApplying = '')`
+      ? `WHERE (positionApplying COLLATE utf8mb4_unicode_ci ${inOp} (${posnsEsc || "''"})${nullClauseS})`
       : hasDeptFilter
         ? `WHERE positionApplying COLLATE utf8mb4_unicode_ci IN (SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`
         : '';
@@ -222,8 +246,8 @@ exports.candidatesList = async (req, res) => {
         { type: sequelize.QueryTypes.SELECT }
       ),
       Position.findAll({
-        where: hasPosFilter
-          ? { name: { [Op.in]: posns } }
+        where: (hasPosFilter && !isInverse)
+          ? { name: { [Op.in]: realPosns } }
           : hasDeptFilter
             ? { department: { [Op.in]: depts } }
             : {},
