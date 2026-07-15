@@ -245,14 +245,13 @@ exports.candidatesList = async (req, res) => {
         `SELECT status, COUNT(*) as count FROM candidates ${scopeStatusFilter} GROUP BY status`,
         { type: sequelize.QueryTypes.SELECT }
       ),
-      Position.findAll({
-        where: (hasPosFilter && !isInverse)
-          ? { name: { [Op.in]: realPosns } }
-          : hasDeptFilter
-            ? { department: { [Op.in]: depts } }
-            : {},
-        order: [['sortOrder','ASC'],['name','ASC']]
-      })
+      sequelize.query(
+        `SELECT DISTINCT positionApplying as name FROM candidates
+         ${scopeStatusFilter ? scopeStatusFilter + ' AND' : 'WHERE'}
+         positionApplying IS NOT NULL AND positionApplying != ''
+         ORDER BY positionApplying ASC`,
+        { type: sequelize.QueryTypes.SELECT }
+      )
     ]);
 
     const statusCounts = {};
