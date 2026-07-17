@@ -693,9 +693,17 @@ exports.getStats = async (req, res) => {
 exports.exportCandidates = async (req, res) => {
   try {
     const { search, status, position } = req.query;
+    const isSuperAdmin = req.session.adminRole === 'admin';
+    const depts      = req.session.adminDepartments || (req.session.adminDepartment ? [req.session.adminDepartment] : []);
+    const posns      = req.session.adminPositions || [];
+    const inclNull   = posns.includes('__NULL__');
+    const isInverse  = posns.includes('__INVERSE__');
+    const realPosns  = posns.filter(p => p !== '__NULL__' && p !== '__INVERSE__');
+    const hasPosFilter  = !isSuperAdmin && posns.length > 0;
+    const hasDeptFilter = !isSuperAdmin && !hasPosFilter && depts.length > 0;
+    const deptsEsc = depts.map(d => sequelize.escape(d)).join(',');
+
     const where = {};
-    const deptScope = require('../utils/deptScope').deptWhere(req);
-    if (deptScope) Object.assign(where, deptScope);
     if (search) {
       where[Op.or] = [
         { fullName:      { [Op.like]: `%${search}%` } },
@@ -705,6 +713,18 @@ exports.exportCandidates = async (req, res) => {
     }
     if (status)   where.status           = status;
     if (position) where.positionApplying = position;
+
+    // Apply position/department scope
+    if (hasPosFilter && !position) {
+      const nullParts = (inclNull || isInverse) ? [{ positionApplying: null }, { positionApplying: '' }] : [];
+      if (isInverse) {
+        where[Op.or] = [{ positionApplying: { [Op.notIn]: realPosns } }, ...nullParts];
+      } else {
+        where[Op.or] = [{ positionApplying: { [Op.in]: realPosns } }, ...nullParts];
+      }
+    } else if (hasDeptFilter && !position) {
+      where.positionApplying = { [Op.in]: sequelize.literal(`(SELECT name COLLATE utf8mb4_unicode_ci FROM positions WHERE department IN (${deptsEsc}))`) };
+    }
 
     const candidates = await Candidate.findAll({ where, order: [['submittedAt','DESC']] });
 
