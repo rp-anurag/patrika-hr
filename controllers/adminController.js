@@ -509,6 +509,84 @@ exports.bulkMessage = async (req, res) => {
   }
 };
 
+// ─── NEWS TECH LAB — SEND INTERVIEW + GD INVITE ──────────────────────────────
+
+const NTL_POSITION = 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR';
+
+exports.sendNTLInvite = async (req, res) => {
+  try {
+    const candidate = await Candidate.findByPk(req.params.id);
+    if (!candidate) return res.status(404).json({ success: false, message: 'Candidate not found' });
+    if (candidate.positionApplying !== NTL_POSITION)
+      return res.status(400).json({ success: false, message: 'Not a News Tech Lab candidate' });
+
+    const { interviewDate, interviewSlot, interviewLink, gdLink, saveOnly } = req.body;
+    const isSaveOnly = saveOnly || req.query.saveOnly;
+
+    // Save to candidate record
+    await candidate.update({
+      ntlInterviewDate: interviewDate !== undefined ? interviewDate : candidate.ntlInterviewDate,
+      ntlInterviewSlot: interviewSlot !== undefined ? interviewSlot : candidate.ntlInterviewSlot,
+      ntlInterviewLink: interviewLink !== undefined ? interviewLink : candidate.ntlInterviewLink,
+      ntlGDLink:        gdLink        !== undefined ? gdLink        : candidate.ntlGDLink,
+      ...(isSaveOnly ? {} : { ntlInviteSentAt: new Date() })
+    });
+
+    if (isSaveOnly) return res.json({ success: true, message: 'Saved' });
+
+    if (!interviewLink && !gdLink && !candidate.ntlInterviewLink && !candidate.ntlGDLink)
+      return res.status(400).json({ success: false, message: 'Provide at least one link before sending' });
+
+    // Build email HTML
+    const rows = [];
+    if (interviewDate) rows.push(`<tr><td style="padding:6px 12px;font-weight:600;color:#555;white-space:nowrap">Date &amp; Time</td><td style="padding:6px 12px">${interviewDate}</td></tr>`);
+    if (interviewSlot) rows.push(`<tr><td style="padding:6px 12px;font-weight:600;color:#555;white-space:nowrap">Slot</td><td style="padding:6px 12px">${interviewSlot}</td></tr>`);
+    if (interviewLink) rows.push(`<tr><td style="padding:6px 12px;font-weight:600;color:#555;white-space:nowrap">Interview Link</td><td style="padding:6px 12px"><a href="${interviewLink}" style="color:#c8a84b">${interviewLink}</a></td></tr>`);
+    if (gdLink)        rows.push(`<tr><td style="padding:6px 12px;font-weight:600;color:#555;white-space:nowrap">GD Sheet Link</td><td style="padding:6px 12px"><a href="${gdLink}" style="color:#c8a84b">${gdLink}</a></td></tr>`);
+
+    const html = `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+  <div style="background:#1a1a2e;padding:20px 30px">
+    <h2 style="color:#c8a84b;margin:0">Patrika Group</h2>
+    <p style="color:#aaa;margin:4px 0 0">News Tech Lab — Junior Journalist</p>
+  </div>
+  <div style="padding:24px 30px;border:1px solid #e5e5e5;border-top:none">
+    <p style="font-size:15px">Dear <strong>${candidate.fullName}</strong>,</p>
+    <p>We are pleased to invite you for the selection process for the position of <strong>Junior Journalist – News Tech Lab</strong> at Patrika Group.</p>
+    <p>Please find your interview and group discussion details below:</p>
+    <table style="border-collapse:collapse;width:100%;margin:16px 0;background:#f9f9f9;border-radius:6px;overflow:hidden">
+      ${rows.join('')}
+    </table>
+    <p>Please ensure you join on time and keep this email handy for reference.</p>
+    <p style="margin-top:24px">Best regards,<br><strong>HR Team</strong><br>Patrika Group</p>
+  </div>
+</div>`;
+
+    await sendEmail({ to: candidate.email, subject: 'Interview Invitation – News Tech Lab, Patrika Group', html });
+
+    await Communication.create({
+      candidateId: candidate.id,
+      channel: 'Email',
+      subject: 'Interview Invitation – News Tech Lab, Patrika Group',
+      message: `Interview Date: ${interviewDate || '—'} | Slot: ${interviewSlot || '—'} | Interview Link: ${interviewLink || '—'} | GD Link: ${gdLink || '—'}`,
+      sentBy: req.session.adminName || 'Admin',
+      status: 'Sent'
+    });
+
+    await ActivityLog.create({
+      candidateId: candidate.id,
+      activityType: 'email_sent',
+      description: 'NTL interview + GD invite sent',
+      performedBy: req.session.adminName || 'Admin'
+    });
+
+    res.json({ success: true, message: 'Invite sent and saved' });
+  } catch (err) {
+    console.error('sendNTLInvite error:', err);
+    res.json({ success: false, message: err.message });
+  }
+};
+
 // ─── DOWNLOAD RESUME ──────────────────────────────────────────────────────────
 
 exports.downloadResume = async (req, res) => {

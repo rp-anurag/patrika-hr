@@ -364,6 +364,49 @@
             </div>
           </div>
 
+          <% if (candidate.positionApplying === 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR') { %>
+          <!-- News Tech Lab Interview + GD Invite -->
+          <div class="card shadow-sm mb-4 border-gold">
+            <div class="card-header d-flex justify-content-between align-items-center bg-gold-light">
+              <h6 class="mb-0"><i class="bi bi-newspaper me-2 text-gold"></i>News Tech Lab — Interview &amp; GD Invite</h6>
+              <% if (candidate.ntlInviteSentAt) { %>
+              <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Sent <%= new Date(candidate.ntlInviteSentAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) %></span>
+              <% } else { %>
+              <span class="badge bg-secondary">Not Sent</span>
+              <% } %>
+            </div>
+            <div class="card-body">
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Interview Date &amp; Time</label>
+                  <input type="text" class="form-control form-control-sm" id="ntlInterviewDate" placeholder="e.g. 25 July 2025, 10:00 AM" value="<%= candidate.ntlInterviewDate || '' %>">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Slot / Candidate No.</label>
+                  <input type="text" class="form-control form-control-sm" id="ntlInterviewSlot" placeholder="e.g. Slot 3 / Candidate #12" value="<%= candidate.ntlInterviewSlot || '' %>">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold">Interview Link</label>
+                  <input type="url" class="form-control form-control-sm" id="ntlInterviewLink" placeholder="https://meet.google.com/..." value="<%= candidate.ntlInterviewLink || '' %>">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold">Group Discussion Sheet Link</label>
+                  <input type="url" class="form-control form-control-sm" id="ntlGDLink" placeholder="https://docs.google.com/..." value="<%= candidate.ntlGDLink || '' %>">
+                </div>
+              </div>
+              <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-sm btn-gold" onclick="sendNTLInvite()" id="ntlSendBtn">
+                  <i class="bi bi-send-fill me-1"></i>Save &amp; Send Email
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="saveNTLOnly()" id="ntlSaveBtn">
+                  <i class="bi bi-floppy me-1"></i>Save Only
+                </button>
+              </div>
+              <div id="ntlResult" class="mt-2"></div>
+            </div>
+          </div>
+          <% } %>
+
           <!-- Personal Detail Form -->
           <div class="card shadow-sm mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -841,6 +884,64 @@
         if (d.success) window.location = '/admin/dashboard';
         else alert('Delete failed: ' + d.message);
       });
+  }
+
+  async function sendNTLInvite() {
+    const payload = {
+      interviewDate: document.getElementById('ntlInterviewDate').value.trim(),
+      interviewSlot: document.getElementById('ntlInterviewSlot').value.trim(),
+      interviewLink: document.getElementById('ntlInterviewLink').value.trim(),
+      gdLink:        document.getElementById('ntlGDLink').value.trim(),
+    };
+    if (!payload.interviewLink && !payload.gdLink)
+      return alert('Please enter at least an Interview Link or GD Sheet Link.');
+    const btn = document.getElementById('ntlSendBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+    try {
+      const r = await fetch('/admin/candidate/<%= candidate.id %>/ntl-invite', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const d = await r.json();
+      const el = document.getElementById('ntlResult');
+      if (d.success) {
+        el.innerHTML = `<div class="alert alert-success py-2 small mb-0"><i class="bi bi-check-circle me-1"></i>${d.message}</div>`;
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        el.innerHTML = `<div class="alert alert-danger py-2 small mb-0">${d.message}</div>`;
+        btn.disabled = false; btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Save &amp; Send Email';
+      }
+    } catch(e) {
+      document.getElementById('ntlResult').innerHTML = `<div class="alert alert-danger py-2 small mb-0">Network error: ${e.message}</div>`;
+      btn.disabled = false; btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Save &amp; Send Email';
+    }
+  }
+
+  async function saveNTLOnly() {
+    const payload = {
+      interviewDate: document.getElementById('ntlInterviewDate').value.trim(),
+      interviewSlot: document.getElementById('ntlInterviewSlot').value.trim(),
+      interviewLink: document.getElementById('ntlInterviewLink').value.trim(),
+      gdLink:        document.getElementById('ntlGDLink').value.trim(),
+      saveOnly: true
+    };
+    const btn = document.getElementById('ntlSaveBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+    try {
+      const r = await fetch('/admin/candidate/<%= candidate.id %>/ntl-invite?saveOnly=1', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const d = await r.json();
+      const el = document.getElementById('ntlResult');
+      if (d.success) {
+        el.innerHTML = `<div class="alert alert-success py-2 small mb-0"><i class="bi bi-check-circle me-1"></i>Details saved.</div>`;
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        el.innerHTML = `<div class="alert alert-danger py-2 small mb-0">${d.message}</div>`;
+      }
+    } catch(e) {
+      document.getElementById('ntlResult').innerHTML = `<div class="alert alert-danger py-2 small mb-0">Network error</div>`;
+    }
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-floppy me-1"></i>Save Only';
   }
 
   async function sendDetailForm() {

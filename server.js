@@ -181,6 +181,19 @@ connectDB().then(async () => {
   await migrateCandidateTests().catch(e => console.warn('Candidate tests table warning:', e.message));
   await migrateActivityLogEnum().catch(e => console.warn('Activity log enum warning:', e.message));
   await migrateCommunicationDirection().catch(e => console.warn('Communication direction warning:', e.message));
+  await (async () => {
+    const { sequelize } = require('./config/db');
+    const ntlCols = ['ntlInterviewDate','ntlInterviewSlot','ntlInterviewLink','ntlGDLink','ntlInviteSentAt'];
+    const [existing] = await sequelize.query("SHOW COLUMNS FROM candidates LIKE 'ntlInterviewDate'");
+    if (!existing.length) {
+      await sequelize.query(`ALTER TABLE candidates
+        ADD COLUMN ntlInterviewDate VARCHAR(100) DEFAULT NULL,
+        ADD COLUMN ntlInterviewSlot VARCHAR(100) DEFAULT NULL,
+        ADD COLUMN ntlInterviewLink VARCHAR(1000) DEFAULT NULL,
+        ADD COLUMN ntlGDLink VARCHAR(1000) DEFAULT NULL,
+        ADD COLUMN ntlInviteSentAt DATETIME DEFAULT NULL`);
+    }
+  })().catch(e => console.warn('NTL columns migration warning:', e.message));
   await seedDepartments().catch(e => console.warn('Dept seed warning:', e.message));
   app.listen(PORT, '0.0.0.0', async () => {
     console.log(`\n========================================`);

@@ -61,6 +61,13 @@ const Candidate = sequelize.define('Candidate', {
   gradeSource: { type: DataTypes.STRING(20) },
   analystReport: { type: DataTypes.TEXT('long') }, // full Talent Analyst JSON report
 
+  // News Tech Lab invite fields
+  ntlInterviewDate:  { type: DataTypes.STRING(100) },
+  ntlInterviewSlot:  { type: DataTypes.STRING(100) },
+  ntlInterviewLink:  { type: DataTypes.STRING(1000) },
+  ntlGDLink:         { type: DataTypes.STRING(1000) },
+  ntlInviteSentAt:   { type: DataTypes.DATE },
+
   // ── Virtuals (keep view templates unchanged from MongoDB version) ────────────
 
   currentPackage: {

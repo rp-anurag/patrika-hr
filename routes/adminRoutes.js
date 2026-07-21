@@ -51,7 +51,8 @@ router.get('/', requireAdmin, (req, res) => res.redirect('/admin/dashboard'));
 // Candidate CRUD
 router.get('/candidate/:id', requireAdmin, requireCandidateAccess, adminController.candidateDetail);
 router.post('/candidate/:id/update', requireAdmin, requireCandidateAccess, adminController.updateCandidate);
-router.post('/candidate/:id/communicate', requireAdmin, requireCandidateAccess, adminController.sendCommunication);
+router.post('/candidate/:id/communicate',   requireAdmin, requireCandidateAccess, adminController.sendCommunication);
+router.post('/candidate/:id/ntl-invite',    requireAdmin, requireCandidateAccess, adminController.sendNTLInvite);
 router.get('/candidate/:id/download', requireAdmin, requireCandidateAccess, adminController.downloadResume);
 router.get('/candidate/:id/preview',  requireAdmin, requireCandidateAccess, adminController.previewResume);
 router.delete('/candidate/:id', requireAdmin, requireCandidateAccess, adminController.deleteCandidate);
