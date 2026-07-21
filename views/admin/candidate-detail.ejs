@@ -966,24 +966,31 @@
   }
 
   // ── AI Talent Analyst ─────────────────────────────────────────────────────
-  async function runAnalyst() {
+  async function runAnalyst(force) {
+    const hasExisting = <%= analystRpt ? 'true' : 'false' %>;
+    // If report exists and not forcing, confirm before re-running
+    if (hasExisting && !force) {
+      if (!confirm('This candidate already has a graded report.\n\nRe-analysing will overwrite the existing score and may give a slightly different result.\n\nAre you sure you want to re-analyse?')) return;
+      return runAnalyst(true);
+    }
     const btn = document.getElementById('runAnalystBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Analysing...';
+    const url = '/admin/candidate/<%= candidate.id %>/grade' + (force ? '?force=1' : '');
     try {
-      const r = await fetch('/admin/candidate/<%= candidate.id %>/grade', { method: 'POST' });
+      const r = await fetch(url, { method: 'POST' });
       const d = await r.json();
       if (d.success) {
         location.reload();
       } else {
         alert('Analysis failed: ' + (d.error || 'Unknown error'));
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Run Analysis';
+        btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i><%= analystRpt ? "Re-analyse" : "Run Analysis" %>';
       }
     } catch(e) {
       alert('Network error: ' + e.message);
       btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Run Analysis';
+      btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i><%= analystRpt ? "Re-analyse" : "Run Analysis" %>';
     }
   }
 
