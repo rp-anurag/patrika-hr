@@ -898,10 +898,9 @@ exports.gradeOne = async (req, res) => {
     if (!c) { console.log('[gradeOne] candidate not found'); return res.status(404).json({ error: 'Not found' }); }
     console.log('[gradeOne] candidate:', c.fullName, '| position:', c.positionApplying);
 
-    // Return cached report unless ?force=1 is explicitly passed
-    const forceReanalysis = req.query.force === '1' || req.body.force === true;
-    if (!forceReanalysis && c.analystReport) {
-      console.log('[gradeOne] returning cached report (no force flag)');
+    // Report is locked once set — never overwrite unless explicitly cleared from DB
+    if (c.analystReport) {
+      console.log('[gradeOne] report already exists — returning cached (locked)');
       let cached;
       try { cached = JSON.parse(c.analystReport); } catch(e) { cached = null; }
       if (cached && cached.tier) return res.json({ success: true, cached: true, report: cached });

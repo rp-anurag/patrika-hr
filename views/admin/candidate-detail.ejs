@@ -281,10 +281,12 @@
                 <span class="badge bg-<%= {A:'success',B:'primary',C:'warning'}[analystRpt.tier] || 'secondary' %>">
                   Tier <%= analystRpt.tier %> · <%= analystRpt.weightedTotal %>/100
                 </span>
-                <% } %>
+                <span class="badge bg-secondary"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                <% } else { %>
                 <button class="btn btn-sm btn-outline-primary" id="runAnalystBtn" onclick="runAnalyst()">
-                  <i class="bi bi-arrow-repeat me-1"></i><%= analystRpt ? 'Re-analyse' : 'Run Analysis' %>
+                  <i class="bi bi-play-fill me-1"></i>Run Analysis
                 </button>
+                <% } %>
               </div>
             </div>
             <div class="card-body">

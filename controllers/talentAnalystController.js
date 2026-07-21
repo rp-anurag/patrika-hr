@@ -50,6 +50,16 @@ exports.analyse = async (req, res) => {
     const results = [];
 
     for (const c of candidates) {
+      // Skip candidates that already have a report — score is locked
+      if (c.analystReport) {
+        try {
+          const existing = JSON.parse(c.analystReport);
+          if (existing && existing.tier) {
+            results.push({ candidateId: c.id, candidateName: c.fullName, position: c.positionApplying, currentGrade: c.grade, report: existing, cached: true });
+            continue;
+          }
+        } catch(e) {}
+      }
       const effectiveRubric = c.positionApplying === NTL_POSITION ? ntlCustomRubric : customRubric;
       const report = await analyseCandidate(c, jd || '', roleName || c.positionApplying, effectiveRubric);
 
