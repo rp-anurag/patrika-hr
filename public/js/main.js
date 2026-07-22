@@ -64,10 +64,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   function handleFile(file) {
-    const allowed = ['application/pdf', 'application/msword',
+    const allowedTypes = ['application/pdf', 'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const allowedExts = ['.pdf', '.doc', '.docx'];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
 
-    if (!allowed.includes(file.type)) {
+    // Firefox sometimes returns empty string for file.type — fall back to extension check
+    const typeOk = file.type ? allowedTypes.includes(file.type) : allowedExts.includes(ext);
+    if (!typeOk && !allowedExts.includes(ext)) {
       alert('Only PDF, DOC, and DOCX files are allowed.');
       return;
     }
