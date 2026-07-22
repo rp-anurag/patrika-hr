@@ -116,6 +116,13 @@ router.delete('/users/:id',   requireSuperAdmin, userController.deleteUser);
 router.get('/talent-analyst',         requireAdmin, talentAnalystController.showPage);
 router.post('/talent-analyst/analyse', requireAdmin, talentAnalystController.analyse);
 
+// Smart Fit Analyzer
+const smartFitController = require('../controllers/smartFitController');
+router.get('/smart-fit',               requireAdmin, smartFitController.showPage);
+router.post('/smart-fit/config',       requireAdmin, smartFitController.saveConfig);
+router.post('/smart-fit/analyse',      requireAdmin, smartFitController.analyse);
+router.get('/smart-fit/scores',        requireAdmin, smartFitController.getScores);
+
 // Manpower Requisitions
 router.post('/requisitions/send-form',   requireAdmin, requisitionController.sendFormToEmail);
 router.get('/requisitions',              requireAdmin, requisitionController.listRequisitions);

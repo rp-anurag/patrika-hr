@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/admin.css?v=<%= v %>">
+  <style>
+    .param-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 14px 16px; background: #fff; transition: border-color .2s; }
+    .param-card.enabled { border-color: #0d6efd; background: #f0f5ff; }
+    .param-card .param-label { font-weight: 600; font-size: .92rem; }
+    .param-card .param-desc  { font-size: .78rem; color: #6c757d; margin-top: 2px; }
+    .weight-input { width: 90px; }
+    .total-badge { font-size: 1.1rem; font-weight: 700; }
+    .score-bar { height: 10px; border-radius: 5px; background: #e9ecef; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 5px; transition: width .4s; }
+    .score-fill.hi  { background: #198754; }
+    .score-fill.mid { background: #ffc107; }
+    .score-fill.lo  { background: #dc3545; }
+    .result-row td { vertical-align: middle; }
+    .breakdown-cell { font-size: .78rem; }
+    .breakdown-cell .bd-param { margin-bottom: 3px; }
+    .confidence-badge { font-size: .68rem; padding: 1px 5px; }
+    .spinner-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; color: #fff; }
+    .spinner-overlay.show { display: flex; }
+    .progress-log { max-height: 90px; overflow-y: auto; font-size: .78rem; margin-top: 8px; opacity: .85; }
+  </style>
+</head>
+<body>
+<div class="admin-wrapper">
+
+  <!-- Sidebar -->
+  <nav class="admin-sidebar d-flex flex-column">
+    <div class="sidebar-brand">
+      <img src="/images/patrika-logo.png" alt="Patrika" class="sidebar-logo" onerror="this.style.display='none'">
+      <div>
+        <div class="fw-bold text-gold">Patrika HR</div>
+        <small class="text-white-50">Admin Panel</small>
+      </div>
+    </div>
+    <hr class="border-secondary my-2">
+    <ul class="nav flex-column px-2 flex-grow-1">
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/candidates"><i class="bi bi-people-fill me-2"></i>Candidates</a></li>
+      <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/positions"><i class="bi bi-briefcase-fill me-2"></i>Positions</a></li>
+      <% } %>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/requisitions"><i class="bi bi-clipboard-check-fill me-2"></i>Requisitions</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/talent-analyst"><i class="bi bi-robot me-2"></i>Talent Analyst</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link active" href="/admin/smart-fit"><i class="bi bi-stars me-2"></i>Smart Fit Analyzer</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/resume-parser"><i class="bi bi-file-earmark-text me-2"></i>Resume Parser</a></li>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/apply" target="_blank"><i class="bi bi-file-earmark-person me-2"></i>Application Form</a></li>
+      <% if (typeof adminRole === 'undefined' || adminRole === 'admin') { %>
+      <li class="nav-item"><a class="nav-link sidebar-link" href="/admin/users"><i class="bi bi-person-gear me-2"></i>User Management</a></li>
+      <% } %>
+    </ul>
+    <div class="px-2 pb-3">
+      <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Logout</a>
+      <p class="text-white-50 text-center mt-2 mb-0" style="font-size:11px;">
+        Logged in as <strong><%= adminName %></strong>
+        <% if (typeof adminDepartment !== 'undefined' && adminDepartment) { %>
+        <span class="badge bg-warning text-dark d-block mt-1"><%= adminDepartment %></span>
+        <% } %>
+      </p>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <div class="admin-topbar d-flex align-items-center justify-content-between">
+      <h5 class="mb-0 fw-bold"><i class="bi bi-stars me-2 text-gold"></i>Smart Fit Analyzer</h5>
+      <small class="text-muted">Score candidates on custom parameters — separate from AI Talent Analyst grades</small>
+    </div>
+
+    <div class="p-4">
+
+      <!-- Step 1: Position & Parameters -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white fw-semibold">
+          <i class="bi bi-sliders me-2"></i>Step 1 — Select Position &amp; Configure Parameters
+        </div>
+        <div class="card-body">
+          <div class="row g-3 align-items-end mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Position</label>
+              <select id="posSelect" class="form-select" onchange="onPositionChange()">
+                <option value="">— Choose a position —</option>
+                <% positions.forEach(p => { %>
+                <option value="<%= p.name %>"><%= p.name %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <div class="alert alert-info mb-0 py-2" id="configStatus" style="display:none;"></div>
+            </div>
+          </div>
+
+          <!-- Parameter Cards -->
+          <div id="paramSection" style="display:none;">
+            <p class="text-muted small mb-3">Enable the parameters you want to evaluate and set their weightages. <strong>Total must equal 100%.</strong></p>
+            <div class="row g-3" id="paramCards">
+              <%
+                const paramKeys = Object.keys(paramMeta);
+              %>
+              <% paramKeys.forEach(key => { %>
+              <div class="col-md-6 col-lg-4">
+                <div class="param-card" id="card-<%= key %>">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox" id="chk-<%= key %>"
+                        onchange="toggleParam('<%= key %>')" style="cursor:pointer;">
+                    </div>
+                    <label class="param-label mb-0" for="chk-<%= key %>"><%= paramMeta[key].label %></label>
+                  </div>
+                  <p class="param-desc mb-2"><%= paramMeta[key].desc %></p>
+                  <div class="d-flex align-items-center gap-2" id="weight-row-<%= key %>" style="display:none !important;">
+                    <input type="number" class="form-control form-control-sm weight-input"
+                      id="wt-<%= key %>" min="0" max="100" value="0"
+                      onchange="updateTotal()" oninput="updateTotal()">
+                    <span class="text-muted">%</span>
+                  </div>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+
+            <!-- Total & Save Config -->
+            <div class="d-flex align-items-center gap-3 mt-4 flex-wrap">
+              <div>
+                <span class="text-muted me-2">Total Weightage:</span>
+                <span id="totalDisplay" class="total-badge text-danger">0%</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" onclick="saveConfig()">
+                <i class="bi bi-save me-1"></i>Save Configuration
+              </button>
+              <button class="btn btn-success" onclick="startAnalysis()" id="analyseBtn" disabled>
+                <i class="bi bi-play-fill me-1"></i>Run Smart Fit Analysis
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadSavedScores()" id="loadScoresBtn" style="display:none;">
+                <i class="bi bi-cloud-download me-1"></i>Load Previous Scores
+              </button>
+            </div>
+            <div id="configMsg" class="mt-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsSection" style="display:none;">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span class="fw-semibold"><i class="bi bi-bar-chart-fill me-2 text-gold"></i>Results — <span id="resultsPositionLabel"></span></span>
+            <div class="d-flex gap-2">
+              <span class="badge bg-secondary" id="resultCount"></span>
+              <button class="btn btn-sm btn-outline-success" onclick="exportResults()"><i class="bi bi-download me-1"></i>Export CSV</button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="resultsTable">
+                <thead class="table-dark">
+                  <tr>
+                    <th style="width:36px;">#</th>
+                    <th>Candidate</th>
+                    <th>Status</th>
+                    <th>Location</th>
+                    <th style="width:130px;">Fit Score</th>
+                    <th>Parameter Breakdown</th>
+                    <th>Summary</th>
+                    <th style="width:80px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /p-4 -->
+  </main>
+</div>
+
+<!-- Spinner Overlay -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-border text-light mb-3" style="width:3rem;height:3rem;"></div>
+  <div class="fw-semibold fs-5" id="spinnerMsg">Analysing candidates…</div>
+  <div class="progress-log" id="progressLog"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  const savedConfigs = <%- JSON.stringify(savedConfigs) %>;
+  const paramKeys    = <%- JSON.stringify(Object.keys(paramMeta)) %>;
+  let lastResults    = [];
+  let currentPosition = '';
+
+  // ── Position change ────────────────────────────────────────────────────────
+  function onPositionChange() {
+    currentPosition = document.getElementById('posSelect').value;
+    document.getElementById('paramSection').style.display = currentPosition ? '' : 'none';
+    document.getElementById('resultsSection').style.display = 'none';
+
+    if (!currentPosition) return;
+
+    // Load saved config for this position if exists
+    const cfg = savedConfigs[currentPosition];
+    if (cfg) {
+      paramKeys.forEach(k => {
+        const chk = document.getElementById('chk-' + k);
+        const wt  = document.getElementById('wt-' + k);
+        if (cfg[k] && cfg[k] > 0) {
+          chk.checked = true;
+          wt.value = cfg[k];
+          updateParamCard(k, true);
+        } else {
+          chk.checked = false;
+          wt.value = 0;
+          updateParamCard(k, false);
+        }
+      });
+      showConfigStatus(`Saved configuration loaded for this position.`, 'info');
+    } else {
+      // Reset all
+      paramKeys.forEach(k => {
+        document.getElementById('chk-' + k).checked = false;
+        document.getElementById('wt-' + k).value = 0;
+        updateParamCard(k, false);
+      });
+      document.getElementById('configStatus').style.display = 'none';
+    }
+    updateTotal();
+
+    // Show "load previous scores" button if we might have scores
+    document.getElementById('loadScoresBtn').style.display = '';
+  }
+
+  function showConfigStatus(msg, type) {
+    const el = document.getElementById('configStatus');
+    el.className = 'alert alert-' + type + ' mb-0 py-2';
+    el.textContent = msg;
+    el.style.display = '';
+  }
+
+  // ── Toggle param ───────────────────────────────────────────────────────────
+  function toggleParam(key) {
+    const enabled = document.getElementById('chk-' + key).checked;
+    updateParamCard(key, enabled);
+    if (!enabled) {
+      document.getElementById('wt-' + key).value = 0;
+    }
+    updateTotal();
+  }
+
+  function updateParamCard(key, enabled) {
+    const card = document.getElementById('card-' + key);
+    const row  = document.getElementById('weight-row-' + key);
+    if (enabled) {
+      card.classList.add('enabled');
+      row.style.setProperty('display', 'flex', 'important');
+    } else {
+      card.classList.remove('enabled');
+      row.style.setProperty('display', 'none', 'important');
+    }
+  }
+
+  // ── Total weightage ────────────────────────────────────────────────────────
+  function updateTotal() {
+    let total = 0;
+    paramKeys.forEach(k => {
+      if (document.getElementById('chk-' + k).checked) {
+        total += parseFloat(document.getElementById('wt-' + k).value) || 0;
+      }
+    });
+    total = Math.round(total * 10) / 10;
+    const el = document.getElementById('totalDisplay');
+    el.textContent = total + '%';
+    el.className = 'total-badge ' + (total === 100 ? 'text-success' : total > 100 ? 'text-danger' : 'text-warning');
+
+    const btn = document.getElementById('analyseBtn');
+    btn.disabled = (total !== 100 || !currentPosition);
+  }
+
+  // ── Build config object ────────────────────────────────────────────────────
+  function buildConfig() {
+    const config = {};
+    paramKeys.forEach(k => {
+      if (document.getElementById('chk-' + k).checked) {
+        const v = parseFloat(document.getElementById('wt-' + k).value) || 0;
+        if (v > 0) config[k] = v;
+      }
+    });
+    return config;
+  }
+
+  // ── Save config ────────────────────────────────────────────────────────────
+  async function saveConfig() {
+    if (!currentPosition) return alert('Please select a position first.');
+    const config = buildConfig();
+    const total  = Object.values(config).reduce((s,v)=>s+v, 0);
+    if (Math.round(total) !== 100) return alert('Total weightage must be exactly 100%.');
+
+    try {
+      const r = await fetch('/admin/smart-fit/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ positionName: currentPosition, config })
+      });
+      const j = await r.json();
+      if (j.success) {
+        savedConfigs[currentPosition] = config;
+        showMsg('configMsg', 'Configuration saved successfully.', 'success');
+      } else {
+        showMsg('configMsg', 'Error: ' + j.error, 'danger');
+      }
+    } catch(e) {
+      showMsg('configMsg', 'Network error: ' + e.message, 'danger');
+    }
+  }
+
+  // ── Run analysis ───────────────────────────────────────────────────────────
+  async function startAnalysis() {
+    if (!currentPosition) return;
+    const config = buildConfig();
+
+    showSpinner('Fetching candidates and running AI analysis…\nThis may take a few minutes depending on candidate count.');
+
+    try {
+      const r = await fetch('/admin/smart-fit/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ positionName: currentPosition, config })
+      });
+      const j = await r.json();
+      hideSpinner();
+      if (j.success) {
+        lastResults = j.results || [];
+        renderResults(j.results, currentPosition);
+      } else {
+        alert('Analysis failed: ' + j.error);
+      }
+    } catch(e) {
+      hideSpinner();
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  // ── Load saved scores ──────────────────────────────────────────────────────
+  async function loadSavedScores() {
+    if (!currentPosition) return;
+    showSpinner('Loading saved scores…');
+    try {
+      const r = await fetch('/admin/smart-fit/scores?positionName=' + encodeURIComponent(currentPosition));
+      const j = await r.json();
+      hideSpinner();
+      if (j.success) {
+        if (!j.results.length) {
+          showMsg('configMsg', 'No saved scores found for this position. Run analysis first.', 'warning');
+          return;
+        }
+        lastResults = j.results;
+        renderResults(j.results, currentPosition);
+        showMsg('configMsg', `Loaded ${j.results.length} saved score(s) from database.`, 'info');
+      } else {
+        alert('Error: ' + j.error);
+      }
+    } catch(e) {
+      hideSpinner();
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  // ── Render results ─────────────────────────────────────────────────────────
+  function renderResults(results, posName) {
+    document.getElementById('resultsSection').style.display = '';
+    document.getElementById('resultsPositionLabel').textContent = posName;
+    document.getElementById('resultCount').textContent = results.length + ' candidate(s)';
+
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = '';
+
+    results.forEach((r, i) => {
+      const score = r.fit ? r.fit.total : null;
+      const scoreClass = score === null ? '' : score >= 70 ? 'hi' : score >= 45 ? 'mid' : 'lo';
+      const scoreText  = score === null ? '<span class="text-danger">Failed</span>' :
+        `<div class="d-flex align-items-center gap-2">
+          <span class="fw-bold">${score}</span>
+          <div class="score-bar flex-grow-1"><div class="score-fill ${scoreClass}" style="width:${score}%"></div></div>
+        </div>`;
+
+      let breakdown = '';
+      if (r.fit && r.fit.scores) {
+        breakdown = Object.entries(r.fit.scores).map(([k, v]) => {
+          const conf = v.confidence || '';
+          const confBadge = conf === 'High' ? 'bg-success' : conf === 'Medium' ? 'bg-warning text-dark' : 'bg-secondary';
+          return `<div class="bd-param"><strong>${paramLabel(k)}:</strong> ${v.score}/5 ` +
+            `<span class="badge ${confBadge} confidence-badge">${conf}</span><br>` +
+            `<span class="text-muted">${v.evidence || ''}</span></div>`;
+        }).join('');
+      }
+
+      const summary = r.fit && r.fit.summary ? r.fit.summary : (r.error || '');
+
+      const analysedAt = r.analysedAt ? new Date(r.analysedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '';
+
+      const tr = document.createElement('tr');
+      tr.className = 'result-row';
+      tr.innerHTML = `
+        <td class="text-muted">${i+1}</td>
+        <td>
+          <a href="/admin/candidate/${r.candidateId}" target="_blank" class="fw-semibold text-decoration-none">
+            ${esc(r.name)}
+          </a>
+          ${analysedAt ? `<div class="text-muted" style="font-size:.74rem;">Analysed ${analysedAt}</div>` : ''}
+        </td>
+        <td>${statusBadge(r.status)}</td>
+        <td class="text-muted">${esc(r.location || '—')}</td>
+        <td>${scoreText}</td>
+        <td class="breakdown-cell">${breakdown}</td>
+        <td style="font-size:.8rem;">${esc(summary)}</td>
+        <td>
+          <a href="/admin/candidate/${r.candidateId}" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-person-lines-fill"></i>
+          </a>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const PARAM_LABELS = <%- JSON.stringify(Object.fromEntries(Object.entries(paramMeta).map(([k,v])=>[k,v.label]))) %>;
+  function paramLabel(k) { return PARAM_LABELS[k] || k; }
+
+  function statusBadge(s) {
+    if (!s) return '<span class="text-muted">—</span>';
+    const map = {
+      'New': 'secondary', 'Under Review': 'info', 'Shortlisted': 'primary',
+      'Interview Scheduled': 'warning text-dark', 'Offer Extended': 'success',
+      'Hired': 'dark', 'Rejected': 'danger'
+    };
+    const cls = map[s] || 'secondary';
+    return `<span class="badge bg-${cls}">${esc(s)}</span>`;
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Export CSV ─────────────────────────────────────────────────────────────
+  function exportResults() {
+    if (!lastResults.length) return;
+    const rows = [['#','Name','Status','Location','Fit Score',
+      ...Object.values(PARAM_LABELS).map(l => l + ' Score'),
+      ...Object.values(PARAM_LABELS).map(l => l + ' Evidence'),
+      'Summary']];
+
+    lastResults.forEach((r, i) => {
+      const scores  = paramKeys.map(k => r.fit?.scores?.[k]?.score ?? '');
+      const evid    = paramKeys.map(k => r.fit?.scores?.[k]?.evidence ?? '');
+      rows.push([i+1, r.name, r.status||'', r.location||'', r.fit?.total ?? '',
+        ...scores, ...evid, r.fit?.summary || '']);
+    });
+
+    const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'smart-fit-' + currentPosition.substring(0, 40).replace(/[^a-z0-9]/gi,'_') + '.csv';
+    a.click();
+  }
+
+  // ── Spinner ────────────────────────────────────────────────────────────────
+  function showSpinner(msg) {
+    document.getElementById('spinnerMsg').textContent = msg;
+    document.getElementById('spinnerOverlay').classList.add('show');
+  }
+  function hideSpinner() {
+    document.getElementById('spinnerOverlay').classList.remove('show');
+  }
+
+  // ── Util ───────────────────────────────────────────────────────────────────
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.innerHTML = `<div class="alert alert-${type} py-2 mb-0 mt-2">${msg}</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 5000);
+  }
+</script>
+</body>
+</html>
