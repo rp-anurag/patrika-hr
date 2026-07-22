@@ -369,7 +369,7 @@
   const JOB_DESCRIPTIONS = <%- JSON.stringify(positions.reduce((acc, p) => {
     if (p.badge || p.jdHtml) acc[p.name] = { badge: p.badge, html: p.jdHtml };
     return acc;
-  }, {})) %>;
+  }, {})).replace(/<\//g, '<\\/') %>;
 
 
 

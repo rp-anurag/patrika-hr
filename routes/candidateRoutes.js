@@ -5,9 +5,13 @@ const path = require('path');
 const candidateController = require('../controllers/candidateController');
 
 const fileFilter = (req, file, cb) => {
-  const allowed = ['application/pdf', 'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-  if (allowed.includes(file.mimetype)) cb(null, true);
+  const allowedMimes = ['application/pdf', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/octet-stream']; // Firefox sends octet-stream for docx
+  const allowedExts = ['.pdf', '.doc', '.docx'];
+  const ext = require('path').extname(file.originalname).toLowerCase();
+  if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) cb(null, true);
+  else if (allowedExts.includes(ext)) cb(null, true); // trust extension when mime is wrong
   else cb(new Error('Only PDF, DOC, and DOCX files are allowed'), false);
 };
 
