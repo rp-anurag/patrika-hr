@@ -102,18 +102,60 @@ exports.submitForm = async (req, res) => {
             parsedEducation:         JSON.stringify(parsed.education || []),
             parsedRawText:           parsed.rawText
           };
-          // Compute grade against JD (AI-first, keyword fallback)
-          const pos = await Position.findOne({ where: { name: positionApplying } }).catch(() => null);
+          const NTL_POSITION = 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR';
           const gradedCandidate = { ...parsedFields, parsedRawText: parsed.rawText };
-          const gradeResult = await computeGradeAsync(gradedCandidate, pos ? pos.jdHtml : '', positionApplying);
-          await Candidate.update({
-            ...parsedFields,
-            grade:         gradeResult.grade,
-            gradeScore:    gradeResult.score,
-            gradeReason:   gradeResult.gradeReason,
-            gradeSource:   gradeResult.gradeSource,
-            analystReport: gradeResult.analystReport || null
-          }, { where: { id: candidate.id } });
+
+          if (positionApplying === NTL_POSITION) {
+            // NTL position: auto-grade with Smart Fit Analyzer
+            try {
+              const { analyseSmartFit } = require('../utils/smartFitAnalyst');
+              const { sequelize }       = require('../config/db');
+              const [cfgRows] = await sequelize.query(
+                'SELECT config FROM smart_fit_configs WHERE positionName = ?',
+                { replacements: [NTL_POSITION] }
+              );
+              if (cfgRows.length) {
+                const config = JSON.parse(cfgRows[0].config);
+                const fit = await analyseSmartFit(gradedCandidate, NTL_POSITION, config);
+                if (fit) {
+                  const score = fit.total;
+                  const grade = score >= 75 ? 'A' : score >= 50 ? 'B' : score >= 25 ? 'C' : 'D';
+                  await Candidate.update({
+                    ...parsedFields,
+                    grade,
+                    gradeScore:  score,
+                    gradeReason: (fit.summary || '').substring(0, 1000),
+                    gradeSource: 'smart-fit'
+                  }, { where: { id: candidate.id } });
+                  await sequelize.query(
+                    `INSERT INTO smart_fit_scores (candidateId, positionName, totalScore, breakdown, configSnapshot, analysedAt)
+                     VALUES (?, ?, ?, ?, ?, NOW())
+                     ON DUPLICATE KEY UPDATE totalScore=VALUES(totalScore), breakdown=VALUES(breakdown),
+                       configSnapshot=VALUES(configSnapshot), analysedAt=NOW()`,
+                    { replacements: [candidate.id, NTL_POSITION, score, JSON.stringify(fit), JSON.stringify(config)] }
+                  );
+                  console.log('[autoGrade] NTL smart-fit grade:', grade, 'score:', score, 'for', fullName);
+                  return; // done
+                }
+              }
+            } catch (sfErr) {
+              console.error('[autoGrade] Smart Fit error:', sfErr.message);
+            }
+            // fallback: save parsed fields only (no grade) if Smart Fit fails or no config
+            await Candidate.update({ ...parsedFields }, { where: { id: candidate.id } });
+          } else {
+            // All other positions: existing AI-first / keyword grading
+            const pos = await Position.findOne({ where: { name: positionApplying } }).catch(() => null);
+            const gradeResult = await computeGradeAsync(gradedCandidate, pos ? pos.jdHtml : '', positionApplying);
+            await Candidate.update({
+              ...parsedFields,
+              grade:         gradeResult.grade,
+              gradeScore:    gradeResult.score,
+              gradeReason:   gradeResult.gradeReason,
+              gradeSource:   gradeResult.gradeSource,
+              analystReport: gradeResult.analystReport || null
+            }, { where: { id: candidate.id } });
+          }
         })
         .catch(err => console.error('Parse save error:', err.message));
     }
