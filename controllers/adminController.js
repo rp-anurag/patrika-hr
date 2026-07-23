@@ -905,6 +905,46 @@ exports.gradeOne = async (req, res) => {
     if (!c) { console.log('[gradeOne] candidate not found'); return res.status(404).json({ error: 'Not found' }); }
     console.log('[gradeOne] candidate:', c.fullName, '| position:', c.positionApplying);
 
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) { console.log('[gradeOne] no API key'); return res.status(400).json({ success: false, error: 'GROQ_API_KEY not configured' }); }
+
+    // NTL position always uses Smart Fit Analyzer — bypass the analyst-report lock
+    if (c.positionApplying === NTL_POSITION) {
+      console.log('[gradeOne] NTL position — routing to Smart Fit Analyzer');
+      const { analyseSmartFit } = require('../utils/smartFitAnalyst');
+      const { sequelize }       = require('../config/db');
+      const [cfgRows] = await sequelize.query(
+        'SELECT config FROM smart_fit_configs WHERE positionName = ?',
+        { replacements: [NTL_POSITION] }
+      );
+      if (!cfgRows.length) {
+        return res.status(400).json({ success: false, error: 'No Smart Fit config saved for NTL position. Open Smart Fit Analyzer and save a configuration first.' });
+      }
+      const config = JSON.parse(cfgRows[0].config);
+      const fit = await analyseSmartFit(c, NTL_POSITION, config);
+      if (!fit) {
+        return res.status(500).json({ success: false, error: 'Smart Fit Analyzer returned no result — check GROQ API key / connectivity' });
+      }
+      const score = fit.total;
+      const grade = score >= 75 ? 'A' : score >= 50 ? 'B' : score >= 25 ? 'C' : 'D';
+      await c.update({
+        grade,
+        gradeScore:  score,
+        gradeReason: (fit.summary || '').substring(0, 1000),
+        gradeSource: 'smart-fit',
+        updatedAt:   new Date()
+      });
+      await sequelize.query(
+        `INSERT INTO smart_fit_scores (candidateId, positionName, totalScore, breakdown, configSnapshot, analysedAt)
+         VALUES (?, ?, ?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE totalScore=VALUES(totalScore), breakdown=VALUES(breakdown),
+           configSnapshot=VALUES(configSnapshot), analysedAt=NOW()`,
+        { replacements: [c.id, NTL_POSITION, score, JSON.stringify(fit), JSON.stringify(config)] }
+      );
+      console.log('[gradeOne] NTL smart-fit grade:', grade, 'score:', score);
+      return res.json({ success: true, grade, score, source: 'smart-fit' });
+    }
+
     // Report is locked once set — never overwrite unless explicitly cleared from DB
     if (c.analystReport) {
       console.log('[gradeOne] report already exists — returning cached (locked)');
@@ -912,9 +952,6 @@ exports.gradeOne = async (req, res) => {
       try { cached = JSON.parse(c.analystReport); } catch(e) { cached = null; }
       if (cached && cached.tier) return res.json({ success: true, cached: true, report: cached });
     }
-
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) { console.log('[gradeOne] no API key'); return res.status(400).json({ success: false, error: 'GROQ_API_KEY not configured' }); }
 
     const pos = await Position.findOne({ where: { name: c.positionApplying } });
     const jdHtml = pos ? (pos.jdHtml || '') : '';
@@ -952,44 +989,7 @@ exports.gradeOne = async (req, res) => {
       }
     }
 
-    // NTL position uses Smart Fit Analyzer instead of Talent Analyst
-    if (c.positionApplying === NTL_POSITION) {
-      console.log('[gradeOne] NTL position — routing to Smart Fit Analyzer');
-      const { analyseSmartFit } = require('../utils/smartFitAnalyst');
-      const { sequelize }       = require('../config/db');
-      const [cfgRows] = await sequelize.query(
-        'SELECT config FROM smart_fit_configs WHERE positionName = ?',
-        { replacements: [NTL_POSITION] }
-      );
-      if (!cfgRows.length) {
-        return res.status(400).json({ success: false, error: 'No Smart Fit config saved for NTL position. Open Smart Fit Analyzer and save a configuration first.' });
-      }
-      const config = JSON.parse(cfgRows[0].config);
-      const fit = await analyseSmartFit(c, NTL_POSITION, config);
-      if (!fit) {
-        return res.status(500).json({ success: false, error: 'Smart Fit Analyzer returned no result — check GROQ API key / connectivity' });
-      }
-      const score = fit.total;
-      const grade = score >= 75 ? 'A' : score >= 50 ? 'B' : score >= 25 ? 'C' : 'D';
-      await c.update({
-        grade,
-        gradeScore:  score,
-        gradeReason: (fit.summary || '').substring(0, 1000),
-        gradeSource: 'smart-fit',
-        updatedAt:   new Date()
-      });
-      await sequelize.query(
-        `INSERT INTO smart_fit_scores (candidateId, positionName, totalScore, breakdown, configSnapshot, analysedAt)
-         VALUES (?, ?, ?, ?, ?, NOW())
-         ON DUPLICATE KEY UPDATE totalScore=VALUES(totalScore), breakdown=VALUES(breakdown),
-           configSnapshot=VALUES(configSnapshot), analysedAt=NOW()`,
-        { replacements: [c.id, NTL_POSITION, score, JSON.stringify(fit), JSON.stringify(config)] }
-      );
-      console.log('[gradeOne] NTL smart-fit grade:', grade, 'score:', score);
-      return res.json({ success: true, grade, score, source: 'smart-fit' });
-    }
-
-    const { analyseCandidate, reportToGrade, ntlCustomRubric } = require('../utils/talentAnalyst');
+    const { analyseCandidate, reportToGrade } = require('../utils/talentAnalyst');
     console.log('[gradeOne] calling analyseCandidate...');
     const report = await analyseCandidate(c, jdHtml, c.positionApplying, undefined);
     if (!report || !report.tier) {
