@@ -287,25 +287,78 @@
           </div>
           <% } %>
 
-          <!-- AI Talent Analyst Report -->
           <%
             let analystRpt = null;
             try { analystRpt = candidate.analystReport ? JSON.parse(candidate.analystReport) : null; } catch(e) {}
             const confBadge = { High: 'success', Medium: 'warning', Low: 'secondary' };
+            const NTL_POS   = 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR';
+            const isNTL     = candidate.positionApplying === NTL_POS;
+            const sfData    = typeof sfBreakdown !== 'undefined' ? sfBreakdown : null;
+            const lvlColor  = { High:'success', Medium:'warning', Low:'danger' };
+            const gc2       = { A:'success', B:'primary', C:'warning', D:'danger' };
           %>
-          <%
-            const NTL_POS = 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR';
-            const isNTL   = candidate.positionApplying === NTL_POS;
-          %>
+
+          <% if (isNTL) { %>
+          <!-- Smart Fit Analyzer Report (NTL) -->
+          <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(90deg,#1a3a1a,#2d5a2d);color:#fff;">
+              <h6 class="mb-0"><i class="bi bi-stars me-2" style="color:#ffd700;"></i>Smart Fit Analyzer Report</h6>
+              <div class="d-flex align-items-center gap-2">
+                <% if (sfData) { %>
+                <span class="badge bg-<%= gc2[candidate.grade]||'secondary' %>" style="font-size:13px;">
+                  Grade <%= candidate.grade %> · <%= sfData.total %>/100
+                </span>
+                <% } %>
+                <button class="btn btn-sm btn-outline-light" id="runSmartFitBtn" onclick="runSmartFitGrade()">
+                  <i class="bi bi-arrow-repeat me-1"></i>Re-grade
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <% if (!sfData) { %>
+              <p class="text-muted small mb-0">No Smart Fit analysis yet. Click <strong>Re-grade</strong> to analyse this candidate.</p>
+              <% } else { %>
+              <% if (sfData.summary) { %>
+              <div class="alert alert-light border-start border-success border-3 py-2 mb-3" style="font-size:13px;">
+                <strong>Summary:</strong> <%= sfData.summary %>
+              </div>
+              <% } %>
+              <% if (Array.isArray(sfData.params) && sfData.params.length) { %>
+              <div class="row g-3">
+                <% sfData.params.forEach(function(p) { %>
+                <div class="col-md-4">
+                  <div class="border rounded p-3 h-100" style="background:#fafff8;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="fw-semibold" style="font-size:13px;"><%= p.label %></span>
+                      <div class="d-flex align-items-center gap-1">
+                        <span class="fw-bold text-dark" style="font-size:13px;"><%= p.score %>/<%= p.max %></span>
+                        <span class="badge bg-<%= lvlColor[p.level]||'secondary' %>" style="font-size:10px;"><%= p.level %></span>
+                      </div>
+                    </div>
+                    <div class="progress mb-2" style="height:8px;border-radius:5px;">
+                      <div class="progress-bar bg-<%= lvlColor[p.level]||'secondary' %>"
+                           style="width:<%= Math.round((p.score/p.max)*100) %>%;"></div>
+                    </div>
+                    <% if (p.reason) { %>
+                    <div style="font-size:11px;color:#555;line-height:1.5;"><%= p.reason %></div>
+                    <% } %>
+                    <div class="mt-1" style="font-size:10px;color:#999;">Weight: <%= p.weight %>% · Weighted: <%= p.weighted %></div>
+                  </div>
+                </div>
+                <% }); %>
+              </div>
+              <% } %>
+              <% } %>
+            </div>
+          </div>
+
+          <% } else { %>
+          <!-- AI Talent Analyst Report (non-NTL positions) -->
           <div class="card shadow-sm mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h6 class="mb-0"><i class="bi bi-cpu me-2 text-gold"></i>AI Talent Analyst Report</h6>
               <div class="d-flex align-items-center gap-2">
-                <% if (isNTL) { %>
-                <button class="btn btn-sm btn-outline-success" id="runSmartFitBtn" onclick="runSmartFitGrade()">
-                  <i class="bi bi-stars me-1"></i>Grade with Smart Fit
-                </button>
-                <% } else if (analystRpt) { %>
+                <% if (analystRpt) { %>
                 <span class="badge bg-<%= {A:'success',B:'primary',C:'warning'}[analystRpt.tier] || 'secondary' %>">
                   Tier <%= analystRpt.tier %> · <%= analystRpt.weightedTotal %>/100
                 </span>
@@ -325,9 +378,7 @@
                 Motivation & Culture Fit 15%, Compensation Alignment 10%).
               </p>
               <% } else { %>
-
               <p class="small mb-3"><strong>Summary:</strong> <%= analystRpt.summary %></p>
-
               <% if (Array.isArray(analystRpt.dimensions) && analystRpt.dimensions.length) { %>
               <div class="table-responsive mb-3">
                 <table class="table table-sm table-bordered align-middle mb-0">
@@ -349,7 +400,6 @@
                 </table>
               </div>
               <% } %>
-
               <div class="row g-3">
                 <% if (Array.isArray(analystRpt.strengths) && analystRpt.strengths.length) { %>
                 <div class="col-md-6">
@@ -393,6 +443,7 @@
               <% } %>
             </div>
           </div>
+          <% } %>
 
           <% if (candidate.positionApplying === 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR') { %>
           <!-- News Tech Lab Interview + GD Invite -->

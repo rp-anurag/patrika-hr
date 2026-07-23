@@ -323,6 +323,19 @@ exports.candidateDetail = async (req, res) => {
     ]);
     if (!candidate) return res.status(404).send('Candidate not found');
 
+    // Load Smart Fit breakdown if this candidate has one
+    let sfBreakdown = null;
+    try {
+      const [sfRows] = await sequelize.query(
+        'SELECT totalScore, breakdown FROM smart_fit_scores WHERE candidateId = ? LIMIT 1',
+        { replacements: [candidate.id] }
+      );
+      if (sfRows.length) {
+        const parsed = JSON.parse(sfRows[0].breakdown);
+        sfBreakdown = { total: sfRows[0].totalScore, ...parsed };
+      }
+    } catch(e) {}
+
     res.render('admin/candidate-detail', {
       title:           `${candidate.fullName} – Patrika HR`,
       candidate,
@@ -332,7 +345,8 @@ exports.candidateDetail = async (req, res) => {
       adminRole:       req.session.adminRole,
       adminDepartment: req.session.adminDepartment,
       flash:           req.query.flash,
-      flashType:       req.query.flashType || 'success'
+      flashType:       req.query.flashType || 'success',
+      sfBreakdown
     });
   } catch (err) {
     console.error(err);
