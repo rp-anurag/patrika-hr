@@ -118,10 +118,11 @@ router.post('/talent-analyst/analyse', requireAdmin, talentAnalystController.ana
 
 // Smart Fit Analyzer
 const smartFitController = require('../controllers/smartFitController');
-router.get('/smart-fit',               requireAdmin, smartFitController.showPage);
-router.post('/smart-fit/config',       requireAdmin, smartFitController.saveConfig);
-router.post('/smart-fit/analyse',      requireAdmin, smartFitController.analyse);
-router.get('/smart-fit/scores',        requireAdmin, smartFitController.getScores);
+router.get('/smart-fit',                    requireAdmin, smartFitController.showPage);
+router.post('/smart-fit/config',           requireAdmin, smartFitController.saveConfig);
+router.post('/smart-fit/analyse',          requireAdmin, smartFitController.analyse);
+router.get('/smart-fit/scores',            requireAdmin, smartFitController.getScores);
+router.post('/smart-fit/grade-position',   requireAdmin, smartFitController.gradeFromSmartFit);
 
 // Manpower Requisitions
 router.post('/requisitions/send-form',   requireAdmin, requisitionController.sendFormToEmail);

@@ -265,6 +265,10 @@ exports.candidatesList = async (req, res) => {
     const statusCounts = {};
     statusRows.forEach(r => { statusCounts[r.status] = parseInt(r.count); });
 
+    // Positions that have a saved Smart Fit config (for the Smart Fit Grade All button)
+    const [sfCfgRows] = await sequelize.query('SELECT positionName FROM smart_fit_configs');
+    const smartFitPositions = sfCfgRows.map(r => r.positionName);
+
     res.render('admin/candidates', {
       title:           'Candidates – Patrika HR',
       candidates,
@@ -276,7 +280,8 @@ exports.candidatesList = async (req, res) => {
       adminName:       req.session.adminName,
       adminRole:       req.session.adminRole,
       adminDepartment: req.session.adminDepartment,
-      allPositions
+      allPositions,
+      smartFitPositions
     });
   } catch (err) {
     console.error(err);

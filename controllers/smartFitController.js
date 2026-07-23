@@ -158,6 +158,70 @@ exports.analyse = async (req, res) => {
 
 // ── load saved scores for a position ─────────────────────────────────────────
 
+// ── grade candidates from smart fit scores ────────────────────────────────────
+
+exports.gradeFromSmartFit = async (req, res) => {
+  try {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) return res.status(400).json({ error: 'GROQ_API_KEY not configured' });
+
+    const { positionName } = req.body;
+    if (!positionName) return res.status(400).json({ error: 'positionName required' });
+
+    // Load saved config for this position
+    const [cfgRows] = await sequelize.query(
+      'SELECT config FROM smart_fit_configs WHERE positionName = ?',
+      { replacements: [positionName] }
+    );
+    if (!cfgRows.length) {
+      return res.status(400).json({ error: 'No Smart Fit config saved for this position. Open Smart Fit Analyzer, configure parameters and save first.' });
+    }
+    const config = JSON.parse(cfgRows[0].config);
+
+    const candidates = await Candidate.findAll({
+      where: { positionApplying: positionName },
+      order: [['submittedAt', 'DESC']]
+    });
+
+    if (!candidates.length) return res.json({ success: true, updated: 0, failed: 0, total: 0 });
+
+    let updated = 0, failed = 0;
+    for (const c of candidates) {
+      const fit = await analyseSmartFit(c, positionName, config);
+      if (fit) {
+        const score = fit.total;
+        const grade = score >= 75 ? 'A' : score >= 50 ? 'B' : score >= 25 ? 'C' : 'D';
+
+        await c.update({
+          grade,
+          gradeScore:  score,
+          gradeReason: (fit.summary || '').substring(0, 1000),
+          gradeSource: 'smart-fit',
+          updatedAt:   new Date()
+        });
+
+        await sequelize.query(
+          `INSERT INTO smart_fit_scores (candidateId, positionName, totalScore, breakdown, configSnapshot, analysedAt)
+           VALUES (?, ?, ?, ?, ?, NOW())
+           ON DUPLICATE KEY UPDATE totalScore=VALUES(totalScore), breakdown=VALUES(breakdown),
+             configSnapshot=VALUES(configSnapshot), analysedAt=NOW()`,
+          { replacements: [c.id, positionName, score, JSON.stringify(fit), JSON.stringify(config)] }
+        );
+        updated++;
+      } else {
+        failed++;
+      }
+    }
+
+    res.json({ success: true, updated, failed, total: candidates.length });
+  } catch (err) {
+    console.error('smartFit gradeFromSmartFit error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ── load saved scores for a position ─────────────────────────────────────────
+
 exports.getScores = async (req, res) => {
   try {
     const { positionName } = req.query;

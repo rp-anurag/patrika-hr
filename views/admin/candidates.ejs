@@ -87,9 +87,23 @@
              class="btn btn-sm btn-outline-success">
             <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
           </a>
-          <button class="btn btn-sm btn-outline-secondary" id="gradeAllBtn" title="Re-grade all candidates based on JD match">
+          <%
+            const _sfPositions = typeof smartFitPositions !== 'undefined' ? smartFitPositions : [];
+            const _curPos      = (query && query.position) ? query.position : '';
+            const _useSF       = _curPos && _sfPositions.includes(_curPos);
+          %>
+          <% if (_useSF) { %>
+          <button class="btn btn-sm btn-outline-success" id="gradeAllBtn"
+            data-position="<%= _curPos %>" data-mode="smart-fit"
+            title="Grade all <%= _curPos %> candidates using Smart Fit Analyzer">
+            <i class="bi bi-stars me-1"></i>Smart Fit Grade All
+          </button>
+          <% } else { %>
+          <button class="btn btn-sm btn-outline-secondary" id="gradeAllBtn" data-mode="talent"
+            title="Re-grade all candidates based on JD match">
             <i class="bi bi-stars me-1"></i>Re-grade All
           </button>
+          <% } %>
           <button class="btn btn-sm btn-outline-primary" onclick="openResumesByPosition()" title="Download all resumes organized into folders by position">
             <i class="bi bi-folder-symlink me-1"></i>Resumes by Position
           </button>
@@ -525,24 +539,51 @@
     }
 
     document.getElementById('gradeAllBtn').addEventListener('click', async function() {
-      if (!confirm('Re-grade all candidates based on their resume vs job description match? This may take a moment.')) return;
+      const mode     = this.dataset.mode;
+      const position = this.dataset.position || '';
+      const isSmartFit = mode === 'smart-fit';
+
+      const msg = isSmartFit
+        ? `Run Smart Fit Analyzer for ALL candidates in:\n"${position}"\n\nThis will update their grade using Smart Fit scores. May take several minutes.`
+        : 'Re-grade all candidates based on their resume vs job description match? This may take a moment.';
+      if (!confirm(msg)) return;
+
       this.disabled = true;
-      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Grading...';
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Grading…';
+
       try {
-        const r = await fetch('/admin/candidates/grade-all', { method: 'POST' });
-        const d = await r.json();
-        if (d.success) {
-          this.innerHTML = '<i class="bi bi-check-lg me-1"></i>Done (' + d.updated + ')';
-          setTimeout(() => location.reload(), 800);
+        let r, d;
+        if (isSmartFit) {
+          r = await fetch('/admin/smart-fit/grade-position', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ positionName: position })
+          });
+          d = await r.json();
+          if (d.success) {
+            this.innerHTML = `<i class="bi bi-check-lg me-1"></i>Done (${d.updated} graded${d.failed ? ', ' + d.failed + ' failed' : ''})`;
+            setTimeout(() => location.reload(), 1200);
+          } else {
+            alert('Smart Fit grading failed: ' + (d.error || 'Unknown error'));
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-stars me-1"></i>Smart Fit Grade All';
+          }
         } else {
-          alert('Grading failed: ' + (d.error || 'Unknown error'));
-          this.disabled = false;
-          this.innerHTML = '<i class="bi bi-stars me-1"></i>Re-grade All';
+          r = await fetch('/admin/candidates/grade-all', { method: 'POST' });
+          d = await r.json();
+          if (d.success) {
+            this.innerHTML = '<i class="bi bi-check-lg me-1"></i>Done (' + d.updated + ')';
+            setTimeout(() => location.reload(), 800);
+          } else {
+            alert('Grading failed: ' + (d.error || 'Unknown error'));
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-stars me-1"></i>Re-grade All';
+          }
         }
       } catch(e) {
-        alert('Network error');
+        alert('Network error: ' + e.message);
         this.disabled = false;
-        this.innerHTML = '<i class="bi bi-stars me-1"></i>Re-grade All';
+        this.innerHTML = isSmartFit ? '<i class="bi bi-stars me-1"></i>Smart Fit Grade All' : '<i class="bi bi-stars me-1"></i>Re-grade All';
       }
     });
 
