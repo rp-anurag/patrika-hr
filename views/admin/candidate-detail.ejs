@@ -300,56 +300,124 @@
 
           <% if (isNTL) { %>
           <!-- Smart Fit Analyzer Report (NTL) -->
-          <div class="card shadow-sm mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(90deg,#1a3a1a,#2d5a2d);color:#fff;">
-              <h6 class="mb-0"><i class="bi bi-stars me-2" style="color:#ffd700;"></i>Smart Fit Analyzer Report</h6>
+          <div class="card shadow-sm mb-4" style="border:1.5px solid #28a74540;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:linear-gradient(90deg,#1b3a1b,#2e5e2e);color:#fff;">
               <div class="d-flex align-items-center gap-2">
-                <% if (sfData) { %>
-                <span class="badge bg-<%= gc2[candidate.grade]||'secondary' %>" style="font-size:13px;">
-                  Grade <%= candidate.grade %> · <%= sfData.total %>/100
+                <i class="bi bi-stars" style="color:#ffd700;font-size:16px;"></i>
+                <h6 class="mb-0 text-white">Smart Fit Analyzer Report</h6>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <% if (sfData && candidate.grade) { %>
+                <%
+                  const scoreColor = sfData.total >= 75 ? '#28a745' : sfData.total >= 50 ? '#0d6efd' : sfData.total >= 25 ? '#fd7e14' : '#dc3545';
+                  const gradeLabel = { A:'Excellent Fit', B:'Good Fit', C:'Partial Fit', D:'Poor Fit' };
+                %>
+                <span style="background:rgba(255,255,255,0.15);border-radius:8px;padding:4px 12px;font-size:13px;font-weight:600;color:#fff;">
+                  Grade <%= candidate.grade %> &nbsp;·&nbsp; <%= sfData.total %>/100
+                  <% if (gradeLabel[candidate.grade]) { %><span style="font-weight:400;font-size:11px;opacity:.85;"> · <%= gradeLabel[candidate.grade] %></span><% } %>
                 </span>
                 <% } %>
-                <button class="btn btn-sm btn-outline-light" id="runSmartFitBtn" onclick="runSmartFitGrade()">
+                <button class="btn btn-sm btn-outline-light" id="runSmartFitBtn" onclick="runSmartFitGrade()" style="font-size:12px;">
                   <i class="bi bi-arrow-repeat me-1"></i>Re-grade
                 </button>
               </div>
             </div>
+
+            <% if (!sfData) { %>
             <div class="card-body">
-              <% if (!sfData) { %>
               <p class="text-muted small mb-0">No Smart Fit analysis yet. Click <strong>Re-grade</strong> to analyse this candidate.</p>
-              <% } else { %>
-              <% if (sfData.summary) { %>
-              <div class="alert alert-light border-start border-success border-3 py-2 mb-3" style="font-size:13px;">
-                <strong>Summary:</strong> <%= sfData.summary %>
-              </div>
-              <% } %>
-              <% if (Array.isArray(sfData.params) && sfData.params.length) { %>
-              <div class="row g-3">
-                <% sfData.params.forEach(function(p) { %>
-                <div class="col-md-4">
-                  <div class="border rounded p-3 h-100" style="background:#fafff8;">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <span class="fw-semibold" style="font-size:13px;"><%= p.label %></span>
-                      <div class="d-flex align-items-center gap-1">
-                        <span class="fw-bold text-dark" style="font-size:13px;"><%= p.score %>/<%= p.max %></span>
-                        <span class="badge bg-<%= lvlColor[p.level]||'secondary' %>" style="font-size:10px;"><%= p.level %></span>
-                      </div>
-                    </div>
-                    <div class="progress mb-2" style="height:8px;border-radius:5px;">
-                      <div class="progress-bar bg-<%= lvlColor[p.level]||'secondary' %>"
-                           style="width:<%= Math.round((p.score/p.max)*100) %>%;"></div>
-                    </div>
-                    <% if (p.reason) { %>
-                    <div style="font-size:11px;color:#555;line-height:1.5;"><%= p.reason %></div>
-                    <% } %>
-                    <div class="mt-1" style="font-size:10px;color:#999;">Weight: <%= p.weight %>% · Weighted: <%= p.weighted %></div>
+            </div>
+            <% } else { %>
+
+            <%
+              const totalPct  = sfData.total || 0;
+              const scoreBar  = totalPct >= 75 ? 'success' : totalPct >= 50 ? 'primary' : totalPct >= 25 ? 'warning' : 'danger';
+            %>
+            <!-- Score bar -->
+            <div style="background:#f0fff0;padding:12px 20px 10px;border-bottom:1px solid #e0f0e0;">
+              <div class="d-flex align-items-center gap-3">
+                <div style="flex:1;">
+                  <div class="progress" style="height:10px;border-radius:6px;background:#dde;">
+                    <div class="progress-bar bg-<%= scoreBar %>" style="width:<%= totalPct %>%;transition:width .5s;border-radius:6px;"></div>
                   </div>
                 </div>
-                <% }); %>
+                <span class="fw-bold" style="font-size:15px;color:#1b3a1b;min-width:60px;text-align:right;"><%= totalPct %> / 100</span>
               </div>
-              <% } %>
-              <% } %>
             </div>
+
+            <!-- 2-col layout: params left, summary right -->
+            <div class="row g-0" style="min-height:200px;">
+
+              <!-- Parameter Breakdown -->
+              <div class="col-md-5" style="border-right:1px solid #e8f5e8;padding:16px 18px;">
+                <div class="text-uppercase fw-semibold mb-3" style="font-size:10px;letter-spacing:.08em;color:#2e5e2e;">
+                  <i class="bi bi-bar-chart-line me-1"></i>Parameter Breakdown
+                </div>
+                <% if (Array.isArray(sfData.params)) { sfData.params.forEach(function(p) { %>
+                <div class="mb-3">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="fw-semibold" style="font-size:12.5px;"><%= p.label %></span>
+                    <div class="d-flex align-items-center gap-1">
+                      <span class="fw-bold" style="font-size:12px;"><%= p.score %>/<%= p.max %></span>
+                      <span class="badge bg-<%= lvlColor[p.level]||'secondary' %>" style="font-size:9px;padding:2px 6px;"><%= p.level %></span>
+                    </div>
+                  </div>
+                  <div class="progress mb-1" style="height:5px;border-radius:4px;background:#e8f0e8;">
+                    <div class="progress-bar bg-<%= lvlColor[p.level]||'secondary' %>"
+                         style="width:<%= Math.round((p.score/p.max)*100) %>%;border-radius:4px;"></div>
+                  </div>
+                  <% if (p.reason) { %>
+                  <div style="font-size:11px;color:#555;line-height:1.45;"><%= p.reason %></div>
+                  <% } %>
+                </div>
+                <% }); } %>
+              </div>
+
+              <!-- Summary + Weight table -->
+              <div class="col-md-7" style="padding:16px 20px;background:#fafff8;">
+                <% if (sfData.summary) { %>
+                <div class="text-uppercase fw-semibold mb-2" style="font-size:10px;letter-spacing:.08em;color:#2e5e2e;">
+                  <i class="bi bi-chat-quote me-1"></i>Overall Assessment
+                </div>
+                <p style="font-size:13px;line-height:1.7;color:#333;margin-bottom:18px;"><%= sfData.summary %></p>
+                <% } %>
+                <% if (Array.isArray(sfData.params)) { %>
+                <div class="text-uppercase fw-semibold mb-2" style="font-size:10px;letter-spacing:.08em;color:#2e5e2e;">
+                  <i class="bi bi-table me-1"></i>Score Breakdown
+                </div>
+                <table class="table table-sm mb-0" style="font-size:12px;">
+                  <thead style="background:#e8f5e8;">
+                    <tr>
+                      <th style="font-weight:600;">Parameter</th>
+                      <th class="text-center" style="font-weight:600;">Score</th>
+                      <th class="text-center" style="font-weight:600;">Weight</th>
+                      <th class="text-center" style="font-weight:600;">Contribution</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% sfData.params.forEach(function(p) { %>
+                    <tr>
+                      <td><%= p.label %></td>
+                      <td class="text-center">
+                        <span class="badge bg-<%= p.score>=4?'success':p.score>=3?'primary':p.score>=2?'warning':'danger' %>" style="font-size:10px;">
+                          <%= p.score %>/<%= p.max %>
+                        </span>
+                      </td>
+                      <td class="text-center text-muted"><%= p.weight %>%</td>
+                      <td class="text-center fw-semibold"><%= p.weighted %></td>
+                    </tr>
+                    <% }); %>
+                    <tr style="background:#e8f5e8;font-weight:700;">
+                      <td colspan="3" class="text-end">Total Score</td>
+                      <td class="text-center"><%= sfData.total %>/100</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <% } %>
+              </div>
+
+            </div>
+            <% } %>
           </div>
 
           <% } else { %>
