@@ -293,11 +293,19 @@
             try { analystRpt = candidate.analystReport ? JSON.parse(candidate.analystReport) : null; } catch(e) {}
             const confBadge = { High: 'success', Medium: 'warning', Low: 'secondary' };
           %>
+          <%
+            const NTL_POS = 'NEWS TECH LAB- JUNIOR JOURNALIST (20 OPENINGS)- JAIPUR';
+            const isNTL   = candidate.positionApplying === NTL_POS;
+          %>
           <div class="card shadow-sm mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h6 class="mb-0"><i class="bi bi-cpu me-2 text-gold"></i>AI Talent Analyst Report</h6>
               <div class="d-flex align-items-center gap-2">
-                <% if (analystRpt) { %>
+                <% if (isNTL) { %>
+                <button class="btn btn-sm btn-outline-success" id="runSmartFitBtn" onclick="runSmartFitGrade()">
+                  <i class="bi bi-stars me-1"></i>Grade with Smart Fit
+                </button>
+                <% } else if (analystRpt) { %>
                 <span class="badge bg-<%= {A:'success',B:'primary',C:'warning'}[analystRpt.tier] || 'secondary' %>">
                   Tier <%= analystRpt.tier %> · <%= analystRpt.weightedTotal %>/100
                 </span>
@@ -1013,6 +1021,28 @@
       alert('Network error: ' + e.message);
       btn.disabled = false;
       btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i><%= analystRpt ? "Re-analyse" : "Run Analysis" %>';
+    }
+  }
+
+  // ── Smart Fit Grade (NTL position) ───────────────────────────────────────
+  async function runSmartFitGrade() {
+    const btn = document.getElementById('runSmartFitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Grading...';
+    try {
+      const r = await fetch('/admin/candidate/<%= candidate.id %>/grade', { method: 'POST' });
+      const d = await r.json();
+      if (d.success) {
+        location.reload();
+      } else {
+        alert('Smart Fit grading failed: ' + (d.error || 'Unknown error'));
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars me-1"></i>Grade with Smart Fit';
+      }
+    } catch(e) {
+      alert('Network error: ' + e.message);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-stars me-1"></i>Grade with Smart Fit';
     }
   }
 
