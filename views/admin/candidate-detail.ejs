@@ -218,6 +218,8 @@
                   <label class="detail-label">JD Match Grade
                     <% if (candidate.gradeSource === 'ai-analyst') { %>
                     <span class="badge bg-primary ms-1" style="font-size:10px;">🧠 Talent Analyst</span>
+                    <% } else if (candidate.gradeSource === 'smart-fit') { %>
+                    <span class="badge bg-success ms-1" style="font-size:10px;">⭐ Smart Fit Analyzer</span>
                     <% } else if (candidate.gradeSource === 'ai') { %>
                     <span class="badge bg-info text-dark ms-1" style="font-size:10px;">🤖 AI-graded</span>
                     <% } else { %>
