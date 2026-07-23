@@ -273,6 +273,7 @@ exports.candidatesList = async (req, res) => {
     let sfBreakdowns = {};
     const isSmartFitView = position && smartFitPositions.includes(position);
     if (isSmartFitView && candidates.length) {
+      const { PARAM_META } = require('../utils/smartFitAnalyst');
       const ids = candidates.map(c => c.id);
       const [sfRows] = await sequelize.query(
         `SELECT candidateId, totalScore, breakdown FROM smart_fit_scores
@@ -280,7 +281,23 @@ exports.candidatesList = async (req, res) => {
         { replacements: [position] }
       );
       sfRows.forEach(r => {
-        try { sfBreakdowns[r.candidateId] = { total: r.totalScore, ...JSON.parse(r.breakdown) }; } catch(e) {}
+        try {
+          const parsed = JSON.parse(r.breakdown);
+          const params = Object.keys(parsed.config || {}).map(key => {
+            const s      = (parsed.scores || {})[key] || {};
+            const weight = parsed.config[key] || 0;
+            const score  = Math.min(5, Math.max(1, parseInt(s.score) || 1));
+            return {
+              key,
+              label:    (PARAM_META[key] && PARAM_META[key].label) || key,
+              score, max: 5, weight,
+              weighted: Math.round((score / 5) * weight),
+              level:    s.confidence || 'Low',
+              reason:   s.evidence   || ''
+            };
+          });
+          sfBreakdowns[r.candidateId] = { total: r.totalScore, summary: parsed.summary || '', params };
+        } catch(e) {}
       });
     }
 
@@ -326,15 +343,32 @@ exports.candidateDetail = async (req, res) => {
     // Load Smart Fit breakdown if this candidate has one
     let sfBreakdown = null;
     try {
+      const { PARAM_META } = require('../utils/smartFitAnalyst');
       const [sfRows] = await sequelize.query(
         'SELECT totalScore, breakdown FROM smart_fit_scores WHERE candidateId = ? LIMIT 1',
         { replacements: [candidate.id] }
       );
       if (sfRows.length) {
         const parsed = JSON.parse(sfRows[0].breakdown);
-        sfBreakdown = { total: sfRows[0].totalScore, ...parsed };
+        // Transform scores object + config weights → params array for the view
+        const params = Object.keys(parsed.config || {}).map(key => {
+          const s      = (parsed.scores || {})[key] || {};
+          const weight = parsed.config[key] || 0;
+          const score  = Math.min(5, Math.max(1, parseInt(s.score) || 1));
+          return {
+            key,
+            label:    (PARAM_META[key] && PARAM_META[key].label) || key,
+            score,
+            max:      5,
+            weight,
+            weighted: Math.round((score / 5) * weight),
+            level:    s.confidence || 'Low',
+            reason:   s.evidence   || ''
+          };
+        });
+        sfBreakdown = { total: sfRows[0].totalScore, summary: parsed.summary || '', params };
       }
-    } catch(e) {}
+    } catch(e) { console.error('sfBreakdown error:', e.message); }
 
     res.render('admin/candidate-detail', {
       title:           `${candidate.fullName} – Patrika HR`,
